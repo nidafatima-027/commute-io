@@ -65,6 +65,12 @@ export default function TabLayout() {
           href: null, // Hide this tab
         }}
       />
+      <Tabs.Screen
+        name="create-recurring-ride"
+        options={{
+          href: null, // Hide this tab
+        }}
+      />
     <Tabs.Screen
         name="setting"
         options={{
@@ -103,6 +109,18 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="profile_screens/ride_history"
+        options={{
+          href: null, // Hide this tab
+        }}
+      />
+       <Tabs.Screen
+        name="offer-ride"
+        options={{
+          href: null, // Hide this tab
+        }}
+      />
+      <Tabs.Screen
+        name="join-requests"
         options={{
           href: null, // Hide this tab
         }}

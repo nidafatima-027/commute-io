@@ -4,95 +4,102 @@ import { ArrowLeft, Save } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-
-export default function EditProfileScreen () {
+export default function EditProfileScreen() {
   const [name, setName] = React.useState('Sophia Carter');
   const [email, setEmail] = React.useState('sophia.carter@example.com');
   const [phone, setPhone] = React.useState('(555) 123-4567');
   const [vehicle, setVehicle] = React.useState('Toyota Camry 2020');
 
   const handleBack = () => {
-            router.push('/(tabs)/profile');
-    };
+    router.push('/(tabs)/profile');
+  };
+
+  const handleSave = () => {
+    // Handle save logic here
+    router.push('/(tabs)/profile');
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-    
-
-    
-      {/* Content */}
       <ScrollView showsVerticalScrollIndicator={false}>
-      {/* Header */}
+        {/* Header */}
         <View style={styles.header}>
-            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                <ArrowLeft size={24} color="#2d3748" />
-            </TouchableOpacity>
-            <Text style={styles.title}> Edit Profile</Text>
-            <View style={{ width: 28 }} />
+          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+            <ArrowLeft size={24} color="#2d3748" />
+          </TouchableOpacity>
+          <Text style={styles.title}>Edit Profile</Text>
+          <View style={styles.placeholder} />
         </View>
 
+        {/* Profile Section */}
         <View style={styles.profileSection}>
-                  <View style={styles.avatarContainer}>
-                    <Image
-                      source={require('../../../assets/images/images.jpeg')}
-                      style={styles.avatar}
-                    />
-                  </View>
-                  <Text style={styles.name}>Sophia Carter</Text>
-                  <Text style={styles.email}>Member since 2021</Text>
-                </View>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Name</Text>
-          <TextInput
-            style={styles.input}
-            value={name}
-            onChangeText={setName}
-            placeholder="Full Name"
-          />
+          <View style={styles.avatarContainer}>
+            <Image
+              source={{ uri: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=200' }}
+              style={styles.avatar}
+            />
+          </View>
+          <Text style={styles.name}>Sophia Carter</Text>
+          <Text style={styles.memberSince}>Member since 2021</Text>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Email</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="Email Address"
-            keyboardType="email-address"
-          />
-        </View>
+        {/* Form Fields */}
+        <View style={styles.formContainer}>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Name</Text>
+            <TextInput
+              style={styles.input}
+              value={name}
+              onChangeText={setName}
+              placeholder="Full Name"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Phone Number</Text>
-          <TextInput
-            style={styles.input}
-            value={phone}
-            onChangeText={setPhone}
-            placeholder="Phone Number"
-            keyboardType="phone-pad"
-          />
-        </View>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Email</Text>
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Email Address"
+              keyboardType="email-address"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Vehicle (if applicable)</Text>
-          <TextInput
-            style={styles.input}
-            value={vehicle}
-            onChangeText={setVehicle}
-            placeholder="Vehicle Details"
-          />
-        </View>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Phone Number</Text>
+            <TextInput
+              style={styles.input}
+              value={phone}
+              onChangeText={setPhone}
+              placeholder="Phone Number"
+              keyboardType="phone-pad"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
 
-        <View style={styles.section}>
-            <TouchableOpacity style={styles.saveButton} onPress={handleBack}>
-            <Save size={20} color="#fff" />
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Vehicle (if applicable)</Text>
+            <TextInput
+              style={styles.input}
+              value={vehicle}
+              onChangeText={setVehicle}
+              placeholder="Vehicle Details"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
+
+          {/* Save Button */}
+          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
             <Text style={styles.saveButtonText}>Save Changes</Text>
-            </TouchableOpacity>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -119,6 +126,9 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Bold',
     color: '#2d3748',
   },
+  placeholder: {
+    width: 40,
+  },
   profileSection: {
     alignItems: 'center',
     paddingVertical: 32,
@@ -139,57 +149,49 @@ const styles = StyleSheet.create({
     color: '#2d3748',
     marginBottom: 4,
   },
-  email: {
+  memberSince: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
     color: '#9CA3AF',
   },
-  profileInfo: {
-    marginBottom: 8,
-  },
-  profileName: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  memberSince: {
-    fontSize: 14,
-    color: '#666',
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  section: {
+  formContainer: {
     paddingHorizontal: 24,
-    marginBottom: 32,
+    paddingBottom: 40,
   },
-  sectionTitle: {
+  inputGroup: {
+    marginBottom: 24,
+  },
+  label: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'Inter-SemiBold',
+    color: '#2d3748',
     marginBottom: 8,
-    color: '#555',
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    padding: 16,
     fontSize: 16,
-    backgroundColor: '#fff',
+    fontFamily: 'Inter-Regular',
+    color: '#2d3748',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
   saveButton: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: '#4ECDC4',
-    padding: 16,
-    borderRadius: 8,
-    marginTop: 16,
+    borderRadius: 25,
+    padding: 18,
+    alignItems: 'center',
+    marginTop: 20,
+    shadowColor: '#4ECDC4',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   saveButtonText: {
-    color: '#fff',
+    color: '#ffffff',
     fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
+    fontFamily: 'Inter-SemiBold',
   },
 });

@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
-import { ChevronDown, X, Clock, ArrowLeft} from 'lucide-react-native';
+import { ArrowLeft, X, Clock } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
-export default function RidesHistoryScreen () {
-   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
-    
+export default function RideHistoryScreen() {
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
+  
   const handleBack = () => {
     router.push('/(tabs)/profile');
-    };
+  };
 
+  const handleReschedule = () => {
+    router.push('/(tabs)/create-recurring-ride');
+  };
 
   // Sample ride data
   const driverRides = [
@@ -22,9 +25,11 @@ export default function RidesHistoryScreen () {
       details: '2 seats available',
       action: 'Cancel',
       secondaryAction: 'Reschedule',
-      image: require('../../../assets/images/ride.png'), // Replace with your image
-    }];
-    const riderRides =[
+      image: 'https://images.pexels.com/photos/378570/pexels-photo-378570.jpeg?auto=compress&cs=tinysrgb&w=400',
+    }
+  ];
+
+  const riderRides = [
     {
       id: 2,
       type: 'rider',
@@ -33,20 +38,20 @@ export default function RidesHistoryScreen () {
       details: 'Driver: Omar',
       action: 'Cancel',
       secondaryAction: 'Reschedule',
-      image: require('../../../assets/images/ride.png'), // Replace with your image
+      image: 'https://images.pexels.com/photos/378570/pexels-photo-378570.jpeg?auto=compress&cs=tinysrgb&w=400',
     },
   ];
 
   return (
-        <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
             <ArrowLeft size={24} color="#2d3748" />
           </TouchableOpacity>
-          <Text style={styles.title}>Rides History</Text>
-          <View style={styles.editButtonPlaceholder} />
+          <Text style={styles.title}>Ride History</Text>
+          <View style={styles.placeholder} />
         </View>
 
         {/* Tabs */}
@@ -55,13 +60,17 @@ export default function RidesHistoryScreen () {
             style={[styles.tab, activeTab === 'upcoming' && styles.activeTab]}
             onPress={() => setActiveTab('upcoming')}
           >
-            <Text style={[styles.tabText, activeTab === 'upcoming' && styles.activeTabText]}>Upcoming</Text>
+            <Text style={[styles.tabText, activeTab === 'upcoming' && styles.activeTabText]}>
+              Upcoming
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.tab, activeTab === 'past' && styles.activeTab]}
             onPress={() => setActiveTab('past')}
           >
-            <Text style={[styles.tabText, activeTab === 'past' && styles.activeTabText]}>Past</Text>
+            <Text style={[styles.tabText, activeTab === 'past' && styles.activeTabText]}>
+              Past
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -80,13 +89,13 @@ export default function RidesHistoryScreen () {
                     <X size={16} color="#ff4444" />
                     <Text style={styles.cancelText}>{ride.action}</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.rescheduleButton}>
+                  <TouchableOpacity style={styles.rescheduleButton} onPress={handleReschedule}>
                     <Clock size={16} color="#3b82f6" />
                     <Text style={styles.rescheduleText}>{ride.secondaryAction}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
-              <Image source={ride.image} style={styles.rideImage} />
+              <Image source={{ uri: ride.image }} style={styles.rideImage} />
             </View>
           ))}
 
@@ -103,20 +112,20 @@ export default function RidesHistoryScreen () {
                     <X size={16} color="#ff4444" />
                     <Text style={styles.cancelText}>{ride.action}</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.rescheduleButton}>
+                  <TouchableOpacity style={styles.rescheduleButton} onPress={handleReschedule}>
                     <Clock size={16} color="#3b82f6" />
                     <Text style={styles.rescheduleText}>{ride.secondaryAction}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
-              <Image source={ride.image} style={styles.rideImage} />
+              <Image source={{ uri: ride.image }} style={styles.rideImage} />
             </View>
           ))}
         </View>
       </ScrollView>
     </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -143,14 +152,13 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Bold',
     color: '#2d3748',
   },
-  editButtonPlaceholder: {
+  placeholder: {
     width: 40,
-    height: 40,
   },
   tabContainer: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#E5E7EB',
   },
   tab: {
     flex: 1,
@@ -159,15 +167,15 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: '#3b82f6',
+    borderBottomColor: '#4ECDC4',
   },
   tabText: {
     fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#666',
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
   },
   activeTabText: {
-    color: '#3b82f6',
+    color: '#4ECDC4',
     fontFamily: 'Inter-SemiBold',
   },
   content: {
@@ -183,15 +191,17 @@ const styles = StyleSheet.create({
   rideCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     borderRadius: 12,
     marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
     elevation: 2,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
   },
   rideImage: {
     width: 100,

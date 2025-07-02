@@ -12,6 +12,10 @@ export default function HomeScreen() {
     router.push('/(tabs)/setting');
   };
 
+   const handleOfferRide = () => {
+    router.push('/(tabs)/offer-ride');
+  };
+
   const suggestedRides = [
     {
       id: 1,
@@ -114,7 +118,7 @@ export default function HomeScreen() {
           <>
             {/* Offer a Ride Button */}
             <View style={styles.offerRideContainer}>
-              <TouchableOpacity style={styles.offerRideButton}>
+              <TouchableOpacity style={styles.offerRideButton} onPress={handleOfferRide}>
                 <Text style={styles.offerRideButtonText}>Offer a Ride</Text>
               </TouchableOpacity>
             </View>
