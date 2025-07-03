@@ -7,11 +7,11 @@ import { Mail, Phone } from 'lucide-react-native';
 
 export default function SignupScreen() {
   const handleEmailSignup = () => {
-    router.push('/auth/profile-setup');
+    router.push('/auth/EmailPage');
   };
 
   const handlePhoneSignup = () => {
-    router.push('/auth/profile-setup');
+    router.push('/auth/PhoneNumberPage');
   };
 
   return (
