@@ -199,12 +199,15 @@ export default function ProfileSetupScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Optional</Text>
             
-            <TouchableOpacity style={styles.optionItem}>
+            <TouchableOpacity style={styles.optionItem}
+            onPress={() => router.push('/auth/DailySchedule')}>
+
               <Text style={styles.optionText}>Set Daily Schedule</Text>
               <ChevronRight size={20} color="#9CA3AF" />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.optionItem}>
+            <TouchableOpacity style={styles.optionItem}
+            onPress={() => router.push('/auth/PreferredpickupLocation')}>
               <Text style={styles.optionText}>Preferred Pickup Locations</Text>
               <ChevronRight size={20} color="#9CA3AF" />
             </TouchableOpacity>
