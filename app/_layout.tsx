@@ -40,7 +40,13 @@ export default function RootLayout() {
         <Stack.Screen name="auth/signup" />
         <Stack.Screen name="auth/profile-setup" />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="auth/DailySchedule" />
+        <Stack.Screen name="auth/PhoneNumberPage" />
+        <Stack.Screen name="auth/PhoneOTP" />
         <Stack.Screen name="+not-found" />
+        <Stack.Screen name="auth/PreferredpickupLocation" />
+        <Stack.Screen name="auth/EmailOTP" />
+        <Stack.Screen name="auth/EmailPage" />
       </Stack>
       <StatusBar style="auto" />
     </>

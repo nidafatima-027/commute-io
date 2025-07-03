@@ -298,12 +298,20 @@ const handleSave = () => {
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Optional</Text>
-            {['Set Daily Schedule', 'Preferred Pickup Locations'].map((text) => (
-              <TouchableOpacity style={styles.optionItem} key={text}>
-                <Text style={styles.optionText}>{text}</Text>
-                <ChevronRight size={20} color="#9CA3AF" />
-              </TouchableOpacity>
-            ))}
+
+            
+            <TouchableOpacity style={styles.optionItem}
+            onPress={() => router.push('/auth/DailySchedule')}>
+
+              <Text style={styles.optionText}>Set Daily Schedule</Text>
+              <ChevronRight size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.optionItem}
+            onPress={() => router.push('/auth/PreferredpickupLocation')}>
+              <Text style={styles.optionText}>Preferred Pickup Locations</Text>
+              <ChevronRight size={20} color="#9CA3AF" />
+            </TouchableOpacity>
           </View>
 
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
