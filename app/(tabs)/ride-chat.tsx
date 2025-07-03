@@ -1,7 +1,7 @@
 import React from 'react';
 import {
-  SafeAreaView,
   ScrollView,
+  TouchableOpacity,
   View,
   Text,
   StyleSheet,
@@ -9,16 +9,25 @@ import {
   TextInput,
 } from 'react-native';
 import { ArrowLeft } from 'lucide-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { router } from 'expo-router';
 
 export default function RideChatScreen() {
+    const handleBack = () => {
+        router.push('/(tabs)');
+      };
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View style={styles.header}>
-          <ArrowLeft size={24} color="black" />
-          <Text style={styles.title}>Ride Chat</Text>
-        </View>
+         <View style={styles.header}>
+                  <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+                    <ArrowLeft size={24} color="#2d3748" />
+                  </TouchableOpacity>
+                  <Text style={styles.title}>Ride Chat</Text>
+                  <View style={styles.placeholder} />
+                </View>
 
         {/* Chat Content */}
         <View style={styles.content}>
@@ -142,17 +151,32 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
-    paddingBottom: 10,
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F9FAFB',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginLeft: 12,
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    color: '#2d3748',
+  },
+  placeholder: {
+    width: 40,
   },
   content: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
+    paddingHorizontal: 24,
+    paddingBottom: 24,
   },
   messageRow: {
     flexDirection: 'row',
