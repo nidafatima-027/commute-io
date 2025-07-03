@@ -1,5 +1,7 @@
 import React, { useRef, useState } from "react";
 import { router } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
+
 import {
   View,
   Text,
@@ -11,12 +13,17 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 
-
+const formatPhone = (number) => {
+  const digits = number.replace(/\D/g, '');
+  if (digits.startsWith('92') && digits.length === 12) {
+    return `+92-${digits.slice(2, 5)}-${digits.slice(5)}`;
+  }
+  return number;
+};
 
 const PhoneVerificationScreen = () => {
+  const { phone } = useLocalSearchParams();  // <-- Get phone number
   const [code, setCode] = useState(["", "", "", "", "", ""]);
-
-  // Refs for auto-focusing next inputs
   const inputs = useRef([]);
 
   const handleChange = (text, index) => {
@@ -24,14 +31,12 @@ const PhoneVerificationScreen = () => {
       const newCode = [...code];
       newCode[index] = text;
       setCode(newCode);
-
-      // Move to next input if filled
       if (text && index < 5) {
         inputs.current[index + 1].focus();
       }
     }
   };
-  
+
   const handleVerify = () => {
     const enteredCode = code.join('');
     console.log('Entered code:', enteredCode);
@@ -40,6 +45,14 @@ const PhoneVerificationScreen = () => {
 
   const handleBack = () => {
     router.push('/auth/PhoneNumberPage');
+  };
+
+  const formatPhone = (number) => {
+    const digits = number.replace(/\D/g, '');
+    if (digits.startsWith('92') && digits.length === 12) {
+      return `+92-${digits.slice(2, 5)}-${digits.slice(5)}`;
+    }
+    return number;
   };
 
   return (
@@ -61,7 +74,7 @@ const PhoneVerificationScreen = () => {
         <View style={styles.content}>
           <Text style={styles.title}>Enter the code</Text>
           <Text style={styles.subtitle}>
-            We sent a verification code to +1-XXX-XXX-XXXX
+            We sent a verification code to {formatPhone(phone)}
           </Text>
 
           {/* Code Inputs */}
