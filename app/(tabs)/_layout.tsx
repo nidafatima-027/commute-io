@@ -143,6 +143,13 @@ export default function TabLayout() {
           href: null, // Hide this tab
         }}
       />
+
+
+        
+
+      
+    
+
     </Tabs>
   );
 }
