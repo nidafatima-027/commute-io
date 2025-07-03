@@ -47,6 +47,7 @@ export default function RootLayout() {
         <Stack.Screen name="auth/PreferredpickupLocation" />
         <Stack.Screen name="auth/EmailOTP" />
         <Stack.Screen name="auth/EmailPage" />
+        <Stack.Screen name="auth/AddLocationScreen" />
       </Stack>
       <StatusBar style="auto" />
     </>

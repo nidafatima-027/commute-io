@@ -18,6 +18,7 @@ export default function PreferedPickupLocations() {
 
      const handleAddNewLocation = () => {
     // TODO: Implement add location functionality
+    router.push('/auth/AddLocationScreen')
     console.log('Add new location pressed');
   };
 
