@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Switch, Image } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Switch, KeyboardTypeOptions } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Upload, ChevronRight } from 'lucide-react-native';
+import DropDownPicker from 'react-native-dropdown-picker';
 
 export default function ProfileSetupScreen() {
   const [formData, setFormData] = useState({
@@ -16,20 +17,102 @@ export default function ProfileSetupScreen() {
     numberPlate: '',
     numberOfSeats: '',
     acAvailable: false,
+    preferences: '',
+    
+    
+    
   });
+const [errors, setErrors] = useState<Partial<Record<FormField, string>>>({});
 
-  const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  type FormField = keyof typeof formData;
+
+  const [openGender, setOpenGender] = useState(false);
+  const [genderItems, setGenderItems] = useState([
+    { label: 'Male', value: 'male' },
+    { label: 'Female', value: 'female' },
+    { label: 'Other', value: 'other' },
+  ]);
+const validateForm = (): boolean => {
+  const newErrors: Partial<Record<FormField, string>> = {};
+
+  // Name validation
+  if (!formData.name.trim()) {
+    newErrors.name = 'Name is required.';
+  } else if (!/^[A-Za-z\s]+$/.test(formData.name.trim())) {
+    newErrors.name = 'Name must contain only letters.';
+  } else if (formData.name.trim().length > 50) {
+    newErrors.name = 'Name must be 50 characters or fewer.';
+  }
+
+  // Email validation
+  if (!formData.email.trim()) {
+    newErrors.email = 'Email is required.';
+  } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+    newErrors.email = 'Invalid email format.';
+  }
+
+  // Gender validation
+  if (!formData.gender) {
+    newErrors.gender = 'Gender is required.';
+  }
+
+  // Phone Number validation
+  if (!formData.phoneNumber.trim()) {
+    newErrors.phoneNumber = 'Phone number is required.';
+  } else if (!/^\d{10,15}$/.test(formData.phoneNumber)) {
+    newErrors.phoneNumber = 'Invalid phone number.';
+  }
+
+  // Vehicle details validation
+  if (formData.selectedMode === 'Driver' || formData.selectedMode === 'Both') {
+    if (!formData.vehicleMake.trim()) {
+      newErrors.vehicleMake = 'Vehicle make is required.';
+    } else if (formData.vehicleMake.trim().length > 30) {
+      newErrors.vehicleMake = 'Vehicle make must be 30 characters or fewer.';
+    }
+
+    if (!formData.vehicleModel.trim()) {
+      newErrors.vehicleModel = 'Vehicle model is required.';
+    } else if (formData.vehicleModel.trim().length > 30) {
+      newErrors.vehicleModel = 'Vehicle model must be 30 characters or fewer.';
+    }
+
+    if (!formData.numberPlate.trim()) {
+      newErrors.numberPlate = 'Number plate is required.';
+    } else if (formData.numberPlate.trim().length > 15) {
+      newErrors.numberPlate = 'Number plate must be 15 characters or fewer.';
+    }
+
+    if (!formData.numberOfSeats.trim()) {
+      newErrors.numberOfSeats = 'Number of seats is required.';
+    } else if (!/^\d+$/.test(formData.numberOfSeats)) {
+      newErrors.numberOfSeats = 'Number of seats must be a number.';
+    } else if (parseInt(formData.numberOfSeats) <= 0 || parseInt(formData.numberOfSeats) > 20) {
+      newErrors.numberOfSeats = 'Number of seats must be between 1 and 20.';
+    }
+  }
+
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
+
+
+  const handleInputChange = (field: FormField, value: string | boolean) => {
+  setFormData(prev => ({ ...prev, [field]: value }));
+  setErrors(prev => ({ ...prev, [field]: undefined }));
+};
+
 
   const handleModeSelect = (mode: string) => {
     setFormData(prev => ({ ...prev, selectedMode: mode }));
   };
 
-  const handleSave = () => {
-    // Handle form submission
+const handleSave = () => {
+  if (validateForm()) {
     router.replace('/(tabs)');
-  };
+  }
+};
+
 
   const handleBack = () => {
     router.back();
@@ -52,7 +135,7 @@ export default function ProfileSetupScreen() {
         <View style={styles.content}>
           {/* Basic Information */}
           <View style={styles.section}>
-            <View style={styles.inputGroup}>
+          <View style={styles.inputGroup}>
               <Text style={styles.label}>Name</Text>
               <TextInput
                 style={styles.input}
@@ -61,6 +144,10 @@ export default function ProfileSetupScreen() {
                 placeholder="Enter your name"
                 placeholderTextColor="#9CA3AF"
               />
+              {errors.name && (
+    <Text style={styles.errorText}>{errors.name}</Text>
+  )}
+              
             </View>
 
             <View style={styles.inputGroup}>
@@ -74,17 +161,50 @@ export default function ProfileSetupScreen() {
                 keyboardType="email-address"
                 autoCapitalize="none"
               />
+              {errors.email && (
+  <Text style={styles.errorText}>{errors.email}</Text>
+)}
+
+            </View>
+
+            <View style={[styles.inputGroup, { zIndex: 1000 }]}>
+              <Text style={styles.label}>Gender</Text>
+              <DropDownPicker
+  open={openGender}
+  value={formData.gender}
+  items={genderItems}
+  setOpen={setOpenGender}
+  setValue={(callback) => {
+    const newValue = callback(formData.gender);
+    handleInputChange('gender', newValue ?? '');
+  }}
+  setItems={setGenderItems}
+  placeholder="Select gender"
+  style={styles.dropdown}
+  dropDownContainerStyle={styles.dropdownContainer}
+  placeholderStyle={styles.placeholderText}
+  textStyle={styles.dropdownText}
+  listMode="SCROLLVIEW"
+/>
+
+
+
+
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Gender</Text>
+              <Text style={styles.label}>Preferences</Text>
               <TextInput
                 style={styles.input}
-                value={formData.gender}
-                onChangeText={(value) => handleInputChange('gender', value)}
-                placeholder="Select gender"
+                value={formData.preferences}
+                onChangeText={(value) => handleInputChange('preferences', value)}
+                placeholder="Preferences for Future Rides"
                 placeholderTextColor="#9CA3AF"
               />
+              {errors.preferences && (
+  <Text style={styles.errorText}>{errors.preferences}</Text>
+)}
+
             </View>
 
             <View style={styles.inputGroup}>
@@ -97,6 +217,10 @@ export default function ProfileSetupScreen() {
                 placeholderTextColor="#9CA3AF"
                 keyboardType="phone-pad"
               />
+              {errors.phoneNumber && (
+  <Text style={styles.errorText}>{errors.phoneNumber}</Text>
+)}
+
             </View>
 
             <View style={styles.inputGroup}>
@@ -136,52 +260,29 @@ export default function ProfileSetupScreen() {
           {showVehicleDetails && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Vehicle Details</Text>
-              
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Make</Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.vehicleMake}
-                  onChangeText={(value) => handleInputChange('vehicleMake', value)}
-                  placeholder="Make"
-                  placeholderTextColor="#9CA3AF"
-                />
-              </View>
 
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Model</Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.vehicleModel}
-                  onChangeText={(value) => handleInputChange('vehicleModel', value)}
-                  placeholder="Model"
-                  placeholderTextColor="#9CA3AF"
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Number Plate</Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.numberPlate}
-                  onChangeText={(value) => handleInputChange('numberPlate', value)}
-                  placeholder="Number Plate"
-                  placeholderTextColor="#9CA3AF"
-                  autoCapitalize="characters"
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Number of Seats</Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.numberOfSeats}
-                  onChangeText={(value) => handleInputChange('numberOfSeats', value)}
-                  placeholder="Number of Seats"
-                  placeholderTextColor="#9CA3AF"
-                  keyboardType="numeric"
-                />
-              </View>
+              {[
+                { label: 'Make', field: 'vehicleMake', placeholder: 'Make' },
+                { label: 'Model', field: 'vehicleModel', placeholder: 'Model' },
+                { label: 'Number Plate', field: 'numberPlate', placeholder: 'Number Plate' },
+                { label: 'Number of Seats', field: 'numberOfSeats', placeholder: 'Number of Seats', keyboardType: 'numeric' as KeyboardTypeOptions },
+              ].map(({ label, field, placeholder, keyboardType }) => (
+                <View style={styles.inputGroup} key={field}>
+                  <Text style={styles.label}>{label}</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData[field as FormField] as string}
+                    onChangeText={(value) => handleInputChange(field as FormField, value)}
+                    placeholder={placeholder}
+                    placeholderTextColor="#9CA3AF"
+                    keyboardType={keyboardType}
+                    autoCapitalize={field === 'numberPlate' ? 'characters' : 'none'}
+                  />
+                   {errors[field as FormField] && (
+          <Text style={styles.errorText}>{errors[field as FormField]}</Text>
+        )}
+                </View>
+              ))}
 
               <View style={styles.switchGroup}>
                 <Text style={styles.label}>AC Available</Text>
@@ -189,33 +290,26 @@ export default function ProfileSetupScreen() {
                   value={formData.acAvailable}
                   onValueChange={(value) => handleInputChange('acAvailable', value)}
                   trackColor={{ false: '#E5E7EB', true: '#4ECDC4' }}
-                  thumbColor={formData.acAvailable ? '#ffffff' : '#ffffff'}
+                  thumbColor="#ffffff"
                 />
               </View>
             </View>
           )}
 
-          {/* Optional Section */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Optional</Text>
-            
-            <TouchableOpacity style={styles.optionItem}>
-              <Text style={styles.optionText}>Set Daily Schedule</Text>
-              <ChevronRight size={20} color="#9CA3AF" />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.optionItem}>
-              <Text style={styles.optionText}>Preferred Pickup Locations</Text>
-              <ChevronRight size={20} color="#9CA3AF" />
-            </TouchableOpacity>
+            {['Set Daily Schedule', 'Preferred Pickup Locations'].map((text) => (
+              <TouchableOpacity style={styles.optionItem} key={text}>
+                <Text style={styles.optionText}>{text}</Text>
+                <ChevronRight size={20} color="#9CA3AF" />
+              </TouchableOpacity>
+            ))}
           </View>
 
-          {/* Save Button */}
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
             <Text style={styles.saveButtonText}>Save</Text>
           </TouchableOpacity>
 
-          {/* Terms */}
           <Text style={styles.termsText}>
             By continuing, you agree to our{' '}
             <Text style={styles.linkText}>Terms of Service</Text> and{' '}
@@ -226,6 +320,11 @@ export default function ProfileSetupScreen() {
     </SafeAreaView>
   );
 }
+
+
+
+
+// Styles remain unchanged (same as in your provided code)
 
 const styles = StyleSheet.create({
   container: {
@@ -250,6 +349,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  errorText: {
+  color: '#E53E3E',
+  fontSize: 12,
+  marginTop: 4,
+  fontFamily: 'Inter-Regular',
+},
+
   title: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
@@ -257,6 +363,10 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     width: 40,
+  },
+   placeholderText: {
+    color: '#9CA3AF',
+    fontFamily: 'Inter-Regular',
   },
   content: {
     paddingHorizontal: 24,
@@ -271,6 +381,38 @@ const styles = StyleSheet.create({
     color: '#2d3748',
     marginBottom: 16,
   },
+dropdown: {
+  backgroundColor: '#ffffff',
+  borderRadius: 12,
+  borderWidth: 1,
+  borderColor: '#E5E7EB',
+  paddingHorizontal: 12,
+  height: 48,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 1 },
+  shadowOpacity: 0.05,
+  shadowRadius: 4,
+  elevation: 1,
+},
+dropdownContainer: {
+  backgroundColor: '#ffffff',
+  borderWidth: 1,
+  borderColor: '#E5E7EB',
+  borderRadius: 12,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 8,
+  elevation: 2,
+  zIndex: 1000,
+},
+
+dropdownText: {
+  color: '#2d3748',
+  fontFamily: 'Inter-Regular',
+  fontSize: 16,
+},
+
   inputGroup: {
     marginBottom: 20,
   },
@@ -295,6 +437,26 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 1,
   },
+  pickerStyledWrapper: {
+  backgroundColor: '#ffffff',
+  borderRadius: 12,
+  borderWidth: 1,
+  borderColor: '#E5E7EB',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 1 },
+  shadowOpacity: 0.05,
+  shadowRadius: 4,
+  elevation: 1,
+  overflow: 'hidden',
+},
+pickerStyled: {
+  height: 48,
+  color: '#2d3748',
+  paddingHorizontal: 12,
+  fontSize: 16,
+  fontFamily: 'Inter-Regular',
+},
+
   uploadButton: {
     flexDirection: 'row',
     alignItems: 'center',
