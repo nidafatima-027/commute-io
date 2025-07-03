@@ -11,15 +11,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 
-
-
 const EmailVerificationScreen = () => {
-  const [code, setCode] = useState(["", "", "", "", "", ""]);
+  const [code, setCode] = useState<string[]>(["", "", "", "", "", ""]);
 
   // Refs for auto-focusing next inputs
-  const inputs = useRef([]);
+  const inputs = useRef<Array<TextInput | null>>([]);
 
-  const handleChange = (text, index) => {
+  // Check if all digits are entered
+  const isCodeComplete = code.every((digit) => digit.length === 1);
+
+  const handleChange = (text: string, index: number) => {
     if (/^[0-9]?$/.test(text)) {
       const newCode = [...code];
       newCode[index] = text;
@@ -27,11 +28,16 @@ const EmailVerificationScreen = () => {
 
       // Move to next input if filled
       if (text && index < 5) {
-        inputs.current[index + 1].focus();
+        inputs.current[index + 1]?.focus();
+      }
+
+      // If deleting, move back
+      if (!text && index > 0) {
+        inputs.current[index - 1]?.focus();
       }
     }
   };
-  
+
   const handleVerify = () => {
     const enteredCode = code.join('');
     console.log('Entered code:', enteredCode);
@@ -43,7 +49,7 @@ const EmailVerificationScreen = () => {
   };
 
   return (
-     <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
@@ -69,9 +75,11 @@ const EmailVerificationScreen = () => {
             {code.map((digit, index) => (
               <TextInput
                 key={index}
-                ref={(ref) => (inputs.current[index] = ref)}
+ref={(ref) => {
+  inputs.current[index] = ref;
+}}
                 style={styles.codeInput}
-                keyboardType="numeric"
+                keyboardType="number-pad"
                 maxLength={1}
                 value={digit}
                 onChangeText={(text) => handleChange(text, index)}
@@ -85,7 +93,14 @@ const EmailVerificationScreen = () => {
           </TouchableOpacity>
 
           {/* Verify Button */}
-          <TouchableOpacity style={styles.verifyButton} onPress={handleVerify}>
+          <TouchableOpacity
+            style={[
+              styles.verifyButton,
+              !isCodeComplete && { opacity: 0.5 },
+            ]}
+            onPress={handleVerify}
+            disabled={!isCodeComplete}
+          >
             <Text style={styles.verifyButtonText}>Verify</Text>
           </TouchableOpacity>
         </View>

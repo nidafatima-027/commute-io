@@ -57,11 +57,12 @@ const validateForm = (): boolean => {
   }
 
   // Phone Number validation
-  if (!formData.phoneNumber.trim()) {
-    newErrors.phoneNumber = 'Phone number is required.';
-  } else if (!/^\d{10,15}$/.test(formData.phoneNumber)) {
-    newErrors.phoneNumber = 'Invalid phone number.';
-  }
+ if (!formData.phoneNumber.trim()) {
+  newErrors.phoneNumber = 'Phone number is required.';
+} else if (!/^\+92\d{10}$/.test(formData.phoneNumber)) {
+  newErrors.phoneNumber = 'Invalid Pakistani phone number. Format: +92XXXXXXXXXX';
+}
+
 
   // Vehicle details validation
   if (formData.selectedMode === 'Driver' || formData.selectedMode === 'Both') {
@@ -146,12 +147,8 @@ const handleSave = () => {
               />
               {errors.name && (
     <Text style={styles.errorText}>{errors.name}</Text>
-  )}
-              
-            </View>
-                        </View>
-
-
+  )}</View>
+                        
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Email</Text>
               <TextInput
@@ -325,6 +322,7 @@ const handleSave = () => {
   <Text style={styles.linkText}>Terms of Service</Text> and{' '}
   <Text style={styles.linkText}>Privacy Policy</Text>
 </Text>
+</View>
 
         
       </ScrollView>

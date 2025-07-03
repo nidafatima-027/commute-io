@@ -13,11 +13,16 @@ export default function OnboardingScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+     
       <LinearGradient
         colors={['#f8fffe', '#e6f9f7']}
         style={styles.gradient}
       >
         <View style={styles.content}>
+           <View>
+                    <Text style={styles.title}>Commute_io</Text>
+
+      </View>
           <View style={styles.illustrationContainer}>
             <Image
               source={ require('../assets/images/logo.png')}

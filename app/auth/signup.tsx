@@ -19,7 +19,7 @@ export default function SignupScreen() {
       <View style={styles.content}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.appName}>Carpool</Text>
+          <Text style={styles.appName}>Commute_io</Text>
           <Text style={styles.title}>Get started</Text>
         </View>
 

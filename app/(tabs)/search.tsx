@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Image } from "react-native";
 import { ArrowLeft, Search } from "lucide-react-native"; // example icons; install lucide-react-native or use react-native-vector-icons
 import { FontAwesome } from '@expo/vector-icons';
+import { router, useLocalSearchParams } from 'expo-router';
 
 export default function FindRideScreen() {
   const rides = [
@@ -30,12 +31,15 @@ export default function FindRideScreen() {
       avatar: "",
     },
   ];
+    const handleBack = () => {
+      router.back();
+    };
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={handleBack}>
           <ArrowLeft color="#121717" size={24} />
         </TouchableOpacity>
         <Text style={styles.title}>Find a Ride</Text>
@@ -80,7 +84,8 @@ export default function FindRideScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFFFFF", 
-    justifyContent:"center"
+    justifyContent:"center",
+   paddingTop:45,
   },
   header: {
     flexDirection: "row",
