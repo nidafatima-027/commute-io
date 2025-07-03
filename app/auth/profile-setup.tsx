@@ -149,6 +149,8 @@ const handleSave = () => {
   )}
               
             </View>
+                        </View>
+
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Email</Text>
@@ -296,13 +298,13 @@ const handleSave = () => {
             </View>
           )}
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Optional</Text>
-            <View style={styles.section}>
+<View style={styles.section}>
+  <Text style={styles.sectionTitle}>Optional</Text>
+
   <TouchableOpacity
     style={styles.optionItem}
     onPress={() => router.push('/auth/DailySchedule')}>
-    <Text style={styles.optionText}>Set Daily Schedule</Text>
+    <Text style={styles.optionText}>Daily Schedule</Text>
     <ChevronRight size={20} color="#9CA3AF" />
   </TouchableOpacity>
 
@@ -314,18 +316,17 @@ const handleSave = () => {
   </TouchableOpacity>
 </View>
 
-          </View>
+<TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+  <Text style={styles.saveButtonText}>Save</Text>
+</TouchableOpacity>
 
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-            <Text style={styles.saveButtonText}>Save</Text>
-          </TouchableOpacity>
+<Text style={styles.termsText}>
+  By continuing, you agree to our{' '}
+  <Text style={styles.linkText}>Terms of Service</Text> and{' '}
+  <Text style={styles.linkText}>Privacy Policy</Text>
+</Text>
 
-          <Text style={styles.termsText}>
-            By continuing, you agree to our{' '}
-            <Text style={styles.linkText}>Terms of Service</Text> and{' '}
-            <Text style={styles.linkText}>Privacy Policy</Text>
-          </Text>
-        </View>
+        
       </ScrollView>
     </SafeAreaView>
   );
