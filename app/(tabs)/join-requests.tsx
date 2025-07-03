@@ -6,12 +6,25 @@ import { router } from 'expo-router';
 
 export default function JoinRequestsScreen() {
   const handleBack = () => {
-    router.back();
+    router.push('/(tabs)/create-recurring-ride');
   };
 
-  const handleViewRequest = (requestId: number) => {
-    // Handle viewing individual request details
-    console.log('View request:', requestId);
+  const handleViewRequest = (request: any) => {
+    // Navigate to ride request screen with driver details
+    router.push({
+      pathname: '/(tabs)/ride-request-screen',
+      params: {
+        driverId: request.id,
+        driverName: request.name,
+        driverRating: request.rating,
+        driverRides: request.rides,
+        driverImage: request.image,
+        driverBio: request.bio,
+        route: rideInfo.route,
+        time: rideInfo.time,
+        seats: rideInfo.seats,
+      }
+    });
   };
 
   const rideInfo = {
@@ -27,6 +40,7 @@ export default function JoinRequestsScreen() {
       rating: 4.8,
       rides: 12,
       image: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
+      bio: 'Friendly and reliable driver with 3+ years of carpooling experience. I enjoy good conversations and always keep my car clean and comfortable. Non-smoker and punctual.',
     },
     {
       id: 2,
@@ -34,6 +48,7 @@ export default function JoinRequestsScreen() {
       rating: 4.9,
       rides: 25,
       image: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=150',
+      bio: 'Professional commuter who values safety and comfort. I drive a spacious SUV with AC and prefer quiet rides. Always on time and happy to help with luggage.',
     },
     {
       id: 3,
@@ -41,6 +56,7 @@ export default function JoinRequestsScreen() {
       rating: 4.7,
       rides: 8,
       image: 'https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=150',
+      bio: 'Student driver offering affordable rides to fellow students. I drive a compact car, perfect for city commutes. Love music and good company during rides.',
     },
   ];
 
@@ -87,11 +103,14 @@ export default function JoinRequestsScreen() {
                       </View>
                       <Text style={styles.ridesText}>• {request.rides} rides</Text>
                     </View>
+                    <Text style={styles.bioPreview} numberOfLines={2}>
+                      {request.bio}
+                    </Text>
                   </View>
                 </View>
                 <TouchableOpacity 
                   style={styles.viewButton}
-                  onPress={() => handleViewRequest(request.id)}
+                  onPress={() => handleViewRequest(request)}
                 >
                   <Text style={styles.viewButtonText}>View</Text>
                 </TouchableOpacity>
@@ -188,7 +207,7 @@ const styles = StyleSheet.create({
   },
   requestCard: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     backgroundColor: '#ffffff',
     borderRadius: 16,
@@ -204,8 +223,9 @@ const styles = StyleSheet.create({
   },
   requestInfo: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     flex: 1,
+    marginRight: 16,
   },
   avatar: {
     width: 50,
@@ -225,6 +245,7 @@ const styles = StyleSheet.create({
   userStats: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 8,
   },
   ratingContainer: {
     flexDirection: 'row',
@@ -242,11 +263,18 @@ const styles = StyleSheet.create({
     color: '#4ECDC4',
     marginLeft: 4,
   },
+  bioPreview: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    color: '#718096',
+    lineHeight: 16,
+  },
   viewButton: {
     backgroundColor: '#F3F4F6',
     borderRadius: 20,
     paddingHorizontal: 20,
     paddingVertical: 10,
+    alignSelf: 'flex-start',
   },
   viewButtonText: {
     fontSize: 14,

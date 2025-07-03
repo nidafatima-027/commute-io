@@ -15,7 +15,20 @@ export default function RideHistoryScreen() {
     router.push('/(tabs)/create-recurring-ride');
   };
 
-  // Sample ride data
+  const handleRidePress = (ride: any) => {
+    // Navigate to ride summary screen with ride details
+    router.push({
+      pathname: '/(tabs)/ride-summary',
+      params: {
+        driverName: ride.driverName || 'Driver',
+        distance: '12.5 mi',
+        duration: '25 min',
+        cost: '$15.00',
+      }
+    });
+  };
+
+  // Sample ride data matching the design
   const driverRides = [
     {
       id: 1,
@@ -25,7 +38,8 @@ export default function RideHistoryScreen() {
       details: '2 seats available',
       action: 'Cancel',
       secondaryAction: 'Reschedule',
-      image: 'https://images.pexels.com/photos/378570/pexels-photo-378570.jpeg?auto=compress&cs=tinysrgb&w=400',
+      image: 'https://images.pexels.com/photos/120049/pexels-photo-120049.jpeg?auto=compress&cs=tinysrgb&w=400',
+      driverName: 'You',
     }
   ];
 
@@ -38,7 +52,8 @@ export default function RideHistoryScreen() {
       details: 'Driver: Omar',
       action: 'Cancel',
       secondaryAction: 'Reschedule',
-      image: 'https://images.pexels.com/photos/378570/pexels-photo-378570.jpeg?auto=compress&cs=tinysrgb&w=400',
+      image: 'https://images.pexels.com/photos/120049/pexels-photo-120049.jpeg?auto=compress&cs=tinysrgb&w=400',
+      driverName: 'Omar',
     },
   ];
 
@@ -50,7 +65,7 @@ export default function RideHistoryScreen() {
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
             <ArrowLeft size={24} color="#2d3748" />
           </TouchableOpacity>
-          <Text style={styles.title}>Ride History</Text>
+          <Text style={styles.title}>Rides History</Text>
           <View style={styles.placeholder} />
         </View>
 
@@ -80,45 +95,53 @@ export default function RideHistoryScreen() {
           <Text style={styles.sectionTitle}>As a Driver</Text>
           {driverRides.map((ride) => (
             <View key={ride.id} style={styles.rideCard}>
-              <View style={styles.rideDetails}>
-                <Text style={styles.rideDate}>{ride.date}</Text>
-                <Text style={styles.rideRoute}>{ride.route}</Text>
-                <Text style={styles.rideInfo}>{ride.details}</Text>
-                <View style={styles.actionContainer}>
-                  <TouchableOpacity style={styles.cancelButton}>
-                    <X size={16} color="#ff4444" />
-                    <Text style={styles.cancelText}>{ride.action}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.rescheduleButton} onPress={handleReschedule}>
-                    <Clock size={16} color="#3b82f6" />
-                    <Text style={styles.rescheduleText}>{ride.secondaryAction}</Text>
-                  </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.rideContent}
+                onPress={() => handleRidePress(ride)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.rideDetails}>
+                  <Text style={styles.rideDate}>{ride.date}</Text>
+                  <Text style={styles.rideRoute}>{ride.route}</Text>
+                  <Text style={styles.rideInfo}>{ride.details}</Text>
                 </View>
+                <Image source={{ uri: ride.image }} style={styles.rideImage} />
+              </TouchableOpacity>
+              <View style={styles.actionContainer}>
+                <TouchableOpacity style={styles.cancelButton}>
+                  <Text style={styles.cancelText}>{ride.action}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.rescheduleButton} onPress={handleReschedule}>
+                  <Text style={styles.rescheduleText}>{ride.secondaryAction}</Text>
+                </TouchableOpacity>
               </View>
-              <Image source={{ uri: ride.image }} style={styles.rideImage} />
             </View>
           ))}
 
           {/* Rider Section */}
-          <Text style={[styles.sectionTitle, { marginTop: 24 }]}>As a Rider</Text>
+          <Text style={[styles.sectionTitle, { marginTop: 32 }]}>As a Rider</Text>
           {riderRides.map((ride) => (
             <View key={ride.id} style={styles.rideCard}>
-              <View style={styles.rideDetails}>
-                <Text style={styles.rideDate}>{ride.date}</Text>
-                <Text style={styles.rideRoute}>{ride.route}</Text>
-                <Text style={styles.rideInfo}>{ride.details}</Text>
-                <View style={styles.actionContainer}>
-                  <TouchableOpacity style={styles.cancelButton}>
-                    <X size={16} color="#ff4444" />
-                    <Text style={styles.cancelText}>{ride.action}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.rescheduleButton} onPress={handleReschedule}>
-                    <Clock size={16} color="#3b82f6" />
-                    <Text style={styles.rescheduleText}>{ride.secondaryAction}</Text>
-                  </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.rideContent}
+                onPress={() => handleRidePress(ride)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.rideDetails}>
+                  <Text style={styles.rideDate}>{ride.date}</Text>
+                  <Text style={styles.rideRoute}>{ride.route}</Text>
+                  <Text style={styles.rideInfo}>{ride.details}</Text>
                 </View>
+                <Image source={{ uri: ride.image }} style={styles.rideImage} />
+              </TouchableOpacity>
+              <View style={styles.actionContainer}>
+                <TouchableOpacity style={styles.cancelButton}>
+                  <Text style={styles.cancelText}>{ride.action}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.rescheduleButton} onPress={handleReschedule}>
+                  <Text style={styles.rescheduleText}>{ride.secondaryAction}</Text>
+                </TouchableOpacity>
               </View>
-              <Image source={{ uri: ride.image }} style={styles.rideImage} />
             </View>
           ))}
         </View>
@@ -137,9 +160,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    paddingVertical: 20,
   },
   backButton: {
     width: 40,
@@ -157,16 +178,17 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    paddingHorizontal: 24,
+    marginBottom: 24,
   },
   tab: {
-    flex: 1,
-    padding: 16,
-    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginRight: 24,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
   },
   activeTab: {
-    borderBottomWidth: 2,
     borderBottomColor: '#4ECDC4',
   },
   tabText: {
@@ -175,25 +197,22 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
   },
   activeTabText: {
-    color: '#4ECDC4',
+    color: '#2d3748',
     fontFamily: 'Inter-SemiBold',
   },
   content: {
     paddingHorizontal: 24,
-    paddingVertical: 16,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
+    fontSize: 24,
+    fontFamily: 'Inter-Bold',
     color: '#2d3748',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   rideCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     backgroundColor: '#ffffff',
-    borderRadius: 12,
-    marginBottom: 16,
+    borderRadius: 16,
+    marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -203,56 +222,67 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#F3F4F6',
   },
+  rideContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
   rideImage: {
-    width: 100,
-    height: 120,
+    width: 120,
+    height: 100,
     resizeMode: 'cover',
   },
   rideDetails: {
     flex: 1,
-    padding: 16,
+    padding: 20,
+    justifyContent: 'center',
   },
   rideDate: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#6B7280',
-    marginBottom: 4,
+    fontFamily: 'Inter-Medium',
+    color: '#4ECDC4',
+    marginBottom: 8,
   },
   rideRoute: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
     color: '#2d3748',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   rideInfo: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
-    color: '#6B7280',
-    marginBottom: 12,
+    color: '#4ECDC4',
   },
   actionContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    gap: 12,
   },
   cancelButton: {
-    flexDirection: 'row',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    flex: 1,
     alignItems: 'center',
-    marginRight: 16,
   },
   cancelText: {
     fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#ff4444',
-    marginLeft: 4,
+    fontFamily: 'Inter-SemiBold',
+    color: '#6B7280',
   },
   rescheduleButton: {
-    flexDirection: 'row',
+    backgroundColor: '#4ECDC4',
+    borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    flex: 1,
     alignItems: 'center',
   },
   rescheduleText: {
     fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#3b82f6',
-    marginLeft: 4,
+    fontFamily: 'Inter-SemiBold',
+    color: '#ffffff',
   },
 });

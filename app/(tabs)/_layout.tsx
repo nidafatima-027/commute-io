@@ -125,6 +125,24 @@ export default function TabLayout() {
           href: null, // Hide this tab
         }}
       />
+      <Tabs.Screen
+        name="ride-request-screen"
+        options={{
+          href: null, // Hide this tab
+        }}
+      />
+      <Tabs.Screen
+        name="ride-in-progress"
+        options={{
+          href: null, // Hide this tab
+        }}
+      />
+      <Tabs.Screen
+        name="ride-summary"
+        options={{
+          href: null, // Hide this tab
+        }}
+      />
     </Tabs>
   );
 }
