@@ -16,6 +16,11 @@ export default function HomeScreen() {
     router.push('/(tabs)/offer-ride');
   };
 
+  const handleRideChat = () => {
+    // Navigate to chat screen
+    router.push('/(tabs)/ride-chat');
+  }
+
   const suggestedRides = [
     {
       id: 1,
@@ -210,9 +215,9 @@ export default function HomeScreen() {
           </>
         )}
       </ScrollView>
-
+ 
       {/* Floating Chat Button */}
-      <TouchableOpacity style={styles.floatingChatButton}>
+      <TouchableOpacity style={styles.floatingChatButton} onPress={handleRideChat}>
         <MessageCircle size={24} color="#ffffff" />
       </TouchableOpacity>
     </SafeAreaView>

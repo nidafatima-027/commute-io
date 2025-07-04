@@ -17,17 +17,29 @@ const { width } = Dimensions.get("window");
 const EmailScreen = () => {
   const [email, setEmail] = useState("");
 
+
   const isEmailValid = (email: string) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regex.test(email);
   };
+
 
   const handleBack = () => {
     router.push("/auth/signup");
   };
 
   const handleNext = () => {
-    router.push("/auth/EmailOTP");
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
+    if (emailRegex.test(email)) { 
+      router.push({ // change
+        pathname: '/auth/EmailOTP', // change
+        params: { email }, // change
+      }); // change
+    } else { // change
+      alert("Please enter a valid email address."); // change
+    } // change
+
   };
 
   return (

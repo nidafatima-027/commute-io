@@ -1,5 +1,8 @@
 import React, { useRef, useState } from "react";
-import { router } from "expo-router";
+
+import { router } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
+
 import {
   View,
   Text,
@@ -7,15 +10,26 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { ArrowLeft } from "lucide-react-native";
 
+
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { ArrowLeft } from 'lucide-react-native';
+
+const formatPhone = (number) => {
+  const digits = number.replace(/\D/g, '');
+  if (digits.startsWith('92') && digits.length === 12) {
+    return `+92-${digits.slice(2, 5)}-${digits.slice(5)}`;
+  }
+  return number;
+};
 const PhoneVerificationScreen = () => {
   const [code, setCode] = useState<string[]>(["", "", "", "", "", ""]);
 
   // Refs for auto-focusing next inputs
   const inputs = useRef<Array<TextInput | null>>([]);
+
+  const { phone } = useLocalSearchParams();  // <-- Get phone number
 
   // Check if all digits are entered
   const isCodeComplete = code.every((digit) => digit.length === 1);
@@ -25,8 +39,6 @@ const PhoneVerificationScreen = () => {
       const newCode = [...code];
       newCode[index] = text;
       setCode(newCode);
-
-      // Move to next input if filled
       if (text && index < 5) {
         inputs.current[index + 1]?.focus();
       }
@@ -48,6 +60,14 @@ const PhoneVerificationScreen = () => {
     router.push("/auth/PhoneNumberPage");
   };
 
+  const formatPhone = (number) => {
+    const digits = number.replace(/\D/g, '');
+    if (digits.startsWith('92') && digits.length === 12) {
+      return `+92-${digits.slice(2, 5)}-${digits.slice(5)}`;
+    }
+    return number;
+  };
+
   return (
   <SafeAreaView style={styles.container}>
     <ScrollView
@@ -63,12 +83,13 @@ const PhoneVerificationScreen = () => {
         <View style={{ width: 40 }} />
       </View>
 
-      {/* Content */}
-      <View style={styles.content}>
-        <Text style={styles.title}>Enter the code</Text>
-        <Text style={styles.subtitle}>
-          We sent a verification code to +1-XXX-XXX-XXXX
-        </Text>
+
+        {/* Content */}
+        <View style={styles.content}>
+          <Text style={styles.title}>Enter the code</Text>
+          <Text style={styles.subtitle}>
+            We sent a verification code to {formatPhone(phone)}
+          </Text>
 
         {/* Code Inputs */}
         <View style={styles.codeContainer}>

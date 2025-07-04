@@ -50,6 +50,7 @@ export default function TabLayout() {
           ),
         }}
       />
+      
       <Tabs.Screen
         name="profile"
         options={{
@@ -61,6 +62,12 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="rides"
+        options={{
+          href: null, // Hide this tab
+        }}
+      />
+      <Tabs.Screen
+        name="ride-chat"
         options={{
           href: null, // Hide this tab
         }}

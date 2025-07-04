@@ -1,77 +1,90 @@
-import React, { useState } from "react";
-import { View, ScrollView, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions } from "react-native";
+import React, { useState } from 'react';
+import { View, Text, TextInput, Image, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { ArrowLeft } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft } from 'lucide-react-native';
 
-const { width } = Dimensions.get("window");
-
-const PhoneNumberScreen = () => {
-  const [phone, setPhone] = useState("");
+const AddLocationScreen = () => {
+  const [label, setLabel] = useState('');
+  const [address, setAddress] = useState('');
+  const [search, setSearch] = useState('');
 
   const handleBack = () => {
-    router.push('/auth/signup');
-
+    router.back();
   };
-
-  const handleNext = () => {
-  const cleaned = phone.replace(/\D/g, ''); // remove non-digit characters
-
-  if (cleaned.length === 11 && cleaned.startsWith('03')) {
-    const formattedPhone = `+92${cleaned.slice(1)}`; // convert 03XX to +923XX
-    router.push({
-      pathname: '/auth/PhoneOTP',
-      params: { phone: formattedPhone },
-    });
-  } else {
-    alert("Please enter a valid Pakistani phone number (e.g. 03XX-XXXXXXX)");
-  }
-};
-
-  
-  
+    const handleSave = () => {
+    router.push('/auth/PreferredpickupLocation');
+  };
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }}>
+     <SafeAreaView style={styles.container}>
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
             <ArrowLeft size={24} color="#2d3748" />
           </TouchableOpacity>
-          <Text style={styles.headerText}>Verification</Text>
+          <Text style={styles.headerText}>Add New Location</Text>
           <View style={styles.placeholder} />
         </View>
 
         {/* Content */}
         <View style={styles.content}>
-          <Text style={styles.title}>Enter your phone number</Text>
-
+          {/* Search Field */}
           <TextInput
             style={styles.input}
-            placeholder="03XX-XXXXXXX"
+            placeholder="Search for a location"
             placeholderTextColor="#9CA3AF"
-            keyboardType="phone-pad"
-            value={phone}
-            onChangeText={setPhone}
+            value={search}
+            onChangeText={setSearch}
           />
 
-          <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-            <Text style={styles.nextButtonText}>Next</Text>
+          {/* Map Preview */}
+          <Image
+            source={require('@/assets/images/map-preview.png')}
+            style={styles.mapImage}
+            resizeMode="cover"
+          />
+
+          {/* Label Input */}
+          <TextInput
+            style={styles.input}
+            placeholder="e.g. Home, Office, Gym"
+            placeholderTextColor="#9CA3AF"
+            value={label}
+            onChangeText={setLabel}
+          />
+
+          {/* Address Input */}
+          <TextInput
+            style={styles.input}
+            placeholder="123 Main St, Anytown"
+            placeholderTextColor="#9CA3AF"
+            value={address}
+            onChangeText={setAddress}
+          />
+
+          {/* Save Button */}
+          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+            <Text style={styles.saveButtonText}>Save Location</Text>
           </TouchableOpacity>
         </View>
 
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            By continuing, you agree to our Terms of Service and Privacy Policy.
+            By saving, you agree to provide accurate location details for better ride matching.
           </Text>
         </View>
       </ScrollView>
     </SafeAreaView>
+
   );
 };
 
-export default PhoneNumberScreen;
+export default AddLocationScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -106,14 +119,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingVertical: 24,
-  },
-  title: {
-    fontSize: 22,
-    fontFamily: 'Inter-SemiBold',
-    color: '#2d3748',
-    textAlign: 'center',
-    marginBottom: 24,
+    paddingTop: 24,
   },
   input: {
     backgroundColor: '#F9FAFB',
@@ -125,9 +131,15 @@ const styles = StyleSheet.create({
     color: '#2d3748',
     borderWidth: 1,
     borderColor: '#E5E7EB',
-    marginBottom: 24,
+    marginBottom: 16,
   },
-  nextButton: {
+  mapImage: {
+    width: '100%',
+    height: 180,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  saveButton: {
     backgroundColor: '#4ECDC4',
     borderRadius: 25,
     padding: 18,
@@ -137,16 +149,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
+    marginTop: 10,
   },
-  nextButtonText: {
+  saveButtonText: {
     color: '#ffffff',
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
   },
   footer: {
     paddingHorizontal: 24,
-    paddingBottom: 24,
-    paddingTop: 32,
+    paddingVertical: 24,
   },
   footerText: {
     fontSize: 14,

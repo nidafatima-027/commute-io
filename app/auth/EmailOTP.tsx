@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
+
 import {
   View,
   Text,
@@ -12,8 +13,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 
 const EmailVerificationScreen = () => {
-  const [code, setCode] = useState<string[]>(["", "", "", "", "", ""]);
-
+  const [code, setCode] = useState(["", "", "", "", "", ""]);
+    const { email } = useLocalSearchParams();
   // Refs for auto-focusing next inputs
   const inputs = useRef<Array<TextInput | null>>([]);
 
@@ -67,7 +68,7 @@ const EmailVerificationScreen = () => {
         <View style={styles.content}>
           <Text style={styles.title}>Enter the code</Text>
           <Text style={styles.subtitle}>
-            We sent a verification code to lucas.carter@gmail.com
+            We sent a verification code to {email || 'your email'} {/* change */}
           </Text>
 
           {/* Code Inputs */}
