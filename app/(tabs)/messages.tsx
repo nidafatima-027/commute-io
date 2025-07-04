@@ -48,7 +48,7 @@ export default function MessagesScreen() {
   ];
 
   const renderConversation = (conversation) => (
-    <TouchableOpacity key={conversation.id} style={styles.conversationItem}>
+    <TouchableOpacity key={conversation.id} style={styles.conversationItem} onPress={() => router.push('/(tabs)/message_inbox?name=' + conversation.name + '&image=' + conversation.image)}>
       <Image source={{ uri: conversation.image }} style={styles.avatar} />
       <View style={styles.conversationContent}>
         <Text style={styles.name}>{conversation.name}</Text>

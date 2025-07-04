@@ -150,6 +150,12 @@ export default function TabLayout() {
           href: null, // Hide this tab
         }}
       />
+      <Tabs.Screen
+        name="message_inbox"
+        options={{
+          href: null, // Hide this tab
+        }}
+      />
 
 
         
