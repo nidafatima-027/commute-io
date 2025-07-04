@@ -73,6 +73,12 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="ride-details"
+        options={{
+          href: null, // Hide this tab
+        }}
+      />
+      <Tabs.Screen
         name="create-recurring-ride"
         options={{
           href: null, // Hide this tab
