@@ -1,21 +1,60 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Image } from 'react-native';
-import { ArrowLeft, Save } from 'lucide-react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+  Image,
+} from 'react-native';
+import { ArrowLeft } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function EditProfileScreen() {
   const [name, setName] = React.useState('Sophia Carter');
   const [email, setEmail] = React.useState('sophia.carter@example.com');
-  const [phone, setPhone] = React.useState('(555) 123-4567');
+  const [phone, setPhone] = React.useState('(+92)3082611469');
   const [vehicle, setVehicle] = React.useState('Toyota Camry 2020');
+  const [errors, setErrors] = React.useState<{ [key: string]: string }>({});
 
   const handleBack = () => {
     router.push('/(tabs)/profile');
   };
 
+  const validateForm = () => {
+    const newErrors: { [key: string]: string } = {};
+
+    if (!name.trim()) {
+      newErrors.name = 'Name is required.';
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.trim()) {
+      newErrors.email = 'Email is required.';
+    } else if (!emailRegex.test(email)) {
+      newErrors.email = 'Enter a valid email.';
+    }
+
+    const phoneRegex = /^[\+92\d{10}]+$/;
+    if (!phone.trim()) {
+      newErrors.phone = 'Phone number is required.';
+    } else if (!phoneRegex.test(phone)) {
+      newErrors.phone = 'Enter a valid phone number.';
+    }
+
+    return newErrors;
+  };
+
   const handleSave = () => {
-    // Handle save logic here
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+    setErrors({});
+    // Here, you would usually save to server or state
     router.push('/(tabs)/profile');
   };
 
@@ -35,7 +74,9 @@ export default function EditProfileScreen() {
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
             <Image
-              source={{ uri: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=200' }}
+              source={{
+                uri: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=200',
+              }}
               style={styles.avatar}
             />
           </View>
@@ -54,6 +95,9 @@ export default function EditProfileScreen() {
               placeholder="Full Name"
               placeholderTextColor="#9CA3AF"
             />
+            {errors.name && (
+              <Text style={styles.errorText}>{errors.name}</Text>
+            )}
           </View>
 
           <View style={styles.inputGroup}>
@@ -65,7 +109,11 @@ export default function EditProfileScreen() {
               placeholder="Email Address"
               keyboardType="email-address"
               placeholderTextColor="#9CA3AF"
+              autoCapitalize="none"
             />
+            {errors.email && (
+              <Text style={styles.errorText}>{errors.email}</Text>
+            )}
           </View>
 
           <View style={styles.inputGroup}>
@@ -78,6 +126,9 @@ export default function EditProfileScreen() {
               keyboardType="phone-pad"
               placeholderTextColor="#9CA3AF"
             />
+            {errors.phone && (
+              <Text style={styles.errorText}>{errors.phone}</Text>
+            )}
           </View>
 
           <View style={styles.inputGroup}>
@@ -176,6 +227,12 @@ const styles = StyleSheet.create({
     color: '#2d3748',
     borderWidth: 1,
     borderColor: '#E5E7EB',
+  },
+  errorText: {
+    marginTop: 4,
+    color: '#EF4444',
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
   },
   saveButton: {
     backgroundColor: '#4ECDC4',

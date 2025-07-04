@@ -1,20 +1,35 @@
 import React, { useState } from "react";
-import { View, ScrollView, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions } from "react-native";
-import { router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft } from 'lucide-react-native';
+import {
+  View,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+} from "react-native";
+import { router } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { ArrowLeft } from "lucide-react-native";
 
 const { width } = Dimensions.get("window");
 
 const EmailScreen = () => {
   const [email, setEmail] = useState("");
 
-  const handleBack = () => {
-    router.push('/auth/signup');
 
+  const isEmailValid = (email: string) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  };
+
+
+  const handleBack = () => {
+    router.push("/auth/signup");
   };
 
   const handleNext = () => {
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
     if (emailRegex.test(email)) { 
       router.push({ // change
@@ -24,11 +39,15 @@ const EmailScreen = () => {
     } else { // change
       alert("Please enter a valid email address."); // change
     } // change
+
   };
-  
+
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ flexGrow: 1 }}
+      >
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
@@ -42,18 +61,25 @@ const EmailScreen = () => {
         <View style={styles.content}>
           <Text style={styles.title}>Enter your Email</Text>
 
-        <TextInput
-        style={styles.input}
-        placeholder="Email"
-        placeholderTextColor="#9CA3AF"
-        keyboardType="email-address"
-        autoCapitalize="none"
-        autoCorrect={false}
-        value={email}
-        onChangeText={setEmail}
-        />
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor="#9CA3AF"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            value={email}
+            onChangeText={setEmail}
+          />
 
-          <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
+          <TouchableOpacity
+            style={[
+              styles.nextButton,
+              (!email || !isEmailValid(email)) && { opacity: 0.5 },
+            ]}
+            onPress={handleNext}
+            disabled={!email || !isEmailValid(email)}
+          >
             <Text style={styles.nextButtonText}>Next</Text>
           </TouchableOpacity>
         </View>
@@ -74,29 +100,29 @@ export default EmailScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 24,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: "#E5E7EB",
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F9FAFB',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#F9FAFB",
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerText: {
     fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#2d3748',
+    fontFamily: "Inter-SemiBold",
+    color: "#2d3748",
   },
   placeholder: {
     width: 40,
@@ -108,38 +134,38 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontFamily: 'Inter-SemiBold',
-    color: '#2d3748',
-    textAlign: 'center',
+    fontFamily: "Inter-SemiBold",
+    color: "#2d3748",
+    textAlign: "center",
     marginBottom: 24,
   },
   input: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: "#F9FAFB",
     borderRadius: 12,
     paddingHorizontal: 16,
     height: 56,
     fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#2d3748',
+    fontFamily: "Inter-Regular",
+    color: "#2d3748",
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: "#E5E7EB",
     marginBottom: 24,
   },
   nextButton: {
-    backgroundColor: '#4ECDC4',
+    backgroundColor: "#4ECDC4",
     borderRadius: 25,
     padding: 18,
-    alignItems: 'center',
-    shadowColor: '#4ECDC4',
+    alignItems: "center",
+    shadowColor: "#4ECDC4",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   nextButtonText: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: "Inter-SemiBold",
   },
   footer: {
     paddingHorizontal: 24,
@@ -148,9 +174,9 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#6B7280',
-    textAlign: 'center',
+    fontFamily: "Inter-Regular",
+    color: "#6B7280",
+    textAlign: "center",
     lineHeight: 21,
   },
 });

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Bell, Sun, Info, HelpCircle, ArrowLeft } from 'lucide-react-native';
+import { Bell, Sun, Info, HelpCircle, ArrowLeft, Calendar , MapPin} from 'lucide-react-native';
 import { router } from 'expo-router';
 
 export default function SettingsScreen(){
@@ -57,6 +57,36 @@ export default function SettingsScreen(){
                 <Text style={styles.itemSubtitle}>Customize display settings</Text>
             </View>
             </TouchableOpacity>
+            <View style={styles.section}>
+  <Text style={styles.sectionTitle}>Personal Preferences</Text>
+
+  <TouchableOpacity
+    style={styles.item}
+    onPress={() => router.push('/auth/DailySchedule')}
+  >
+    <View style={styles.iconContainer}>
+       <Calendar size={24} color="black" /> 
+    </View>
+    <View>
+      <Text style={styles.itemTitle}>Daily Schedule</Text>
+      <Text style={styles.itemSubtitle}>Set your routine timings</Text>
+    </View>
+  </TouchableOpacity>
+
+  <TouchableOpacity
+    style={styles.item}
+    onPress={() => router.push('/auth/PreferredpickupLocation')}
+  >
+    <View style={styles.iconContainer}>
+      <MapPin size={24} color="black" /> 
+    </View>
+    <View>
+      <Text style={styles.itemTitle}>Preferred Pickup Locations</Text>
+      <Text style={styles.itemSubtitle}>Manage saved pickup points</Text>
+    </View>
+  </TouchableOpacity>
+</View>
+
 
             {/* Other */}
             <Text style={styles.sectionTitle}>Other</Text>
@@ -105,33 +135,41 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 20,
   },
+  section: {
+    marginTop: 24,
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    marginTop: 20,
-    marginBottom: 10,
+    color: '#2d3748',
+    marginBottom: 16,
   },
   item: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 20,
+    alignItems: 'center',
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
   },
   iconContainer: {
     width: 40,
     height: 40,
-    backgroundColor: '#F1F4F2',
+    backgroundColor: '#E5E7EB',
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
-    marginRight: 10,
+    marginRight: 12,
   },
   itemTitle: {
     fontSize: 16,
     fontWeight: '500',
+    color: '#2d3748',
   },
   itemSubtitle: {
     fontSize: 14,
-    color: 'gray',
+    color: '#6b7280',
+    marginTop: 2,
   },
   bottomNav: {
     flexDirection: 'row',
@@ -146,3 +184,4 @@ const styles = StyleSheet.create({
     color: '#78858F',
   },
 });
+

@@ -57,11 +57,12 @@ const validateForm = (): boolean => {
   }
 
   // Phone Number validation
-  if (!formData.phoneNumber.trim()) {
-    newErrors.phoneNumber = 'Phone number is required.';
-  } else if (!/^\d{10,15}$/.test(formData.phoneNumber)) {
-    newErrors.phoneNumber = 'Invalid phone number.';
-  }
+ if (!formData.phoneNumber.trim()) {
+  newErrors.phoneNumber = 'Phone number is required.';
+} else if (!/^\+92\d{10}$/.test(formData.phoneNumber)) {
+  newErrors.phoneNumber = 'Invalid Pakistani phone number. Format: +92XXXXXXXXXX';
+}
+
 
   // Vehicle details validation
   if (formData.selectedMode === 'Driver' || formData.selectedMode === 'Both') {
@@ -146,10 +147,8 @@ const handleSave = () => {
               />
               {errors.name && (
     <Text style={styles.errorText}>{errors.name}</Text>
-  )}
-              
-            </View>
-
+  )}</View>
+                        
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Email</Text>
               <TextInput
@@ -198,7 +197,7 @@ const handleSave = () => {
                 style={styles.input}
                 value={formData.preferences}
                 onChangeText={(value) => handleInputChange('preferences', value)}
-                placeholder="Preferences for Future Rides"
+                placeholder="Preferences for Upcoming Rides"
                 placeholderTextColor="#9CA3AF"
               />
               {errors.preferences && (
@@ -296,34 +295,36 @@ const handleSave = () => {
             </View>
           )}
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Optional</Text>
+<View style={styles.section}>
+  <Text style={styles.sectionTitle}>Optional</Text>
 
-            
-            <TouchableOpacity style={styles.optionItem}
-            onPress={() => router.push('/auth/DailySchedule')}>
+  <TouchableOpacity
+    style={styles.optionItem}
+    onPress={() => router.push('/auth/DailySchedule')}>
+    <Text style={styles.optionText}>Daily Schedule</Text>
+    <ChevronRight size={20} color="#9CA3AF" />
+  </TouchableOpacity>
 
-              <Text style={styles.optionText}>Set Daily Schedule</Text>
-              <ChevronRight size={20} color="#9CA3AF" />
-            </TouchableOpacity>
+  <TouchableOpacity
+    style={styles.optionItem}
+    onPress={() => router.push('/auth/PreferredpickupLocation')}>
+    <Text style={styles.optionText}>Preferred Pickup Locations</Text>
+    <ChevronRight size={20} color="#9CA3AF" />
+  </TouchableOpacity>
+</View>
 
-            <TouchableOpacity style={styles.optionItem}
-            onPress={() => router.push('/auth/PreferredpickupLocation')}>
-              <Text style={styles.optionText}>Preferred Pickup Locations</Text>
-              <ChevronRight size={20} color="#9CA3AF" />
-            </TouchableOpacity>
-          </View>
+<TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+  <Text style={styles.saveButtonText}>Save</Text>
+</TouchableOpacity>
 
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-            <Text style={styles.saveButtonText}>Save</Text>
-          </TouchableOpacity>
+<Text style={styles.termsText}>
+  By continuing, you agree to our{' '}
+  <Text style={styles.linkText}>Terms of Service</Text> and{' '}
+  <Text style={styles.linkText}>Privacy Policy</Text>
+</Text>
+</View>
 
-          <Text style={styles.termsText}>
-            By continuing, you agree to our{' '}
-            <Text style={styles.linkText}>Terms of Service</Text> and{' '}
-            <Text style={styles.linkText}>Privacy Policy</Text>
-          </Text>
-        </View>
+        
       </ScrollView>
     </SafeAreaView>
   );

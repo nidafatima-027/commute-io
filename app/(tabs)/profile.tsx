@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, CreditCard as Edit, Clock, Settings, ChevronRight } from 'lucide-react-native';
+import { ArrowLeft, CreditCard as Edit, Clock, Settings, ChevronRight, PenIcon } from 'lucide-react-native';
 import { router } from 'expo-router';
 
 export default function ProfileScreen() {
@@ -38,7 +38,7 @@ export default function ProfileScreen() {
           </TouchableOpacity>
           <Text style={styles.title}>Profile</Text>
           <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
-            <Edit size={24} color="#2d3748" />
+            <PenIcon size={24} color="#2d3748" />
           </TouchableOpacity>
         </View>
 
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
   },
   statValue: {
-    fontSize: 32,
+    fontSize: 23,
     fontFamily: 'Inter-Bold',
     color: '#2d3748',
     marginBottom: 8,

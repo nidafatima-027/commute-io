@@ -1,30 +1,66 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+  Platform,
+} from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, MapPin, Calendar, Clock, Users, DollarSign, Chrome as Home } from 'lucide-react-native';
+import { ArrowLeft, MapPin, Calendar, Clock, Users, DollarSign } from 'lucide-react-native';
 import { router } from 'expo-router';
 
 export default function OfferRideScreen() {
   const [fromLocation, setFromLocation] = useState('');
   const [toLocation, setToLocation] = useState('');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
+  const [date, setDate] = useState<Date | undefined>();
+  const [time, setTime] = useState<Date | undefined>();
   const [seats, setSeats] = useState('');
-  const [baseFare, setBaseFare] = useState('');
-  const [farePerPassenger, setFarePerPassenger] = useState('');
+  const [costPerMile, setCostPerMile] = useState('0.5'); // default cost per mile
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
   const handleBack = () => {
     router.back();
   };
 
-  const handleOfferRide = () => {
-    // Handle ride creation logic here
-    router.push('/(tabs)');
+  const validateForm = () => {
+    const errors: { [key: string]: string } = {};
+
+    if (!fromLocation.trim()) errors.fromLocation = 'Pickup location is required.';
+    if (!toLocation.trim()) errors.toLocation = 'Destination is required.';
+    if (!date) errors.date = 'Date is required.';
+    if (!time) errors.time = 'Time is required.';
+    if (!seats.trim() || isNaN(Number(seats)) || Number(seats) <= 0)
+      errors.seats = 'Valid number of seats is required.';
+    if (!costPerMile.trim() || isNaN(Number(costPerMile)) || Number(costPerMile) <= 0)
+      errors.costPerMile = 'Cost per mile must be a positive number.';
+
+    return errors;
   };
 
-  const totalDistance = 380; // miles - this would come from a mapping service
-  const suggestedFare = 150;
-  const farePerSeat = 75;
+  const handleOfferRide = () => {
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+    setFormErrors({});
+    router.push('/(tabs)/join-requests');
+  };
+
+  // Simulated distance
+  const totalDistance = 10; // For example purposes (miles)
+
+  const numericSeats = parseInt(seats) || 1;
+  const numericCostPerMile = parseFloat(costPerMile) || 0.5;
+
+  const farePerSeat = (totalDistance * numericCostPerMile).toFixed(2);
+  const totalFare = (numericSeats * totalDistance * numericCostPerMile).toFixed(2);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -39,7 +75,7 @@ export default function OfferRideScreen() {
         </View>
 
         <View style={styles.content}>
-          {/* Route Section */}
+          {/* Route */}
           <View style={styles.section}>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>From</Text>
@@ -53,6 +89,9 @@ export default function OfferRideScreen() {
                   placeholderTextColor="#9CA3AF"
                 />
               </View>
+              {formErrors.fromLocation && (
+                <Text style={styles.errorText}>{formErrors.fromLocation}</Text>
+              )}
             </View>
 
             <View style={styles.inputGroup}>
@@ -67,35 +106,76 @@ export default function OfferRideScreen() {
                   placeholderTextColor="#9CA3AF"
                 />
               </View>
+              {formErrors.toLocation && (
+                <Text style={styles.errorText}>{formErrors.toLocation}</Text>
+              )}
             </View>
           </View>
 
-          {/* Date & Time Section */}
+          {/* Date & Time */}
           <View style={styles.section}>
             <View style={styles.row}>
               <View style={styles.halfInputGroup}>
                 <Text style={styles.label}>Date</Text>
-                <TouchableOpacity style={styles.inputContainer}>
+                <TouchableOpacity
+                  style={styles.inputContainer}
+                  onPress={() => setShowDatePicker(true)}
+                >
                   <Calendar size={20} color="#9CA3AF" />
                   <Text style={[styles.input, styles.inputText]}>
-                    {date || 'Select date'}
+                    {date ? date.toDateString() : 'Select date'}
                   </Text>
                 </TouchableOpacity>
+                {formErrors.date && (
+                  <Text style={styles.errorText}>{formErrors.date}</Text>
+                )}
               </View>
 
               <View style={styles.halfInputGroup}>
                 <Text style={styles.label}>Time</Text>
-                <TouchableOpacity style={styles.inputContainer}>
+                <TouchableOpacity
+                  style={styles.inputContainer}
+                  onPress={() => setShowTimePicker(true)}
+                >
                   <Clock size={20} color="#9CA3AF" />
                   <Text style={[styles.input, styles.inputText]}>
-                    {time || 'Select time'}
+                    {time
+                      ? time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                      : 'Select time'}
                   </Text>
                 </TouchableOpacity>
+                {formErrors.time && (
+                  <Text style={styles.errorText}>{formErrors.time}</Text>
+                )}
               </View>
             </View>
           </View>
 
-          {/* Seats Section */}
+          {showDatePicker && (
+            <DateTimePicker
+              mode="date"
+              value={date || new Date()}
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={(event, selected) => {
+                setShowDatePicker(Platform.OS === 'ios');
+                if (selected) setDate(selected);
+              }}
+            />
+          )}
+
+          {showTimePicker && (
+            <DateTimePicker
+              mode="time"
+              value={time || new Date()}
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={(event, selected) => {
+                setShowTimePicker(Platform.OS === 'ios');
+                if (selected) setTime(selected);
+              }}
+            />
+          )}
+
+          {/* Seats */}
           <View style={styles.section}>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Seats</Text>
@@ -110,72 +190,53 @@ export default function OfferRideScreen() {
                   keyboardType="numeric"
                 />
               </View>
+              {formErrors.seats && (
+                <Text style={styles.errorText}>{formErrors.seats}</Text>
+              )}
             </View>
           </View>
 
-          {/* Fare Suggestion Section */}
+          {/* Cost per Mile */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Fare Suggestion</Text>
-            <Text style={styles.distanceText}>Total Distance: {totalDistance} miles</Text>
-
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Base Fare</Text>
+              <Text style={styles.label}>Cost per Mile (PKR)</Text>
               <View style={styles.inputContainer}>
                 <DollarSign size={20} color="#9CA3AF" />
                 <TextInput
                   style={styles.input}
-                  value={baseFare}
-                  onChangeText={setBaseFare}
-                  placeholder="Enter base fare or cost per mile (optional)"
+                  value={costPerMile}
+                  onChangeText={setCostPerMile}
+                  placeholder="e.g., 0.5"
                   placeholderTextColor="#9CA3AF"
                   keyboardType="numeric"
                 />
               </View>
-            </View>
-
-            <Text style={styles.suggestedText}>
-              Suggested Fare: ${suggestedFare} total, ${farePerSeat} per passenger
-            </Text>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Fare per passenger</Text>
-              <View style={styles.inputContainer}>
-                <DollarSign size={20} color="#9CA3AF" />
-                <TextInput
-                  style={styles.input}
-                  value={farePerPassenger}
-                  onChangeText={setFarePerPassenger}
-                  placeholder="Enter fare per passenger"
-                  placeholderTextColor="#9CA3AF"
-                  keyboardType="numeric"
-                />
-              </View>
+              {formErrors.costPerMile && (
+                <Text style={styles.errorText}>{formErrors.costPerMile}</Text>
+              )}
             </View>
           </View>
 
-          {/* Ride Summary Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Ride Summary</Text>
-            <View style={styles.summaryContainer}>
-              <View style={styles.summaryRow}>
-                <View style={styles.summaryItem}>
-                  <Text style={styles.summaryLabel}>Fare per seat</Text>
-                  <Text style={styles.summaryValue}>${farePerPassenger || farePerSeat}</Text>
-                </View>
-                <View style={styles.summaryItem}>
-                  <Text style={styles.summaryLabel}>Total estimated fare</Text>
-                  <Text style={styles.summaryValue}>${farePerPassenger ? (parseInt(farePerPassenger) * parseInt(seats || '2')).toString() : suggestedFare}</Text>
-                </View>
+          {/* Ride Summary */}
+          <View style={styles.summaryContainer}>
+            <View style={styles.summaryRow}>
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryLabel}>Fare per seat</Text>
+                <Text style={styles.summaryValue}>PKR {farePerSeat}</Text>
               </View>
-              
-              <View style={styles.summaryItemFull}>
-                <Text style={styles.summaryLabel}>Seats available</Text>
-                <Text style={styles.summaryValue}>{seats || '2'}</Text>
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryLabel}>Total estimated fare</Text>
+                <Text style={styles.summaryValue}>PKR {totalFare}</Text>
               </View>
+            </View>
+
+            <View style={styles.summaryItemFull}>
+              <Text style={styles.summaryLabel}>Seats available</Text>
+              <Text style={styles.summaryValue}>{seats || '1'}</Text>
             </View>
           </View>
 
-          {/* Offer Ride Button */}
+          {/* Offer Ride */}
           <TouchableOpacity style={styles.offerButton} onPress={handleOfferRide}>
             <Text style={styles.offerButtonText}>Offer Ride</Text>
           </TouchableOpacity>
@@ -185,11 +246,16 @@ export default function OfferRideScreen() {
   );
 }
 
+// Reuse your existing styles
+
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8fffe',
   },
+    errorText: { color: 'red', fontSize: 12, marginTop: 4 },
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -298,6 +364,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 16,
     marginBottom: 16,
+    paddingVertical:34,
   },
   summaryItem: {
     flex: 1,

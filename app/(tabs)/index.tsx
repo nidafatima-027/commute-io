@@ -75,10 +75,7 @@ export default function HomeScreen() {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.menuButton}>
-            <Menu size={24} color="#2d3748" />
-          </TouchableOpacity>
-          <Text style={styles.appTitle}>Carpool</Text>
+          <Text style={styles.appTitle}>Commute_io</Text>
           <TouchableOpacity style={styles.settingsButton}
             onPress={handleSettings}
           >
@@ -168,16 +165,21 @@ export default function HomeScreen() {
         ) : (
           <>
             {/* Search Bar */}
-            <View style={styles.searchContainer}>
-              <Search size={20} color="#9CA3AF" />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Where to?"
-                value={searchText}
-                onChangeText={setSearchText}
-                placeholderTextColor="#9CA3AF"
-              />
-            </View>
+           <TouchableOpacity
+  style={styles.searchContainer}
+  activeOpacity={0.8}
+  onPress={() => router.push('/search')}
+>
+  <Search size={20} color="#9CA3AF" />
+  <TextInput
+    style={styles.searchInput}
+    placeholder="Where to?"
+    placeholderTextColor="#9CA3AF"
+    editable={false} // disables typing
+    pointerEvents="none" // disables focus/highlight
+  />
+</TouchableOpacity>
+
 
             {/* Suggested Rides */}
             <View style={styles.section}>
@@ -234,16 +236,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 20,
   },
-  menuButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+
   appTitle: {
     fontSize: 20,
     fontFamily: 'Inter-Bold',
     color: '#2d3748',
+    justifyContent: 'center',
+    alignItems:'center',
+    paddingLeft:90,
   },
   settingsButton: {
     width: 40,
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
     marginHorizontal: 24,
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingVertical: 7,
     borderRadius: 12,
     marginBottom: 32,
   },
@@ -321,7 +321,8 @@ const styles = StyleSheet.create({
   },
   section: {
     paddingHorizontal: 24,
-    marginBottom: 32,
+    paddingVertical: 7,
+    marginBottom: 3,
   },
   sectionTitle: {
     fontSize: 24,
@@ -332,6 +333,7 @@ const styles = StyleSheet.create({
   suggestedRidesScroll: {
     marginHorizontal: -24,
     paddingHorizontal: 24,
+    paddingVertical:12,
   },
   suggestedRideCard: {
     width: 200,

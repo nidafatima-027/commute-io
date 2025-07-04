@@ -1,13 +1,23 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft } from 'lucide-react-native'; 
 import { router } from 'expo-router';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const daysOfWeek = [
   'Monday', 'Tuesday', 'Wednesday',
   'Thursday', 'Friday', 'Saturday', 'Sunday'
 ];
+
+const formatTime = (date: Date) => {
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const suffix = hours >= 12 ? 'PM' : 'AM';
+  const adjustedHours = hours % 12 || 12;
+  const paddedMinutes = minutes < 10 ? `0${minutes}` : minutes;
+  return `${adjustedHours}:${paddedMinutes} ${suffix}`;
+};
 
 const DailySchedule = () => {
   const navigation = useNavigation();
@@ -19,11 +29,23 @@ const DailySchedule = () => {
     }, {})
   );
 
-  const handleTimeChange = (day, field, value) => {
-    setSchedule((prev) => ({
-      ...prev,
-      [day]: { ...prev[day], [field]: value }
-    }));
+  const [picker, setPicker] = useState<{
+    day: string;
+    field: 'startTime' | 'endTime';
+    show: boolean;
+  } | null>(null);
+
+  const handleTimeChange = (event: any, selectedDate?: Date) => {
+    if (picker && selectedDate) {
+      setSchedule((prev) => ({
+        ...prev,
+        [picker.day]: {
+          ...prev[picker.day],
+          [picker.field]: formatTime(selectedDate)
+        }
+      }));
+    }
+    setPicker(null);
   };
 
   const handleSave = () => {
@@ -34,17 +56,17 @@ const DailySchedule = () => {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      {/* Header with back arrow and title */}
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
-        onPress={() => router.push('/auth/profile-setup')}
-        style={{padding:10}}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-      >
+          onPress={() => router.back()}
+          style={{ padding: 10 }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
           <ArrowLeft size={24} color="black" />
-      </TouchableOpacity>
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Set Daily Schedule</Text>
-        <View style={{ width: 24 }} /> {/* Spacer to center title */}
+        <View style={{ width: 24 }} />
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 16 }}>
@@ -52,24 +74,22 @@ const DailySchedule = () => {
           <View key={day} style={{ marginBottom: 20 }}>
             <Text style={{ fontWeight: '600', fontSize: 16, marginBottom: 6 }}>{day}</Text>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <View style={{ flex: 1, marginRight: 8 }}>
-                <Text style={{ fontSize: 12, marginBottom: 4 }}>Start Time</Text>
-                <TextInput
-                  style={styles.input}
-                  value={schedule[day].startTime}
-                  placeholder="e.g. 8:00 AM"
-                  onChangeText={(text) => handleTimeChange(day, 'startTime', text)}
-                />
-              </View>
-              <View style={{ flex: 1, marginLeft: 8 }}>
-                <Text style={{ fontSize: 12, marginBottom: 4 }}>End Time</Text>
-                <TextInput
-                  style={styles.input}
-                  value={schedule[day].endTime}
-                  placeholder="e.g. 9:00 AM"
-                  onChangeText={(text) => handleTimeChange(day, 'endTime', text)}
-                />
-              </View>
+              <TouchableOpacity
+                style={[styles.input, { flex: 1, marginRight: 8 }]}
+                onPress={() => setPicker({ day, field: 'startTime', show: true })}
+              >
+                <Text style={{ color: schedule[day].startTime ? '#000' : '#999' }}>
+                  {schedule[day].startTime || 'Select Start Time'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.input, { flex: 1, marginLeft: 8 }]}
+                onPress={() => setPicker({ day, field: 'endTime', show: true })}
+              >
+                <Text style={{ color: schedule[day].endTime ? '#000' : '#999' }}>
+                  {schedule[day].endTime || 'Select End Time'}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         ))}
@@ -78,6 +98,15 @@ const DailySchedule = () => {
           <Text style={styles.buttonText}>Save Schedule</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {picker?.show && (
+        <DateTimePicker
+          mode="time"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          value={new Date()}
+          onChange={handleTimeChange}
+        />
+      )}
     </View>
   );
 };
@@ -100,8 +129,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 8,
-    padding: 10,
-    fontSize: 14,
+    padding: 12,
+    justifyContent: 'center',
     backgroundColor: '#f9f9f9',
   },
   button: {

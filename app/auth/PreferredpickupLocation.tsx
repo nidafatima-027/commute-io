@@ -27,7 +27,7 @@ export default function PreferedPickupLocations() {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
+          <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
             <ArrowLeft size={24} color="#2d3748" />
           </TouchableOpacity>
           <Text style={styles.title}>Preferred Pickup Locations</Text>
