@@ -1,15 +1,24 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  Platform
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft } from 'lucide-react-native'; 
+import { ArrowLeft } from 'lucide-react-native';
 import { router } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
+// Days of the week
 const daysOfWeek = [
   'Monday', 'Tuesday', 'Wednesday',
   'Thursday', 'Friday', 'Saturday', 'Sunday'
 ];
 
+// Format time to AM/PM
 const formatTime = (date: Date) => {
   const hours = date.getHours();
   const minutes = date.getMinutes();
@@ -19,14 +28,23 @@ const formatTime = (date: Date) => {
   return `${adjustedHours}:${paddedMinutes} ${suffix}`;
 };
 
+// Declare proper Schedule type
+type Schedule = {
+  [key: string]: {
+    startTime: string;
+    endTime: string;
+  };
+};
+
 const DailySchedule = () => {
   const navigation = useNavigation();
 
-  const [schedule, setSchedule] = useState(
+  // Typed schedule state
+  const [schedule, setSchedule] = useState<Schedule>(
     daysOfWeek.reduce((acc, day) => {
       acc[day] = { startTime: '', endTime: '' };
       return acc;
-    }, {})
+    }, {} as Schedule)
   );
 
   const [picker, setPicker] = useState<{
@@ -41,8 +59,8 @@ const DailySchedule = () => {
         ...prev,
         [picker.day]: {
           ...prev[picker.day],
-          [picker.field]: formatTime(selectedDate)
-        }
+          [picker.field]: formatTime(selectedDate),
+        },
       }));
     }
     setPicker(null);
@@ -50,7 +68,7 @@ const DailySchedule = () => {
 
   const handleSave = () => {
     console.log('Saved schedule:', schedule);
-    // Add backend save logic here
+    // Add backend logic here if needed
     router.push('/auth/profile-setup');
   };
 
@@ -69,11 +87,13 @@ const DailySchedule = () => {
         <View style={{ width: 24 }} />
       </View>
 
+      {/* Form */}
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         {daysOfWeek.map((day) => (
           <View key={day} style={{ marginBottom: 20 }}>
             <Text style={{ fontWeight: '600', fontSize: 16, marginBottom: 6 }}>{day}</Text>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              {/* Start Time */}
               <TouchableOpacity
                 style={[styles.input, { flex: 1, marginRight: 8 }]}
                 onPress={() => setPicker({ day, field: 'startTime', show: true })}
@@ -82,6 +102,8 @@ const DailySchedule = () => {
                   {schedule[day].startTime || 'Select Start Time'}
                 </Text>
               </TouchableOpacity>
+
+              {/* End Time */}
               <TouchableOpacity
                 style={[styles.input, { flex: 1, marginLeft: 8 }]}
                 onPress={() => setPicker({ day, field: 'endTime', show: true })}
@@ -99,6 +121,7 @@ const DailySchedule = () => {
         </TouchableOpacity>
       </ScrollView>
 
+      {/* Time Picker */}
       {picker?.show && (
         <DateTimePicker
           mode="time"
