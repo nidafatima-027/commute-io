@@ -3,10 +3,28 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar, MapPin, Clock, User, MessageCircle, Star } from 'lucide-react-native';
 
-export default function RidesScreen() {
-  const [activeTab, setActiveTab] = useState('upcoming');
+// Type definitions added
+type RideStatus = 'confirmed' | 'pending' | 'completed';
 
-  const upcomingRides = [
+type Ride = {
+  id: number;
+  type: 'driver' | 'passenger';
+  driver?: string;
+  passengers?: string[];
+  from: string;
+  to: string;
+  date: string;
+  time: string;
+  price: number;
+  status: RideStatus;
+  image: string;
+  rating?: number;
+};
+
+export default function RidesScreen() {
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
+
+  const upcomingRides: Ride[] = [
     {
       id: 1,
       type: 'passenger',
@@ -34,7 +52,7 @@ export default function RidesScreen() {
     },
   ];
 
-  const pastRides = [
+  const pastRides: Ride[] = [
     {
       id: 3,
       type: 'passenger',
@@ -62,13 +80,14 @@ export default function RidesScreen() {
     },
   ];
 
-  const renderRideCard = (ride) => {
+  const renderRideCard = (ride: Ride) => {
     const isDriver = ride.type === 'driver';
-    const statusColor = {
+
+    const statusColor: Record<RideStatus, string> = {
       confirmed: '#10B981',
       pending: '#F59E0B',
       completed: '#6B7280',
-    }[ride.status];
+    };
 
     return (
       <View key={ride.id} style={styles.rideCard}>
@@ -79,20 +98,17 @@ export default function RidesScreen() {
             </View>
             <Text style={styles.rideType}>{isDriver ? 'Driver' : 'Passenger'}</Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
+          <View style={[styles.statusBadge, { backgroundColor: statusColor[ride.status] }]}>
             <Text style={styles.statusText}>{ride.status}</Text>
           </View>
         </View>
 
         <View style={styles.personInfo}>
-          <Image 
-            source={{ uri: ride.image }} 
-            style={styles.personImage} 
-          />
+          <Image source={{ uri: ride.image }} style={styles.personImage} />
           <View style={styles.personDetails}>
             {isDriver ? (
               <Text style={styles.personName}>
-                {ride.passengers.length} passenger{ride.passengers.length > 1 ? 's' : ''}
+                {ride.passengers?.length ?? 0} passenger{(ride.passengers?.length ?? 0) > 1 ? 's' : ''}
               </Text>
             ) : (
               <View style={styles.driverInfo}>
@@ -167,27 +183,23 @@ export default function RidesScreen() {
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {activeTab === 'upcoming' ? (
-          <>
-            {upcomingRides.length > 0 ? (
-              upcomingRides.map(renderRideCard)
-            ) : (
-              <View style={styles.emptyState}>
-                <Text style={styles.emptyStateText}>No upcoming rides</Text>
-                <Text style={styles.emptyStateSubtext}>Book a ride or offer one to get started!</Text>
-              </View>
-            )}
-          </>
+          upcomingRides.length > 0 ? (
+            upcomingRides.map(renderRideCard)
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateText}>No upcoming rides</Text>
+              <Text style={styles.emptyStateSubtext}>Book a ride or offer one to get started!</Text>
+            </View>
+          )
         ) : (
-          <>
-            {pastRides.length > 0 ? (
-              pastRides.map(renderRideCard)
-            ) : (
-              <View style={styles.emptyState}>
-                <Text style={styles.emptyStateText}>No past rides</Text>
-                <Text style={styles.emptyStateSubtext}>Your ride history will appear here.</Text>
-              </View>
-            )}
-          </>
+          pastRides.length > 0 ? (
+            pastRides.map(renderRideCard)
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateText}>No past rides</Text>
+              <Text style={styles.emptyStateSubtext}>Your ride history will appear here.</Text>
+            </View>
+          )
         )}
       </ScrollView>
     </SafeAreaView>

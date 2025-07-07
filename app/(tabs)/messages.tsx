@@ -4,17 +4,23 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Settings } from 'lucide-react-native';
 import { router } from 'expo-router';
 
+type Conversation = {
+  id: number;
+  name: string;
+  lastMessage: string;
+  image: string;
+};
+
 export default function MessagesScreen() {
-  
   const handleSettings = () => {
-      router.push('/(tabs)/setting');
+    router.push('/(tabs)/setting');
   };
 
   const handleBack = () => {
-          router.back();
+    router.back();
   };
 
-  const conversations = [
+  const conversations: Conversation[] = [
     {
       id: 1,
       name: 'Ethan Carter',
@@ -47,8 +53,20 @@ export default function MessagesScreen() {
     },
   ];
 
-  const renderConversation = (conversation) => (
-    <TouchableOpacity key={conversation.id} style={styles.conversationItem} onPress={() => router.push('/(tabs)/message_inbox?name=' + conversation.name + '&image=' + conversation.image)}>
+  const renderConversation = (conversation: Conversation) => (
+    <TouchableOpacity
+      key={conversation.id}
+      style={styles.conversationItem}
+      onPress={() =>
+        router.push({
+          pathname: '/(tabs)/message_inbox',
+          params: {
+            name: conversation.name,
+            image: conversation.image,
+          },
+        })
+      }
+    >
       <Image source={{ uri: conversation.image }} style={styles.avatar} />
       <View style={styles.conversationContent}>
         <Text style={styles.name}>{conversation.name}</Text>

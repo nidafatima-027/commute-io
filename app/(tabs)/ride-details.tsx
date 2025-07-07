@@ -25,7 +25,13 @@ export default function RideDetailsScreen() {
 
   const handleMessage = () => {
     // Navigate to messages with this driver
-    router.push('/(tabs)/message_inbox?name=' + rideDetails.driverName + '&image=' + rideDetails.driverImage);
+    router.push({
+      pathname: '/(tabs)/message_inbox',
+      params: {
+        name: rideDetails.driverName,
+        image: rideDetails.driverImage,
+      },
+    });
   };
 
   // Use params if available, otherwise use default data
