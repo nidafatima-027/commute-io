@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ScrollView,
   TouchableOpacity,
@@ -7,139 +7,139 @@ import {
   StyleSheet,
   Image,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
 } from 'react-native';
 import { ArrowLeft } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
 import { router } from 'expo-router';
 
 export default function RideChatScreen() {
-    const handleBack = () => {
-        router.push('/(tabs)');
+  const [input, setInput] = useState('');
+  const [messages, setMessages] = useState([
+    { id: 1, sender: 'bot', text: 'Hi there! How can I assist you today?' },
+  ]);
+  const [sending, setSending] = useState(false);
+
+  const handleBack = () => {
+    router.push('/(tabs)');
+  };
+
+  const handleSend = () => {
+    const trimmed = input.trim();
+    if (!trimmed) {
+      Alert.alert('Validation Error', 'Please enter a valid message.');
+      return;
+    }
+    if (trimmed.length > 1000) {
+      Alert.alert('Validation Error', 'Message cannot exceed 1000 characters.');
+      return;
+    }
+
+    setSending(true);
+    const newMessages = [
+      ...messages,
+      { id: messages.length + 1, sender: 'user', text: trimmed },
+    ];
+    setMessages(newMessages);
+    setInput('');
+
+    setTimeout(() => {
+      const aiResponse = {
+        id: newMessages.length + 1,
+        sender: 'bot',
+        text: "Thanks! I'm processing your request...",
       };
+      setMessages([...newMessages, aiResponse]);
+      setSending(false);
+    }, 1500);
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header */}
-         <View style={styles.header}>
-                  <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                    <ArrowLeft size={24} color="#2d3748" />
-                  </TouchableOpacity>
-                  <Text style={styles.title}>Ride Chat</Text>
-                  <View style={styles.placeholder} />
-                </View>
-
-        {/* Chat Content */}
-        <View style={styles.content}>
-          {/* Message 1 */}
-          <View style={styles.messageRow}>
-            <Image
-              source={require('../../assets/images/ailogo.png')}
-              style={styles.avatar}
-            />
-            <View style={styles.botBubble}>
-              <Text style={styles.messageText}>Hi there! How can I assist you today?</Text>
-            </View>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{ flex: 1 }}
+    >
+      <SafeAreaView style={styles.container}>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={{ padding: 24 }}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+              <ArrowLeft size={24} color="#2d3748" />
+            </TouchableOpacity>
+            <Text style={styles.title}>Ride Chat</Text>
+            <View style={styles.placeholder} />
           </View>
 
-          {/* User Message */}
-          <View style={[styles.messageRow, styles.userMessageRow]}>
-            <View style={styles.userBubble}>
-              <Text style={styles.userMessageText}>
-                Book a ride from Home to Office at 9 AM
-              </Text>
-            </View>
-            <Image
-              source={require('../../assets/images/userlogo.jpeg')}
-              style={styles.avatar}
-            />
-          </View>
-
-          {/* Message 2 */}
-          <View style={styles.messageRow}>
-            <Image
-              source={require('../../assets/images/ailogo.png')}
-              style={styles.avatar}
-            />
-            <View style={styles.botBubble}>
-              <Text style={styles.messageText}>
-                Okay, I'm searching for rides from your home to the office for 9 AM. Please wait a moment.
-              </Text>
-            </View>
-          </View>
-
-          {/* Message 3 */}
-          <View style={styles.messageRow}>
-            <Image
-              source={require('../../assets/images/ailogo.png')}
-              style={styles.avatar}
-            />
-            <View style={styles.botBubble}>
-              <Text style={styles.messageText}>I found a few options for you:</Text>
-            </View>
-          </View>
-
-          {/* Options */}
-          {[
-            {
-              name: 'Ethan',
-              time: '15 minutes',
-              cost: '$12',
-      image: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
-            },
-            {
-              name: 'Noah',
-              time: '20 minutes',
-              cost: '$10',
-      image: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=150',
-            },
-            {
-              name: 'Oliver',
-              time: '25 minutes',
-              cost: '$8',
-      image: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150',
-            },
-          ].map((option, index) => (
-            <View key={index} style={styles.optionContainer}>
-              <Text style={styles.optionTitle}>Option {index + 1}</Text>
-              <View style={styles.optionRow}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.driverName}>Driver: {option.name}</Text>
-                  <Text style={styles.driverDetail}>
-                    Estimated Time: {option.time} | Cost: {option.cost}
-                  </Text>
-                </View>
-                <Image source={{ uri: option.image }} style={styles.driverAvatar} />
+          {/* Chat Messages */}
+          {messages.map((msg, index) => (
+            <View
+              key={index}
+              style={[
+                styles.messageRow,
+                msg.sender === 'user' ? styles.userMessageRow : {},
+              ]}
+            >
+              {msg.sender === 'bot' && (
+                <Image
+                  source={require('../../assets/images/ailogo.png')}
+                  style={styles.avatar}
+                />
+              )}
+              <View
+                style={msg.sender === 'user' ? styles.userBubble : styles.botBubble}
+              >
+                <Text
+                  style={
+                    msg.sender === 'user'
+                      ? styles.userMessageText
+                      : styles.messageText
+                  }
+                >
+                  {msg.text}
+                </Text>
               </View>
+              {msg.sender === 'user' && (
+                <Image
+                  source={require('../../assets/images/userlogo.jpeg')}
+                  style={styles.avatar}
+                />
+              )}
             </View>
           ))}
+        </ScrollView>
 
-          {/* Final Bot Message */}
-          <View style={styles.messageRow}>
-            <Image
-              source={require('../../assets/images/ailogo.png')}
-              style={styles.avatar}
-            />
-            <View style={styles.botBubble}>
-              <Text style={styles.messageText}>Which option would you like to choose?</Text>
-            </View>
-          </View>
-
-          {/* Input Field */}
-          <View style={styles.inputWrapper}>
-            <TextInput
-              placeholder="Type your request..."
-              style={styles.input}
-              placeholderTextColor="#aaa"
-            />
-            <Image
-              source={{ uri: 'https://cdn-icons-png.flaticon.com/512/1828/1828925.png' }}
-              style={styles.sendIcon}
-            />
-          </View>
+        {/* Input */}
+        <View style={styles.inputWrapper}>
+          <TextInput
+            placeholder="Type your request..."
+            value={input}
+            onChangeText={setInput}
+            style={styles.input}
+            placeholderTextColor="#aaa"
+            editable={!sending}
+            maxLength={1000}
+          />
+          <TouchableOpacity
+            onPress={handleSend}
+            style={[
+              styles.sendButton,
+              { backgroundColor: sending ? '#ccc' : '#14B8A6' },
+            ]}
+            disabled={sending}
+          >
+            <Text style={styles.sendButtonText}>
+              {sending ? 'Sending...' : 'Send'}
+            </Text>
+          </TouchableOpacity>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -148,12 +148,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  scroll: {
+    flex: 1,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingTop: 8,         // Added space above
+    paddingBottom: 12,     // Reduced bottom space for better alignment
     paddingHorizontal: 24,
-    paddingVertical: 16,
     backgroundColor: '#ffffff',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
@@ -167,16 +171,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
+    fontSize: 20,                   // Slightly larger font
+    fontWeight: '600',
     color: '#2d3748',
+    marginTop: 2,                   // Slight upward push
   },
   placeholder: {
     width: 40,
-  },
-  content: {
-    paddingHorizontal: 24,
-    paddingBottom: 24,
   },
   messageRow: {
     flexDirection: 'row',
@@ -191,12 +192,7 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: 18,
     marginRight: 8,
-  },
-  driverAvatar: {
-    width: 70,
-    height: 70,
-    borderRadius: 10,
-    marginLeft: 10,
+    marginLeft: 4,
   },
   botBubble: {
     backgroundColor: '#F1F1F1',
@@ -218,48 +214,32 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#fff',
   },
-  optionContainer: {
-    marginTop: 10,
-    marginBottom: 12,
-  },
-  optionTitle: {
-    color: '#888',
-    marginBottom: 4,
-  },
-  optionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F9F9F9',
-    padding: 12,
-    borderRadius: 12,
-  },
-  driverName: {
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 2,
-  },
-  driverDetail: {
-    fontSize: 14,
-    color: '#555',
-  },
   inputWrapper: {
-    marginTop: 20,
     flexDirection: 'row',
     alignItems: 'center',
     borderColor: '#ddd',
-    borderWidth: 1,
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 8,
+    borderTopWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: '#fff',
   },
   input: {
     flex: 1,
     fontSize: 15,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    backgroundColor: '#F9FAFB',
+    color: '#000',
   },
-  sendIcon: {
-    width: 24,
-    height: 24,
-    tintColor: '#bbb',
+  sendButton: {
     marginLeft: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  sendButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });
