@@ -16,12 +16,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 
-const formatPhone = (number) => {
-  const digits = number.replace(/\D/g, '');
-  if (digits.startsWith('92') && digits.length === 12) {
+const formatPhone = (num: string): string => {
+  const digits = num.replace(/\D/g, "");
+  if (digits.startsWith("92") && digits.length === 12) {
     return `+92-${digits.slice(2, 5)}-${digits.slice(5)}`;
   }
-  return number;
+  return num;
 };
 const PhoneVerificationScreen = () => {
   const [code, setCode] = useState<string[]>(["", "", "", "", "", ""]);
@@ -29,7 +29,9 @@ const PhoneVerificationScreen = () => {
   // Refs for auto-focusing next inputs
   const inputs = useRef<Array<TextInput | null>>([]);
 
-  const { phone } = useLocalSearchParams();  // <-- Get phone number
+  const params = useLocalSearchParams();
+  const rawPhone = Array.isArray(params.phone) ? params.phone[0] : params.phone ?? "";
+  const formattedPhone = formatPhone(rawPhone);
 
   // Check if all digits are entered
   const isCodeComplete = code.every((digit) => digit.length === 1);
@@ -60,13 +62,7 @@ const PhoneVerificationScreen = () => {
     router.push("/auth/PhoneNumberPage");
   };
 
-  const formatPhone = (number) => {
-    const digits = number.replace(/\D/g, '');
-    if (digits.startsWith('92') && digits.length === 12) {
-      return `+92-${digits.slice(2, 5)}-${digits.slice(5)}`;
-    }
-    return number;
-  };
+
 
   return (
   <SafeAreaView style={styles.container}>
@@ -88,7 +84,7 @@ const PhoneVerificationScreen = () => {
         <View style={styles.content}>
           <Text style={styles.title}>Enter the code</Text>
           <Text style={styles.subtitle}>
-            We sent a verification code to {formatPhone(phone)}
+            We sent a verification code to {formattedPhone}
           </Text>
 
         {/* Code Inputs */}
