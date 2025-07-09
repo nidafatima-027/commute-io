@@ -4,10 +4,12 @@ from typing import List
 
 from app.core.database import get_db
 from app.api.auth import get_current_user
-from app.db.crud import update_user, get_user_schedule, create_schedule, get_user_locations, create_location
-from app.dto.user import UserUpdate, UserResponse
-from app.dto.schedule import ScheduleCreate, ScheduleResponse
-from app.dto.location import LocationCreate, LocationResponse
+from app.db.crud.user import update_user
+from app.db.crud.schedule import get_user_schedule, create_schedule
+from app.db.crud.location import get_user_locations, create_location
+from app.schema.user import UserUpdate, UserResponse
+from app.schema.schedule import ScheduleCreate, ScheduleResponse
+from app.schema.location import LocationCreate, LocationResponse
 
 router = APIRouter()
 
