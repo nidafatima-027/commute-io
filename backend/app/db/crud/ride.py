@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
-from app.db.models import Ride
+from app.db.models.ride import Ride
 from app.schema.ride import RideCreate, RideUpdate
 
 def get_available_rides(db: Session, user_id: int, limit: int = 50) -> List[Ride]:

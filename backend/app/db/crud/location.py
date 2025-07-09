@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from typing import List
-from app.db.models import PreferredLocation
+from app.db.models.location import PreferredLocation
 
 def get_user_locations(db: Session, user_id: int) -> List[PreferredLocation]:
     return db.query(PreferredLocation).filter(PreferredLocation.user_id == user_id).all()

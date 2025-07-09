@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from typing import Optional
-from app.db.models import User
+from app.db.models.user import User
 from app.schema.user import UserCreate, UserUpdate
 
 def get_user(db: Session, user_id: int) -> Optional[User]:

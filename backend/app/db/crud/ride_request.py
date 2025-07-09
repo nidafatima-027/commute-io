@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from app.db.models import RideRequest
+from app.db.models.ride_request import RideRequest
 
 def create_ride_request(db: Session, ride_id: int, rider_id: int, message: str = None) -> RideRequest:
     db_request = RideRequest(ride_id=ride_id, rider_id=rider_id, message=message)

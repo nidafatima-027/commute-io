@@ -1,6 +1,6 @@
 # Commute.io Backend API
 
-A FastAPI backend for the Commute.io rideshare application with proper architecture and database design.
+A FastAPI backend for the Commute.io rideshare application with proper architecture and PostgreSQL database.
 
 ## 🏗️ Architecture
 
@@ -8,8 +8,10 @@ A FastAPI backend for the Commute.io rideshare application with proper architect
 my_backend/
 ├── app/
 │   ├── api/          # API routes and endpoints
-│   ├── dto/          # Pydantic schemas (request/response DTOs)
+│   ├── schema/       # Pydantic schemas (request/response DTOs)
 │   ├── db/           # Database models and CRUD logic
+│   │   ├── models/   # SQLAlchemy models
+│   │   └── crud/     # CRUD operations
 │   ├── middleware/   # Custom middlewares
 │   ├── core/         # Core config, database connection, settings
 │   └── main.py       # Entry point
@@ -22,6 +24,7 @@ my_backend/
 ## 🚀 Features
 
 - **Clean Architecture** - Separation of concerns with proper layering
+- **PostgreSQL Database** - Production-ready database with proper configuration
 - **Database Models** - Based on the provided ERD diagram
 - **Authentication** - JWT tokens with OTP verification
 - **CRUD Operations** - Complete CRUD for all entities
@@ -44,31 +47,50 @@ Based on the ERD diagram:
 
 ## 🔧 Setup
 
-1. **Install dependencies:**
+### Prerequisites
+
+- Python 3.8+
+- PostgreSQL 12+
+- Redis (optional, for caching)
+
+### Installation
+
+1. **Clone and navigate to backend:**
 ```bash
 cd my_backend
+```
+
+2. **Create virtual environment:**
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+3. **Install dependencies:**
+```bash
 pip install -r requirements.txt
 ```
 
-2. **Configure environment:**
-```bash
-# Edit .env file with your database and other settings
-cp .env.example .env
+4. **Set up PostgreSQL database:**
+```sql
+CREATE DATABASE commute_io;
+CREATE USER commute_user WITH PASSWORD 'your_password';
+GRANT ALL PRIVILEGES ON DATABASE commute_io TO commute_user;
 ```
 
-3. **Initialize database:**
+5. **Configure environment:**
 ```bash
-# Initialize Alembic
-alembic init alembic
+# Edit .env file with your database credentials
+DATABASE_URL=postgresql://commute_user:your_password@localhost:5432/commute_io
+```
 
-# Create first migration
+6. **Initialize database migrations:**
+```bash
 alembic revision --autogenerate -m "Initial migration"
-
-# Apply migrations
 alembic upgrade head
 ```
 
-4. **Run the server:**
+7. **Run the server:**
 ```bash
 python -m app.main
 # or
@@ -198,13 +220,20 @@ export const apiService = {
 - CORS configuration
 - Environment variable management
 
-## 📝 Contributing
+## 📝 Environment Variables
 
-1. Follow the existing code structure
-2. Add proper type hints
-3. Write tests for new features
-4. Update documentation
-5. Create migrations for database changes
+Required environment variables in `.env`:
+
+```env
+DATABASE_URL=postgresql://username:password@localhost:5432/commute_io
+SECRET_KEY=your-super-secret-key
+FRONTEND_URL=http://localhost:8081
+REDIS_URL=redis://localhost:6379
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+```
 
 ## 📄 License
 

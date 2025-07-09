@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from typing import List
-from app.db.models import Schedule
+from app.db.models.schedule import Schedule
 
 def get_user_schedule(db: Session, user_id: int) -> List[Schedule]:
     return db.query(Schedule).filter(Schedule.user_id == user_id).all()

@@ -1,1 +1,2 @@
-from . import user, car, ride, ride_request, message, location, schedule
+# CRUD operations - import individual modules as needed
+# Removed automatic imports to prevent circular dependencies

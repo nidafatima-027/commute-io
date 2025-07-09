@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from app.db.models import Car
+from app.db.models.car import Car
 from app.schema.car import CarCreate, CarUpdate
 
 def get_user_cars(db: Session, user_id: int) -> List[Car]:

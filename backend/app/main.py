@@ -3,14 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from app.core.config import settings
-from app.core.database import engine
-from app.db.models import Base
-from app.api.users import router as users_router
-from app.api.auth import router as auth_router
-from app.api.rides import router as rides_router
-from app.api.messages import router as messages_router
-from app.api.cars import router as cars_router
-from app.api.locations import router as locations_router
+from app.core.database import engine, Base
+
+# Import all models to ensure they are registered with SQLAlchemy
+from app.db.models import *
 
 
 @asynccontextmanager
@@ -37,6 +33,13 @@ app.add_middleware(
 )
 
 # Include routers
+from app.api.auth import router as auth_router
+from app.api.users import router as users_router
+from app.api.rides import router as rides_router
+from app.api.messages import router as messages_router
+from app.api.cars import router as cars_router
+from app.api.locations import router as locations_router
+
 app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(users_router, prefix="/api/users", tags=["Users"])
 app.include_router(rides_router, prefix="/api/rides", tags=["Rides"])

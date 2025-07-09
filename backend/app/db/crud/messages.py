@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
 from typing import List
-from app.db.models import Message
+from app.db.models.message import Message
 from app.schema.message import MessageCreate
 
 def create_message(db: Session, message: MessageCreate, sender_id: int) -> Message:
