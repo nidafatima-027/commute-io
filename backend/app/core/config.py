@@ -2,13 +2,16 @@ from pydantic_settings import BaseSettings
 from pydantic import ConfigDict
 from typing import List
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class Settings(BaseSettings):
     model_config = ConfigDict(env_file=".env", extra='ignore')
     
     # Database
-    DATABASE_URL: str = "postgresql://username:password@localhost:5432/commute_io"
+    DATABASE_URL: str
     
     # Security
     SECRET_KEY: str = "your-secret-key-here-change-in-production"
@@ -16,7 +19,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
     # Redis
-    REDIS_URL: str = "redis://localhost:6379"
+    REDIS_URL: str
     
     # Email
     SMTP_SERVER: str = "smtp.gmail.com"
@@ -28,7 +31,7 @@ class Settings(BaseSettings):
     ALLOWED_HOSTS: List[str] = ["*"]
     
     # Frontend URL
-    FRONTEND_URL: str = "http://localhost:8081"
+    FRONTEND_URL: str
     
     # Environment
     ENVIRONMENT: str = "development"

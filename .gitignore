@@ -27,9 +27,15 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
-.env*.local
-.env
-
 # typescript
 *.tsbuildinfo
+
+# Ignore Python bytecode files
+*.py[cod]
+__pycache__/
+
+# Optional: ignore virtual environments
+venv/
+.env/
+*.env
+.env*.local
