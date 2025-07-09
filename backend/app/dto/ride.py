@@ -1,0 +1,51 @@
+from pydantic import BaseModel
+from typing import Optional
+from datetime import datetime
+
+
+class RideBase(BaseModel):
+    car_id: int
+    start_location_id: int
+    end_location_id: int
+    start_time: datetime
+    seats_available: int
+
+
+class RideCreate(RideBase):
+    pass
+
+
+class RideUpdate(BaseModel):
+    start_time: Optional[datetime] = None
+    seats_available: Optional[int] = None
+    status: Optional[str] = None
+
+
+class RideResponse(RideBase):
+    id: int
+    driver_id: int
+    status: str
+
+    class Config:
+        from_attributes = True
+
+
+class RideRequestCreate(BaseModel):
+    ride_id: int
+    message: Optional[str] = None
+
+
+class RideRequestResponse(BaseModel):
+    id: int
+    rider_id: int
+    ride_id: int
+    status: str
+    requested_at: datetime
+    message: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class RideRequestUpdate(BaseModel):
+    status: str  # accepted, rejected
