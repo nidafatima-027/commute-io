@@ -4,8 +4,8 @@ from typing import List
 
 from app.core.database import get_db
 from app.api.auth import get_current_user
-from app.db.crud import get_user_cars, create_car, update_car, delete_car
-from app.dto.car import CarCreate, CarUpdate, CarResponse
+from app.db.crud.car import get_user_cars, create_car, update_car, delete_car
+from app.schema.car import CarCreate, CarUpdate, CarResponse
 
 router = APIRouter()
 

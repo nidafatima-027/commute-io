@@ -4,8 +4,8 @@ from typing import List
 
 from app.core.database import get_db
 from app.api.auth import get_current_user
-from app.db.crud import create_message, get_conversation, get_user_conversations
-from app.dto.message import MessageCreate, MessageResponse, ConversationResponse
+from app.db.crud.messages import create_message, get_conversation, get_user_conversations
+from app.schema.message import MessageCreate, MessageResponse, ConversationResponse
 
 router = APIRouter()
 

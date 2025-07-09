@@ -1,21 +1,22 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
-
 from app.core.database import get_db
 from app.api.auth import get_current_user
-from app.db.crud import (
+from app.db.crud.ride import (
     get_available_rides, 
     create_ride, 
     get_user_rides, 
     get_ride,
     update_ride,
+)
+from app.db.crud.ride_request import (
     create_ride_request,
     get_ride_requests,
     get_user_ride_requests,
     update_ride_request_status
 )
-from app.dto.ride import (
+from app.schema.ride import (
     RideCreate, 
     RideUpdate, 
     RideResponse, 
