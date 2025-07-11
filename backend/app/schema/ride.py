@@ -49,3 +49,17 @@ class RideRequestResponse(BaseModel):
 
 class RideRequestUpdate(BaseModel):
     status: str  # accepted, rejected
+
+
+class RideHistoryResponse(BaseModel):
+    id: int
+    user_id: int
+    ride_id: int
+    role: str  # driver, rider
+    joined_at: datetime
+    completed_at: Optional[datetime] = None
+    rating_given: Optional[int] = None
+    rating_received: Optional[int] = None
+
+    class Config:
+        from_attributes = True

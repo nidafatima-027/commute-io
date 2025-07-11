@@ -17,13 +17,15 @@ from app.db.crud.ride_request import (
     update_ride_request_status
 )
 from app.schema.ride import (
-    RideCreate, 
+    RideCreate,
+    RideHistoryResponse, 
     RideUpdate, 
     RideResponse, 
     RideRequestCreate,
     RideRequestResponse,
     RideRequestUpdate
 )
+from app.db.crud.ride_history import create_ride_history_entry, get_user_ride_history
 
 router = APIRouter()
 
@@ -128,3 +130,23 @@ async def get_my_ride_requests(
     db: Session = Depends(get_db)
 ):
     return get_user_ride_requests(db, current_user.id)
+
+
+@router.get("/history", response_model=List[RideHistoryResponse])
+async def get_ride_history(
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get user's ride history (both as driver and rider)"""
+    return get_user_ride_history(db, current_user.id)
+
+
+@router.post("/history", response_model=RideHistoryResponse)
+async def create_ride_history(
+    ride_id: int,
+    role: str,  # "driver" or "rider"
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Create a ride history entry when a ride is completed"""
+    return create_ride_history_entry(db, current_user.id, ride_id, role)

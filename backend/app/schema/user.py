@@ -1,6 +1,39 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
+from enum import Enum
+
+
+class GenderPreference(str, Enum):
+    NO_PREFERENCE = "No preference"
+    MALE_ONLY = "Male only"
+    FEMALE_ONLY = "Female only"
+
+
+class MusicPreference(str, Enum):
+    NO_MUSIC = "No music"
+    LIGHT_MUSIC = "Light music"
+    LOUD_MUSIC = "Loud music"
+    USER_CAN_CHOOSE = "User can choose"
+
+
+class ConversationPreference(str, Enum):
+    SILENT_RIDE = "Silent ride"
+    TALKATIVE_RIDE = "Talkative ride"
+    NO_PREFERENCE = "No preference"
+
+
+class SmokingPreference(str, Enum):
+    REQUIRED = "Required"
+    PREFERRED = "Preferred"
+    NOT_REQUIRED = "Not required"
+
+
+class UserPreferences(BaseModel):
+    gender_preference: Optional[GenderPreference] = GenderPreference.NO_PREFERENCE
+    music_preference: Optional[MusicPreference] = MusicPreference.USER_CAN_CHOOSE
+    conversation_preference: Optional[ConversationPreference] = ConversationPreference.NO_PREFERENCE
+    smoking_preference: Optional[SmokingPreference] = SmokingPreference.NOT_REQUIRED
 
 
 class UserBase(BaseModel):
@@ -8,9 +41,10 @@ class UserBase(BaseModel):
     email: EmailStr
     phone: Optional[str] = None
     bio: Optional[str] = None
-    role_mode: str = "rider"  # rider, driver, both
+    is_driver: Optional[bool] = None
+    is_rider: Optional[bool] = None
     preferences: Optional[str] = None
-
+    preferences: Optional[UserPreferences] = None
 
 class UserCreate(UserBase):
     pass
@@ -20,8 +54,9 @@ class UserUpdate(BaseModel):
     name: Optional[str] = None
     phone: Optional[str] = None
     bio: Optional[str] = None
-    role_mode: Optional[str] = None
-    preferences: Optional[str] = None
+    is_driver: Optional[bool] = None
+    is_rider: Optional[bool] = None
+    preferences: Optional[UserPreferences] = None
     photo_url: Optional[str] = None
 
 

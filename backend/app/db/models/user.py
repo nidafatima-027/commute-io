@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Text, DateTime
+from sqlalchemy import Column, Integer, String, Float, Text, DateTime, Boolean, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.core.database import Base
@@ -12,9 +12,10 @@ class User(Base):
     phone = Column(String, unique=True, index=True, nullable=True)
     photo_url = Column(Text, nullable=True)
     bio = Column(Text, nullable=True)
-    role_mode = Column(String, nullable=False, default="rider")
+    is_driver = Column(Boolean, nullable=False, default=False)
+    is_rider = Column(Boolean, nullable=False, default=True)
     trust_score = Column(Float, default=0.0)
-    preferences = Column(Text, nullable=True)
+    preferences = Column(JSON, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     cars = relationship("Car", back_populates="user")

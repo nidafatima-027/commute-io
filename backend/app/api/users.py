@@ -6,12 +6,23 @@ from app.core.database import get_db
 from app.api.auth import get_current_user
 from app.db.crud.user import update_user
 from app.db.crud.schedule import get_user_schedule, create_schedule
-from app.db.crud.location import get_user_locations, create_location
-from app.schema.user import UserUpdate, UserResponse
+from app.schema.user import UserUpdate, UserResponse, UserPreferences, GenderPreference, MusicPreference, ConversationPreference, SmokingPreference
 from app.schema.schedule import ScheduleCreate, ScheduleResponse
-from app.schema.location import LocationCreate, LocationResponse
 
 router = APIRouter()
+
+
+@router.get("/preferences/options")
+async def get_preference_options():
+    """
+    Get all available preference options for user selection
+    """
+    return {
+        "gender_preferences": [option.value for option in GenderPreference],
+        "music_preferences": [option.value for option in MusicPreference],
+        "conversation_preferences": [option.value for option in ConversationPreference],
+        "smoking_preferences": [option.value for option in SmokingPreference]
+    }
 
 
 @router.get("/profile", response_model=UserResponse)
@@ -47,19 +58,3 @@ async def create_user_schedule(
 ):
     return create_schedule(db, schedule.dict(), current_user.id)
 
-
-@router.get("/locations", response_model=List[LocationResponse])
-async def get_locations(
-    current_user = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    return get_user_locations(db, current_user.id)
-
-
-@router.post("/locations", response_model=LocationResponse)
-async def create_user_location(
-    location: LocationCreate,
-    current_user = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    return create_location(db, location.dict(), current_user.id)

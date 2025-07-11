@@ -18,8 +18,9 @@ def create_user(db: Session, user: UserCreate) -> User:
         email=user.email,
         phone=user.phone,
         bio=user.bio,
-        role_mode=user.role_mode,
-        preferences=user.preferences
+        is_driver=user.is_driver,
+        is_rider=user.is_rider,
+        preferences=user.preferences.dict() if user.preferences else None
     )
     db.add(db_user)
     db.commit()
@@ -30,8 +31,14 @@ def update_user(db: Session, user_id: int, user_update: UserUpdate) -> Optional[
     db_user = get_user(db, user_id)
     if not db_user:
         return None
-    for field, value in user_update.dict(exclude_unset=True).items():
-        setattr(db_user, field, value)
+    
+    update_data = user_update.dict(exclude_unset=True)
+    for field, value in update_data.items():
+        if field == 'preferences' and value is not None:
+            setattr(db_user, field, value.dict())
+        else:
+            setattr(db_user, field, value)
+    
     db.commit()
     db.refresh(db_user)
     return db_user

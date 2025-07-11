@@ -50,11 +50,28 @@ app.include_router(locations_router, prefix="/api/locations", tags=["Locations"]
 
 @app.get("/")
 async def root():
+    """
+    Root endpoint - API welcome message
+    
+    Purpose:
+    - Confirms the API is accessible
+    - Provides basic API information
+    - Used for initial connectivity testing
+    """
     return {"message": "Welcome to Commute.io API"}
 
 
 @app.get("/api/health")
 async def health_check():
+    """
+    Health check endpoint for monitoring and deployment
+    
+    Purpose:
+    - Used by load balancers to check if the service is healthy
+    - Monitoring systems can ping this to ensure API is running
+    - DevOps teams use this for automated health checks
+    - Returns 200 status if the API is operational
+    """
     return {"status": "healthy", "message": "API is running"}
 
 
