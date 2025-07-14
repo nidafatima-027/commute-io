@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
+import { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Search, Settings, Menu, MessageCircle, Car, Plus, Navigation } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { ridesAPI, usersAPI } from '../../services/api';
 
 export default function HomeScreen() {
   const [selectedMode, setSelectedMode] = useState('Driver');
   const [searchText, setSearchText] = useState('');
+  const [rides, setRides] = useState([]);
+  const [userProfile, setUserProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const handleSettings = () => {
     router.push('/(tabs)/setting');
@@ -19,8 +24,26 @@ export default function HomeScreen() {
   const handleRideChat = () => {
     // Navigate to chat screen
     router.push('/(tabs)/ride-chat');
-  }
+  };
 
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const [ridesData, profileData] = await Promise.all([
+        ridesAPI.searchRides(10),
+        usersAPI.getProfile()
+      ]);
+      setRides(ridesData);
+      setUserProfile(profileData);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
   const suggestedRides = [
     {
       id: 1,
@@ -82,6 +105,12 @@ export default function HomeScreen() {
             <Settings size={24} color="#2d3748" />
           </TouchableOpacity>
         </View>
+
+        {loading && (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>Loading...</Text>
+          </View>
+        )}
 
         {/* Mode Toggle */}
         <View style={styles.modeToggleContainer}>
@@ -443,5 +472,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+  },
+  loadingContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#9CA3AF',
+    fontFamily: 'Inter-Regular',
   },
 });

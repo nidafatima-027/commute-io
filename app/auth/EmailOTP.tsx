@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import { router, useLocalSearchParams } from 'expo-router';
+import { Alert } from "react-native";
 
 import {
   View,
@@ -11,10 +12,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
+import { authAPI } from "../../services/api";
 
 const EmailVerificationScreen = () => {
   const [code, setCode] = useState(["", "", "", "", "", ""]);
-    const { email } = useLocalSearchParams();
+  const [loading, setLoading] = useState(false);
+  const { email } = useLocalSearchParams();
   // Refs for auto-focusing next inputs
   const inputs = useRef<Array<TextInput | null>>([]);
 
@@ -39,15 +42,57 @@ const EmailVerificationScreen = () => {
     }
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     const enteredCode = code.join('');
-    console.log('Entered code:', enteredCode);
-    router.push('/auth/profile-setup');
+    if (!enteredCode || enteredCode.length !== 6) {
+      Alert.alert("Validation Error", "Please enter the complete 6-digit code.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await authAPI.verifyOTP(email as string, enteredCode);
+      
+      // Check if user is new or existing
+      if (response.user?.is_new_user) {
+        router.push('/auth/profile-setup');
+      } else {
+        router.push('/(tabs)'); // Or your index/home route
+      }
+      
+    } catch (error) {
+      Alert.alert("Error", error instanceof Error ? error.message : "Invalid OTP");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleBack = () => {
     router.push('/auth/EmailPage');
   };
+
+  const handleResendOTP = async () => {
+  // Clear all code inputs
+  setCode(Array(6).fill(''));
+  // Focus the first input field
+  inputs.current[0]?.focus();
+  
+  setLoading(true);
+  const timeout = setTimeout(() => {
+    setLoading(false);
+    Alert.alert("Timeout", "Request took too long");
+  }, 15000);
+
+  try {
+    await authAPI.sendOTP(email as string);
+    Alert.alert("Success", "New OTP code has been sent");
+  } catch (error) {
+    Alert.alert("Error", error instanceof Error ? error.message : "Failed to resend OTP");
+  } finally {
+    clearTimeout(timeout);
+    setLoading(false);
+  }
+};
 
   return (
     <SafeAreaView style={styles.container}>
@@ -89,20 +134,27 @@ ref={(ref) => {
           </View>
 
           {/* Resend */}
-          <TouchableOpacity>
-            <Text style={styles.resendText}>Resend code</Text>
+          <TouchableOpacity 
+            onPress={handleResendOTP}
+            disabled={loading}
+          >
+            <Text style={[styles.resendText, loading && { opacity: 0.5 }]}>
+              Resend code
+            </Text>
           </TouchableOpacity>
 
           {/* Verify Button */}
           <TouchableOpacity
             style={[
               styles.verifyButton,
-              !isCodeComplete && { opacity: 0.5 },
+              (!isCodeComplete || loading) && { opacity: 0.5 },
             ]}
             onPress={handleVerify}
-            disabled={!isCodeComplete}
+            disabled={!isCodeComplete || loading}
           >
-            <Text style={styles.verifyButtonText}>Verify</Text>
+            <Text style={styles.verifyButtonText}>
+              {loading ? "Verifying..." : "Verify"}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Alert } from "react-native";
 import {
   View,
   ScrollView,
@@ -11,11 +12,13 @@ import {
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft } from "lucide-react-native";
+import { authAPI } from "../../services/api";
 
 const { width } = Dimensions.get("window");
 
 const EmailScreen = () => {
   const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
 
 
   const isEmailValid = (email: string) => {
@@ -28,18 +31,30 @@ const EmailScreen = () => {
     router.push("/auth/signup");
   };
 
-  const handleNext = () => {
-
+  const handleNext = async () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
-    if (emailRegex.test(email)) { 
-      router.push({ // change
-        pathname: '/auth/EmailOTP', // change
-        params: { email }, // change
-      }); // change
-    } else { // change
-      alert("Please enter a valid email address."); // change
-    } // change
+    if (!emailRegex.test(email)) {
+      Alert.alert("Validation Error", "Please enter a valid email address.");
+      return;
+    }
 
+    setLoading(true);
+    const timeout = setTimeout(() => {
+    setLoading(false);
+    Alert.alert("Timeout", "Request took too long");
+  }, 15000);
+    try {
+      await authAPI.sendOTP(email);
+      router.push({
+        pathname: '/auth/EmailOTP',
+        params: { email },
+      });
+    } catch (error) {
+      Alert.alert("Error", error instanceof Error ? error.message : "Failed to send OTP");
+    } finally {
+          clearTimeout(timeout);
+      setLoading(false);
+    }
   };
 
   return (
@@ -75,12 +90,14 @@ const EmailScreen = () => {
           <TouchableOpacity
             style={[
               styles.nextButton,
-              (!email || !isEmailValid(email)) && { opacity: 0.5 },
+              (!email || !isEmailValid(email) || loading) && { opacity: 0.5 },
             ]}
             onPress={handleNext}
-            disabled={!email || !isEmailValid(email)}
+            disabled={!email || !isEmailValid(email) || loading}
           >
-            <Text style={styles.nextButtonText}>Next</Text>
+            <Text style={styles.nextButtonText}>
+              {loading ? "Sending..." : "Next"}
+            </Text>
           </TouchableOpacity>
         </View>
 

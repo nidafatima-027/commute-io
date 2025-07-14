@@ -1,6 +1,6 @@
 from pydantic_settings import BaseSettings
-from pydantic import ConfigDict
-from typing import List
+from pydantic import ConfigDict, Field, PostgresDsn, RedisDsn
+from typing import List, Optional
 import os
 from dotenv import load_dotenv
 
@@ -21,6 +21,14 @@ class Settings(BaseSettings):
     # Redis
     REDIS_URL: str
     
+  # --------------------------
+    # Email Configuration
+    # --------------------------
+    # Mailjet API (Recommended)
+    MAILJET_API_KEY: Optional[str] = Field(default=None)
+    MAILJET_SECRET_KEY: Optional[str] = Field(default=None)
+    MAILJET_SENDER_EMAIL: str = Field(default="no-reply@yourdomain.com")
+
     # Email
     SMTP_SERVER: str = "smtp.gmail.com"
     SMTP_PORT: int = 587

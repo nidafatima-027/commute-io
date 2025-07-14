@@ -1,8 +1,10 @@
 import React from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Settings } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { messagesAPI } from '../../services/api';
 
 type Conversation = {
   id: number;
@@ -12,6 +14,24 @@ type Conversation = {
 };
 
 export default function MessagesScreen() {
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadConversations();
+  }, []);
+
+  const loadConversations = async () => {
+    try {
+      const data = await messagesAPI.getConversations();
+      setConversations(data);
+    } catch (error) {
+      console.error('Error loading conversations:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSettings = () => {
     router.push('/(tabs)/setting');
   };
@@ -20,7 +40,7 @@ export default function MessagesScreen() {
     router.back();
   };
 
-  const conversations: Conversation[] = [
+  const defaultConversations: Conversation[] = [
     {
       id: 1,
       name: 'Ethan Carter',
@@ -90,7 +110,11 @@ export default function MessagesScreen() {
 
       {/* Messages List */}
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {conversations.map(renderConversation)}
+        {loading ? (
+          <Text style={styles.loadingText}>Loading conversations...</Text>
+        ) : (
+          (conversations.length > 0 ? conversations : defaultConversations).map(renderConversation)
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -158,5 +182,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-Regular',
     color: '#9CA3AF',
+  },
+  loadingText: {
+    textAlign: 'center',
+    padding: 20,
+    fontSize: 16,
+    color: '#9CA3AF',
+    fontFamily: 'Inter-Regular',
   },
 });

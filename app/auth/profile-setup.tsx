@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Switch, KeyboardTypeOptions } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Switch, KeyboardTypeOptions, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Upload, ChevronRight } from 'lucide-react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
+import { usersAPI } from '../../services/api';
 
 export default function ProfileSetupScreen() {
   const [formData, setFormData] = useState({
@@ -18,11 +19,9 @@ export default function ProfileSetupScreen() {
     numberOfSeats: '',
     acAvailable: false,
     preferences: '',
-    
-    
-    
   });
-const [errors, setErrors] = useState<Partial<Record<FormField, string>>>({});
+  const [errors, setErrors] = useState<Partial<Record<FormField, string>>>({});
+  const [loading, setLoading] = useState(false);
 
   type FormField = keyof typeof formData;
 
@@ -108,11 +107,36 @@ const validateForm = (): boolean => {
     setFormData(prev => ({ ...prev, selectedMode: mode }));
   };
 
-const handleSave = () => {
-  if (validateForm()) {
-    router.replace('/(tabs)');
-  }
-};
+  const handleSave = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const userData = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phoneNumber,
+        bio: formData.preferences,
+        is_driver: formData.selectedMode === 'Driver' || formData.selectedMode === 'Both',
+        is_rider: formData.selectedMode === 'Rider' || formData.selectedMode === 'Both',
+        preferences: {
+          gender_preference: formData.gender || "No preference",
+          music_preference: "User can choose",
+          conversation_preference: "No preference", 
+          smoking_preference: "Not required"
+        }
+      };
+
+      await usersAPI.updateProfile(userData);
+      router.replace('/(tabs)');
+    } catch (error) {
+      Alert.alert("Error", error instanceof Error ? error.message : "Failed to save profile");
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   const handleBack = () => {
@@ -313,8 +337,14 @@ const handleSave = () => {
   </TouchableOpacity>
 </View>
 
-<TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-  <Text style={styles.saveButtonText}>Save</Text>
+<TouchableOpacity 
+  style={[styles.saveButton, loading && { opacity: 0.5 }]} 
+  onPress={handleSave}
+  disabled={loading}
+>
+  <Text style={styles.saveButtonText}>
+    {loading ? "Saving..." : "Save"}
+  </Text>
 </TouchableOpacity>
 
 <Text style={styles.termsText}>
