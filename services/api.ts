@@ -1,6 +1,56 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 
-const API_BASE_URL = 'http://192.168.100.32:8000/api';
+// Function to get the API base URL dynamically
+const getApiBaseUrl = () => {
+  if (Platform.OS === 'web') {
+    // For web, use localhost or the current host
+    return 'http://localhost:8000/api';
+  }
+  
+  // For mobile devices, try to get the development server IP
+  const debuggerHost = Constants.expoConfig?.hostUri?.split(':')[0];
+  
+  if (debuggerHost) {
+    return `http://${debuggerHost}:8000/api`;
+  }
+  
+  // Fallback to localhost (works for iOS simulator)
+  return 'http://localhost:8000/api';
+};
+
+// Configuration for different environments
+const getApiBaseUrl = () => {
+  // Check if we're in development mode
+  const isDevelopment = __DEV__;
+  
+  if (!isDevelopment) {
+    // Production URL - replace with your production API URL
+    return 'https://your-production-api.com/api';
+  }
+  
+  if (Platform.OS === 'web') {
+    return 'http://localhost:8000/api';
+  }
+  
+  // For mobile development
+  const debuggerHost = Constants.expoConfig?.hostUri?.split(':')[0];
+  
+  if (debuggerHost) {
+    return `http://${debuggerHost}:8000/api`;
+  }
+  
+  // Final fallback
+  return 'http://10.0.2.2:8000/api'; // Android emulator localhost
+};
+
+const API_BASE_URL = getApiBaseUrl();
+
+// Debug log to see what URL is being used
+console.log('API Base URL:', API_BASE_URL);
 
 // Token management
 export const tokenManager = {
