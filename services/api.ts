@@ -1,28 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
-import { Platform } from 'react-native';
-import Constants from 'expo-constants';
 
 // Function to get the API base URL dynamically
-const getApiBaseUrl = () => {
-  if (Platform.OS === 'web') {
-    // For web, use localhost or the current host
-    return 'http://localhost:8000/api';
-  }
-  
-  // For mobile devices, try to get the development server IP
-  const debuggerHost = Constants.expoConfig?.hostUri?.split(':')[0];
-  
-  if (debuggerHost) {
-    return `http://${debuggerHost}:8000/api`;
-  }
-  
-  // Fallback to localhost (works for iOS simulator)
-  return 'http://localhost:8000/api';
-};
-
-// Configuration for different environments
 const getApiBaseUrl = () => {
   // Check if we're in development mode
   const isDevelopment = __DEV__;
@@ -36,21 +16,25 @@ const getApiBaseUrl = () => {
     return 'http://localhost:8000/api';
   }
   
-  // For mobile development
+  // For mobile development - get the development server IP
   const debuggerHost = Constants.expoConfig?.hostUri?.split(':')[0];
   
   if (debuggerHost) {
     return `http://${debuggerHost}:8000/api`;
   }
   
-  // Final fallback
-  return 'http://10.0.2.2:8000/api'; // Android emulator localhost
+  // Fallbacks for different platforms
+  if (Platform.OS === 'android') {
+    return 'http://10.0.2.2:8000/api'; // Android emulator localhost
+  }
+  
+  return 'http://localhost:8000/api'; // iOS simulator
 };
 
 const API_BASE_URL = getApiBaseUrl();
 
 // Debug log to see what URL is being used
-console.log('API Base URL:', API_BASE_URL);
+console.log('🌐 API Base URL:', API_BASE_URL);
 
 // Token management
 export const tokenManager = {
@@ -80,29 +64,36 @@ export const tokenManager = {
   }
 };
 
-// API request helper
+// API request helper with better error handling
 async function apiRequest(endpoint: string, options: RequestInit = {}) {
   try {
     const token = await tokenManager.getToken();
     const config: RequestInit = {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` }),
-      ...options.headers,
-    },
-  };
-console.log('API Base URL:', API_BASE_URL); // Add this before fetch
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+        ...options.headers,
+      },
+    };
+
+    console.log(`📡 API Request: ${options.method || 'GET'} ${API_BASE_URL}${endpoint}`);
+    
     const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+      const errorMessage = errorData.detail || `HTTP error! status: ${response.status}`;
+      console.error('❌ API Error:', errorMessage);
+      throw new Error(errorMessage);
     }
-    return response.json();
+    
+    const data = await response.json();
+    console.log('✅ API Success:', endpoint);
+    return data;
   } catch (error) {
-    console.error('API Request Failed:', error); // Add this line
-    throw error; // Re-throw to maintain error handling in handleNext
+    console.error('🚨 API Request Failed:', error);
+    throw error;
   }
 }
 
@@ -116,6 +107,7 @@ export const authAPI = {
     is_driver?: boolean;
     is_rider?: boolean;
     preferences?: any;
+    password: string;
   }) {
     const response = await apiRequest('/auth/register', {
       method: 'POST',
@@ -372,5 +364,18 @@ export const locationsAPI = {
 export const healthAPI = {
   async checkHealth() {
     return apiRequest('/health');
+  }
+};
+
+// Export a test function to verify connection
+export const testConnection = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL.replace('/api', '')}/`);
+    const data = await response.json();
+    console.log('🔗 Backend connection test:', data);
+    return data;
+  } catch (error) {
+    console.error('❌ Backend connection failed:', error);
+    throw error;
   }
 };
