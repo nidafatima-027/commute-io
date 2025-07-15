@@ -39,3 +39,4 @@ venv/
 .env/
 *.env
 .env*.local
+.env
