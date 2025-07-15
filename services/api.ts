@@ -1,4 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 
 // Function to get the API base URL dynamically
 const getApiBaseUrl = () => {
