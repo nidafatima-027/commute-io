@@ -34,7 +34,9 @@ def update_user(db: Session, user_id: int, user_update: UserUpdate) -> Optional[
     
     update_data = user_update.dict(exclude_unset=True)
     for field, value in update_data.items():
-        if field == 'preferences' and value is not None:
+        if isinstance(value, dict):
+            setattr(db_user, field, value)
+        elif hasattr(value, 'dict'):
             setattr(db_user, field, value.dict())
         else:
             setattr(db_user, field, value)
