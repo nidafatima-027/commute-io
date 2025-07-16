@@ -141,14 +141,15 @@ async def verify_otp_endpoint(request: OTPVerify, db: Session = Depends(get_db))
         data={"sub": user.email}, 
         expires_delta=access_token_expires
     )
-    
+    print(f"{is_new_user}")
+
     return {
         "access_token": access_token,
         "token_type": "bearer",
+        "is_new_user": is_new_user,
         "user": {
             "email": user.email,
             "id": user.id,
-            "is_new_user": is_new_user,
             "name": user.name or "",  # Provide default if None
             "trust_score": user.trust_score or 0,  # Default value
             "created_at": user.created_at or datetime.utcnow()
