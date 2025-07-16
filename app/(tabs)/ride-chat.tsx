@@ -14,6 +14,7 @@ import {
 import { ArrowLeft } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { sendGenAIChat } from '../../services/api';
 
 export default function RideChatScreen() {
   const [input, setInput] = useState('');
@@ -26,7 +27,7 @@ export default function RideChatScreen() {
     router.push('/(tabs)');
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const trimmed = input.trim();
     if (!trimmed) {
       Alert.alert('Validation Error', 'Please enter a valid message.');
@@ -45,15 +46,15 @@ export default function RideChatScreen() {
     setMessages(newMessages);
     setInput('');
 
-    setTimeout(() => {
-      const aiResponse = {
-        id: newMessages.length + 1,
-        sender: 'bot',
-        text: "Thanks! I'm processing your request...",
-      };
-      setMessages([...newMessages, aiResponse]);
-      setSending(false);
-    }, 1500);
+    // Call backend GenAI API
+    const aiReply = await sendGenAIChat(trimmed);
+    const aiResponse = {
+      id: newMessages.length + 1,
+      sender: 'bot',
+      text: aiReply,
+    };
+    setMessages([...newMessages, aiResponse]);
+    setSending(false);
   };
 
   return (
