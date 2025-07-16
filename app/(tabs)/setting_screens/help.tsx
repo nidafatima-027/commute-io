@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Linking, Alert } from 'react-native';
-import { Search, Phone, Mail, MessageCircle, ArrowLeft, ChevronDown, ChevronRight, ExternalLink, AlertCircle } from 'lucide-react-native';
+import { Search, Phone, Mail, MessageCircle, ArrowLeft, ChevronDown, ChevronRight, ExternalLink, CircleAlert as AlertCircle } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
