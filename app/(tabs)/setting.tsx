@@ -26,13 +26,7 @@ export default function SettingsScreen(){
       router.push('/(tabs)/setting_screens/notification')
     }
 
-    const handlePrivacy = () => {
-      router.push('/(tabs)/setting_screens/privacy')
-    }
-
-    const handleSecurity = () => {
-      router.push('/(tabs)/setting_screens/security')
-    }
+ 
 
     return (
         <SafeAreaView style={styles.container}>
@@ -69,29 +63,7 @@ export default function SettingsScreen(){
             </View>
             </TouchableOpacity>
 
-            {/* Privacy & Security */}
-            <Text style={styles.sectionTitle}>Privacy & Security</Text>
-
-            <TouchableOpacity style={styles.item} onPress={handlePrivacy}>
-            <View style={styles.iconContainer}>
-                <Shield size={24} color="#2d3748" />
-            </View>
-            <View>
-                <Text style={styles.itemTitle}>Privacy Settings</Text>
-                <Text style={styles.itemSubtitle}>Control your privacy</Text>
-            </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.item} onPress={handleSecurity}>
-            <View style={styles.iconContainer}>
-                <Lock size={24} color="#2d3748" />
-            </View>
-            <View>
-                <Text style={styles.itemTitle}>Security Settings</Text>
-                <Text style={styles.itemSubtitle}>Manage account security</Text>
-            </View>
-            </TouchableOpacity>
-
+          
             {/* Personal Preferences */}
             <Text style={styles.sectionTitle}>Personal Preferences</Text>
 
