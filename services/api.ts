@@ -178,6 +178,21 @@ export const usersAPI = {
     });
   },
 
+  async createCar(carData: {
+    make: string;
+    model: string;
+    license_plate: string;
+    seats: number;
+    has_ac: boolean;
+    color?: string;
+    year?: string;
+  }) {
+    return apiRequest('/cars/', {
+      method: 'POST',
+      body: JSON.stringify(carData),
+    });
+  },
+
   async getPreferenceOptions() {
     return apiRequest('/users/preferences/options');
   },

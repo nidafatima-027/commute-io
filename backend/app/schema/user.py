@@ -54,6 +54,7 @@ class UserUpdate(BaseModel):
     name: Optional[str] = None
     phone: Optional[str] = None
     bio: Optional[str] = None
+    gender: Optional[str] = None
     is_driver: Optional[bool] = None
     is_rider: Optional[bool] = None
     preferences: Optional[UserPreferences] = None
