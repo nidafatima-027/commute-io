@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Bell, Sun, Info, HelpCircle, ArrowLeft, Calendar , MapPin} from 'lucide-react-native';
+import { Bell, Sun, Info, HelpCircle, ArrowLeft, Calendar, MapPin, Shield, Lock } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function SettingsScreen(){
   
@@ -22,16 +23,26 @@ export default function SettingsScreen(){
     }
 
     const handleNotification = () => {
-      router.push('/setting_screens/notification')
+      router.push('/(tabs)/setting_screens/notification')
+    }
+
+    const handlePrivacy = () => {
+      router.push('/(tabs)/setting_screens/privacy')
+    }
+
+    const handleSecurity = () => {
+      router.push('/(tabs)/setting_screens/security')
     }
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-            <ArrowLeft size={28} color="black" onPress={handleBack}/>
+            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+              <ArrowLeft size={24} color="#2d3748" />
+            </TouchableOpacity>
             <Text style={styles.headerText}>Settings</Text>
-            <View style={{ width: 28 }} /> 
+            <View style={styles.placeholder} />
         </View>
 
         <ScrollView contentContainerStyle={styles.content}>
@@ -40,7 +51,7 @@ export default function SettingsScreen(){
 
             <TouchableOpacity style={styles.item} onPress={handleNotification}>
             <View style={styles.iconContainer}>
-                <Bell size={24} color="black" />
+                <Bell size={24} color="#2d3748" />
             </View>
             <View>
                 <Text style={styles.itemTitle}>Notifications</Text>
@@ -50,42 +61,65 @@ export default function SettingsScreen(){
 
             <TouchableOpacity style={styles.item} onPress={handleDisplay}>
             <View style={styles.iconContainer}>
-                <Sun size={24} color="black" />
+                <Sun size={24} color="#2d3748" />
             </View>
             <View>
                 <Text style={styles.itemTitle}>Display Settings</Text>
                 <Text style={styles.itemSubtitle}>Customize display settings</Text>
             </View>
             </TouchableOpacity>
-            <View style={styles.section}>
-  <Text style={styles.sectionTitle}>Personal Preferences</Text>
 
-  <TouchableOpacity
-    style={styles.item}
-    onPress={() => router.push('/auth/DailySchedule')}
-  >
-    <View style={styles.iconContainer}>
-       <Calendar size={24} color="black" /> 
-    </View>
-    <View>
-      <Text style={styles.itemTitle}>Daily Schedule</Text>
-      <Text style={styles.itemSubtitle}>Set your routine timings</Text>
-    </View>
-  </TouchableOpacity>
+            {/* Privacy & Security */}
+            <Text style={styles.sectionTitle}>Privacy & Security</Text>
 
-  <TouchableOpacity
-    style={styles.item}
-    onPress={() => router.push('/auth/PreferredpickupLocation')}
-  >
-    <View style={styles.iconContainer}>
-      <MapPin size={24} color="black" /> 
-    </View>
-    <View>
-      <Text style={styles.itemTitle}>Preferred Pickup Locations</Text>
-      <Text style={styles.itemSubtitle}>Manage saved pickup points</Text>
-    </View>
-  </TouchableOpacity>
-</View>
+            <TouchableOpacity style={styles.item} onPress={handlePrivacy}>
+            <View style={styles.iconContainer}>
+                <Shield size={24} color="#2d3748" />
+            </View>
+            <View>
+                <Text style={styles.itemTitle}>Privacy Settings</Text>
+                <Text style={styles.itemSubtitle}>Control your privacy</Text>
+            </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.item} onPress={handleSecurity}>
+            <View style={styles.iconContainer}>
+                <Lock size={24} color="#2d3748" />
+            </View>
+            <View>
+                <Text style={styles.itemTitle}>Security Settings</Text>
+                <Text style={styles.itemSubtitle}>Manage account security</Text>
+            </View>
+            </TouchableOpacity>
+
+            {/* Personal Preferences */}
+            <Text style={styles.sectionTitle}>Personal Preferences</Text>
+
+            <TouchableOpacity
+              style={styles.item}
+              onPress={() => router.push('/auth/DailySchedule')}
+            >
+              <View style={styles.iconContainer}>
+                 <Calendar size={24} color="#2d3748" /> 
+              </View>
+              <View>
+                <Text style={styles.itemTitle}>Daily Schedule</Text>
+                <Text style={styles.itemSubtitle}>Set your routine timings</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.item}
+              onPress={() => router.push('/auth/PreferredpickupLocation')}
+            >
+              <View style={styles.iconContainer}>
+                <MapPin size={24} color="#2d3748" /> 
+              </View>
+              <View>
+                <Text style={styles.itemTitle}>Preferred Pickup Locations</Text>
+                <Text style={styles.itemSubtitle}>Manage saved pickup points</Text>
+              </View>
+            </TouchableOpacity>
 
 
             {/* Other */}
@@ -93,7 +127,7 @@ export default function SettingsScreen(){
 
             <TouchableOpacity style={styles.item} onPress={handleAbout}>
             <View style={styles.iconContainer}>
-                <Info size={24} color="black" />
+                <Info size={24} color="#2d3748" />
             </View>
             <View>
                 <Text style={styles.itemTitle}>About</Text>
@@ -103,7 +137,7 @@ export default function SettingsScreen(){
 
             <TouchableOpacity style={styles.item} onPress={handleHelp}>
             <View style={styles.iconContainer}>
-                <HelpCircle size={24} color="black" />
+                <HelpCircle size={24} color="#2d3748" />
             </View>
             <View>
                 <Text style={styles.itemTitle}>Help</Text>
@@ -111,51 +145,65 @@ export default function SettingsScreen(){
             </View>
             </TouchableOpacity>
         </ScrollView>
-        </View>
+        </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    paddingTop: 50,
+    backgroundColor: '#ffffff',
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 10,
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F9FAFB',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerText: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    color: '#2d3748',
+  },
+  placeholder: {
+    width: 40,
   },
   content: {
-    paddingHorizontal: 20,
-  },
-  section: {
-    marginTop: 24,
+    paddingHorizontal: 24,
+    paddingVertical: 24,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 20,
+    fontFamily: 'Inter-SemiBold',
     color: '#2d3748',
     marginBottom: 16,
+    marginTop: 24,
   },
   item: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#F9FAFB',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
   iconContainer: {
     width: 40,
     height: 40,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: '#ffffff',
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
@@ -163,25 +211,14 @@ const styles = StyleSheet.create({
   },
   itemTitle: {
     fontSize: 16,
-    fontWeight: '500',
+    fontFamily: 'Inter-SemiBold',
     color: '#2d3748',
   },
   itemSubtitle: {
     fontSize: 14,
-    color: '#6b7280',
+    fontFamily: 'Inter-Regular',
+    color: '#6B7280',
     marginTop: 2,
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderColor: '#ccc',
-  },
-  navLabel: {
-    fontSize: 12,
-    textAlign: 'center',
-    color: '#78858F',
   },
 });
 
