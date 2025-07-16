@@ -52,9 +52,9 @@ const EmailVerificationScreen = () => {
     setLoading(true);
     try {
       const response = await authAPI.verifyOTP(email as string, enteredCode);
-      
+      console.log(response);
       // Check if user is new or existing
-      if (response.user?.is_new_user) {
+      if (response?.is_new_user) {
         router.push('/auth/profile-setup');
       } else {
         router.push('/(tabs)'); // Or your index/home route
