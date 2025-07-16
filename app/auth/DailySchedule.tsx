@@ -69,7 +69,7 @@ const DailySchedule = () => {
   const handleSave = () => {
     console.log('Saved schedule:', schedule);
     // Add backend logic here if needed
-    router.push('/auth/profile-setup');
+    router.back();
   };
 
   return (

@@ -4,32 +4,26 @@ import Constants from 'expo-constants';
 
 // Function to get the API base URL dynamically
 const getApiBaseUrl = () => {
-  // Check if we're in development mode
   const isDevelopment = __DEV__;
-  
+
   if (!isDevelopment) {
-    // Production URL - replace with your production API URL
     return 'https://your-production-api.com/api';
   }
-  
+
   if (Platform.OS === 'web') {
     return 'http://localhost:8000/api';
   }
-  
-  // For mobile development - get the development server IP
+
   const debuggerHost = Constants.expoConfig?.hostUri?.split(':')[0];
-  
+
   if (debuggerHost) {
     return `http://${debuggerHost}:8000/api`;
   }
-  
-  // Fallbacks for different platforms
-  if (Platform.OS === 'android') {
-    return 'http://10.0.2.2:8000/api'; // Android emulator localhost
-  }
-  
-  return 'http://localhost:8000/api'; // iOS simulator
+
+  // TEMP fallback to your real IP
+  return 'http://10.210.6.99:8000/api';
 };
+
 
 const API_BASE_URL = getApiBaseUrl();
 
