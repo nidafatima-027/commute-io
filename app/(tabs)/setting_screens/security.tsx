@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Switch, TouchableOpacity, ScrollView, Alert, TextInput } from 'react-native';
-import { ArrowLeft, Shield, Lock, Smartphone, Eye, EyeOff, Key, AlertTriangle } from 'lucide-react-native';
+import { ArrowLeft, Shield, Lock, Smartphone, Eye, EyeOff, Key, TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 

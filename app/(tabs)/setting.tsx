@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Bell, Sun, Info, HelpCircle, ArrowLeft, Calendar, MapPin, Shield, Lock } from 'lucide-react-native';
+import { Bell, Sun, Info, CircleHelp as HelpCircle, ArrowLeft, Calendar, MapPin, Shield, Lock } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
