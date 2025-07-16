@@ -1,17 +1,11 @@
-from fastapi import APIRouter, HTTPException, Request
+import openai
+import os
+from fastapi import APIRouter
 from pydantic import BaseModel
-from typing import Dict
 
 router = APIRouter()
 
-# Dummy Q&A pairs
-DUMMY_RESPONSES: Dict[str, str] = {
-    "How do I join a ride?": "To join a ride, go to the Rides tab and select a ride to join.",
-    "How can I offer a ride?": "Tap on 'Offer Ride' and fill in your ride details.",
-    "What is RideChat?": "RideChat is your AI assistant for all carpooling questions!",
-    "How do I edit my profile?": "Go to Profile, then tap 'Edit' to update your information.",
-    "How do I contact the driver?": "Use the in-app messaging feature to contact your driver.",
-}
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 class GenAIChatRequest(BaseModel):
     message: str
@@ -21,7 +15,17 @@ class GenAIChatResponse(BaseModel):
 
 @router.post("/api/genai-chat", response_model=GenAIChatResponse)
 async def genai_chat(request: GenAIChatRequest):
-    user_message = request.message.strip()
-    # Return a dummy response if available, else a default message
-    reply = DUMMY_RESPONSES.get(user_message, "I'm sorry, I don't have an answer for that yet. Please try asking something else!")
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful carpool assistant. Answer user questions about rides, booking, and the app."},
+                {"role": "user", "content": request.message}
+            ],
+            max_tokens=200,
+            temperature=0.7,
+        )
+        reply = response.choices[0].message['content'].strip()
+    except Exception as e:
+        reply = "Sorry, I couldn't process your request right now."
     return {"reply": reply} 
