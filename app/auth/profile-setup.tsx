@@ -273,7 +273,7 @@ if (formData.selectedMode === 'Driver' || formData.selectedMode === 'Both') {
                 style={styles.input}
                 value={formData.phoneNumber}
                 onChangeText={(value) => handleInputChange('phoneNumber', value)}
-                placeholder="Enter phone number"
+                placeholder="Enter phone number (+92)"
                 placeholderTextColor="#9CA3AF"
                 keyboardType="phone-pad"
               />
