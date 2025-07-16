@@ -379,3 +379,22 @@ export const testConnection = async () => {
     throw error;
   }
 };
+
+export async function sendGenAIChat(message: string): Promise<string> {
+  try {
+    const response = await fetch('/api/genai-chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ message }),
+    });
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const data = await response.json();
+    return data.reply;
+  } catch (error) {
+    return "Sorry, I couldn't process your request right now.";
+  }
+}
