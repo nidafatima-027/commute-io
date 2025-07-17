@@ -16,7 +16,15 @@ def get_user_rides(db: Session, user_id: int) -> List[Ride]:
     return db.query(Ride).filter(Ride.driver_id == user_id).all()
 
 def create_ride(db: Session, ride: RideCreate, driver_id: int) -> Ride:
-    db_ride = Ride(**ride.dict(), driver_id=driver_id)
+    db_ride = Ride(
+        driver_id=driver_id,
+        start_location=ride.start_location,  # Direct string assignment
+        end_location=ride.end_location,      # Direct string assignment
+        car_id=ride.car_id,
+        start_time=ride.start_time,
+        seats_available=ride.seats_available,
+        total_fare=ride.total_fare,
+    )
     db.add(db_ride)
     db.commit()
     db.refresh(db_ride)

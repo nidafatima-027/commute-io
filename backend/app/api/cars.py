@@ -49,3 +49,11 @@ async def delete_user_car(
     if not delete_car(db, car_id, current_user.id):
         raise HTTPException(status_code=404, detail="Car not found")
     return {"message": "Car deleted successfully"}
+
+@router.get("/my", response_model=List[CarResponse])
+async def get_my_cars(
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get cars belonging to the current user"""
+    return get_user_cars(db, current_user.id)

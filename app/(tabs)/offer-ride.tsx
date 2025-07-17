@@ -6,12 +6,14 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
+  Alert,
   Platform,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, MapPin, Calendar, Clock, Users, DollarSign } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { ridesAPI, carsAPI } from '../../services/api';
 
 export default function OfferRideScreen() {
   const [fromLocation, setFromLocation] = useState('');
@@ -43,14 +45,59 @@ export default function OfferRideScreen() {
     return errors;
   };
 
-  const handleOfferRide = () => {
+  const handleOfferRide = async () =>  {
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       return;
     }
-    setFormErrors({});
-    router.push('/(tabs)/join-requests');
+    setFormErrors({});  
+    try {
+    // 1. Get user's default car
+    const carsResponse = await carsAPI.getMyCars();
+    if (!carsResponse.length) {
+      Alert.alert("Error", "You need to register a car first");
+      return;
+    }
+    if (!date || !time) {
+      Alert.alert("Error", "Date and time are required");
+      return;
+    }
+
+    // 2. Combine date and time
+    const combinedDateTime = new Date(
+      date!.getFullYear(),
+      date!.getMonth(),
+      date!.getDate(),
+      time!.getHours(),
+      time!.getMinutes()
+    );
+
+    // 3. Prepare ride data (using component state variables)
+    const rideData = {
+      car_id: carsResponse[0].id,
+      start_location: fromLocation,
+      end_location: toLocation,
+      start_time: combinedDateTime.toISOString(),
+      seats_available: parseInt(seats),
+      total_fare: parseInt(totalFare), // Example fare calculation
+    };
+
+    // 4. Create ride
+    const response = await ridesAPI.createRide(rideData);
+    
+    // 5. Navigate to join requests
+    router.push({
+      pathname: '/(tabs)/join-requests',
+      params: { rideId: response.id }
+    });
+  } catch (error) {
+    console.error('Ride creation failed:', error);
+    Alert.alert(
+      "Error", 
+      error instanceof Error ? error.message : "Failed to create ride"
+    );
+  }
   };
 
   // Simulated distance
