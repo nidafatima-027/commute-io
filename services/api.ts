@@ -401,7 +401,7 @@ export const testConnection = async () => {
 
 export async function sendGenAIChat(message: string): Promise<string> {
   try {
-    const response = await fetch('/api/genai-chat', {
+    const response = await fetch(`${API_BASE_URL}/genai-chat/api/genai-chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -1,11 +1,24 @@
-#import openai
 import os
-from fastapi import APIRouter
+import requests
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from sqlalchemy import and_
+from app.core.database import get_db
+from app.api.auth import get_current_user
+from app.db.models.ride import Ride
+from app.db.models.user import User
+from app.db.models.ride_request import RideRequest
+from app.db.crud.ride_request import create_ride_request
 
 router = APIRouter()
 
-#openai.api_key = os.getenv("OPENAI_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+MODEL = "llama-3-70b-versatile"
+
+# In-memory conversation state (for demo)
+conversation_state = {}
 
 class GenAIChatRequest(BaseModel):
     message: str
@@ -13,19 +26,88 @@ class GenAIChatRequest(BaseModel):
 class GenAIChatResponse(BaseModel):
     reply: str
 
-# @router.post("/api/genai-chat", response_model=GenAIChatResponse)
-# async def genai_chat(request: GenAIChatRequest):
-    # try:
-    #     response = openai.ChatCompletion.create(
-    #         model="gpt-3.5-turbo",
-    #         messages=[
-    #             {"role": "system", "content": "You are a helpful carpool assistant. Answer user questions about rides, booking, and the app."},
-    #             {"role": "user", "content": request.message}
-    #         ],
-    #         max_tokens=200,
-    #         temperature=0.7,
-    #     )
-    #     reply = response.choices[0].message['content'].strip()
-    # except Exception as e:
-    #     reply = "Sorry, I couldn't process your request right now."
-    # return {"reply": reply}
+@router.post("/api/genai-chat", response_model=GenAIChatResponse)
+async def genai_chat(request: GenAIChatRequest, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    user_id = current_user.id
+    user_message = request.message.strip()
+
+    # Step 1: Check if user is replying with a number to select a ride
+    if user_id in conversation_state and user_message.isdigit():
+        ride_options = conversation_state[user_id]
+        idx = int(user_message) - 1
+        if 0 <= idx < len(ride_options):
+            selected_ride_id = ride_options[idx]
+            # Book the ride (create a ride_request entry)
+            try:
+                # Check if already booked
+                existing = db.query(RideRequest).filter_by(ride_id=selected_ride_id, rider_id=user_id).first()
+                if existing:
+                    reply = "You have already booked this ride."
+                else:
+                    create_ride_request(db, selected_ride_id, user_id, message="Booked via AI chat")
+                    reply = "Your ride has been booked successfully!"
+                # Optionally, decrement seats_available
+                ride = db.query(Ride).filter(Ride.id == selected_ride_id).first()
+                if ride and ride.seats_available > 0:
+                    ride.seats_available -= 1
+                    db.commit()
+                # Clear state after booking
+                del conversation_state[user_id]
+            except Exception as e:
+                print("Booking error:", e)
+                reply = "Sorry, there was an error booking your ride."
+            return {"reply": reply}
+        else:
+            return {"reply": "Invalid option. Please reply with a valid number from the list."}
+
+    # Step 2: Otherwise, treat as a new booking request (extract, search, present options)
+    prompt = f"""
+Extract the following from the user's message as JSON:
+- start_location
+- end_location
+- time (if present)
+User message: \"{user_message}\"
+Return only valid JSON.
+"""
+    groq_payload = {
+        "model": MODEL,
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": 200,
+        "temperature": 0.2,
+    }
+    headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
+    groq_response = requests.post(GROQ_URL, headers=headers, json=groq_payload)
+    print("Groq raw response:", groq_response.status_code, groq_response.text)
+    try:
+        ai_content = groq_response.json()["choices"][0]["message"]["content"]
+        import json
+        extracted = json.loads(ai_content)
+    except Exception as e:
+        print("Groq extraction error:", e)
+        return {"reply": "Sorry, I couldn't process your request right now."}
+
+    # Query rides table for matches
+    query = db.query(Ride).filter(
+        Ride.start_location.ilike(f"%{extracted['start_location']}%"),
+        Ride.end_location.ilike(f"%{extracted['end_location']}%"),
+        Ride.seats_available > 0
+    )
+    rides = query.limit(5).all()
+    if not rides:
+        return {"reply": "Sorry, no rides found for your criteria."}
+
+    # Format options
+    options = []
+    for idx, ride in enumerate(rides, 1):
+        driver = db.query(User).filter(User.id == ride.driver_id).first()
+        options.append(f"{idx}. Driver: {driver.name if driver else 'Unknown'}, Car ID: {ride.car_id}, Time: {ride.start_time}, Fare: {ride.total_fare}")
+
+    # Store ride IDs in state for this user
+    conversation_state[user_id] = [ride.id for ride in rides]
+
+    reply = (
+        f"I found these rides from {extracted['start_location']} to {extracted['end_location']}:\n"
+        + "\n".join(options)
+        + "\nPlease reply with the number of the ride you want to book."
+    )
+    return {"reply": reply} 
