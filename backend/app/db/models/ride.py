@@ -9,10 +9,11 @@ class Ride(Base):
     id = Column(Integer, primary_key=True, index=True)
     driver_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     car_id = Column(Integer, ForeignKey("cars.id"), nullable=False)
-    start_location_id = Column(Integer, nullable=False)  # Reference to location
-    end_location_id = Column(Integer, nullable=False)    # Reference to location
+    start_location = Column(String, nullable=False)  # Changed to String
+    end_location = Column(String, nullable=False)  
     start_time = Column(DateTime, nullable=False)
     seats_available = Column(Integer, nullable=False)
+    total_fare = Column(Float, nullable=False)     # Add if needed
     status = Column(String, nullable=False, default="active")  # active, completed, cancelled
 
     # Relationships

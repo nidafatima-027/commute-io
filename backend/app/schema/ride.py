@@ -5,10 +5,11 @@ from datetime import datetime
 
 class RideBase(BaseModel):
     car_id: int
-    start_location_id: int
-    end_location_id: int
+    start_location: str
+    end_location: str
     start_time: datetime
     seats_available: int
+    total_fare: float
 
 
 class RideCreate(RideBase):

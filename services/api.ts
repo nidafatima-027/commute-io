@@ -221,10 +221,11 @@ export const ridesAPI = {
 
   async createRide(rideData: {
     car_id: number;
-    start_location_id: number;
-    end_location_id: number;
+    start_location: string;  // Changed from start_location_id
+    end_location: string;    // Changed from end_location_id
     start_time: string;
     seats_available: number;
+    total_fare: number; 
   }) {
     return apiRequest('/rides/', {
       method: 'POST',
@@ -325,7 +326,10 @@ export const carsAPI = {
     return apiRequest(`/cars/${carId}`, {
       method: 'DELETE',
     });
-  }
+  },
+  async getMyCars() {
+    return apiRequest('/cars/my');
+  },
 };
 
 // Messages API
