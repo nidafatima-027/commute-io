@@ -255,7 +255,13 @@ export const ridesAPI = {
   async requestRide(rideId: number, message?: string) {
     return apiRequest('/rides/request', {
       method: 'POST',
-      body: JSON.stringify({ ride_id: rideId, message }),
+      headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ 
+      ride_id: rideId, 
+      message: message || "I'd like to join your ride" 
+    }),
     });
   },
 

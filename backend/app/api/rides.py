@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.core.database import get_db
@@ -36,8 +36,19 @@ async def search_rides(
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    return get_available_rides(db, current_user.id, limit)
-
+    try:
+        rides = get_available_rides(db, current_user.id, limit)
+        if not rides:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No available rides found"
+            )
+        return rides
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error fetching rides: {str(e)}"
+        )
 
 @router.post("/", response_model=RideResponse)
 async def create_new_ride(
