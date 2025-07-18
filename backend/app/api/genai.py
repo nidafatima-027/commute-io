@@ -1,5 +1,6 @@
 import os
 import requests
+from app.db.models.car import Car
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -104,7 +105,25 @@ Return only valid JSON.
         return {"reply": f"Groq error: {str(e)}. Response: {groq_response.text}"}
 
 
+    start_location = extracted.get("start_location", "").strip()
+    end_location = extracted.get("end_location", "").strip()
+
+    if not start_location or not end_location:
+        # Save partial extraction (if needed) to let user fill in missing parts
+        conversation_state[user_id] = {
+            "start_location": start_location,
+            "end_location": end_location,
+            "time": extracted.get("time", "")
+        }
         
+        missing = []
+        if not start_location:
+            missing.append("starting location")
+        if not end_location:
+            missing.append("ending location")
+            
+        return {"reply": f"Please enter your {', and '.join(missing)} to continue booking your ride."}
+
 
     # Query rides table for matches in the future
     query = db.query(Ride).filter(
@@ -121,7 +140,9 @@ Return only valid JSON.
     options = []
     for idx, ride in enumerate(rides, 1):
         driver = db.query(User).filter(User.id == ride.driver_id).first()
-        options.append(f"{idx}. Driver: {driver.name if driver else 'Unknown'}, Car ID: {ride.car_id}, Time: {ride.start_time}, Fare: {ride.total_fare}")
+        car = db.query(Car).filter(Car.id == ride.car_id).first()
+        ride_time_str = ride.start_time.strftime("%I:%M %p").lstrip("0")
+        options.append(f"{idx}. Driver: {driver.name if driver else 'Unknown'}, Contact Number: {driver.phone},Car: {car.model.upper()+car.make}, Number Plate: {car.license_plate} Time: {ride_time_str}, Fare: {ride.total_fare}")
 
     # Store ride IDs in state for this user
     conversation_state[user_id] = [ride.id for ride in rides]
