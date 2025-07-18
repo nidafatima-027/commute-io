@@ -52,11 +52,11 @@ async def genai_chat(request: GenAIChatRequest, db: Session = Depends(get_db), c
                     create_ride_request(db, selected_ride_id, user_id, message="Booked via AI chat")
                     reply = "Your ride has been booked successfully!"
 
-                # Decrement seat count
-                ride = db.query(Ride).filter(Ride.id == selected_ride_id).first()
-                if ride and ride.seats_available > 0:
-                    ride.seats_available -= 1
-                    db.commit()
+                # # Decrement seat count
+                # ride = db.query(Ride).filter(Ride.id == selected_ride_id).first()
+                # if ride and ride.seats_available > 0:
+                #     ride.seats_available -= 1
+                #     db.commit()
 
                 # Clear state
                 del conversation_state[user_id]
