@@ -27,6 +27,23 @@ export default function RideChatScreen() {
     router.push('/(tabs)');
   };
 
+  const sendMessage = async (text) => {
+    const newMessages = [
+      ...messages,
+      { id: messages.length + 1, sender: 'user', text },
+    ];
+    setMessages(newMessages);
+    setSending(true);
+    const aiReply = await sendGenAIChat(text);
+    const aiResponse = {
+      id: newMessages.length + 1,
+      sender: 'bot',
+      text: aiReply,
+    };
+    setMessages([...newMessages, aiResponse]);
+    setSending(false);
+  };
+
   const handleSend = async () => {
     const trimmed = input.trim();
     if (!trimmed) {
@@ -37,24 +54,27 @@ export default function RideChatScreen() {
       Alert.alert('Validation Error', 'Message cannot exceed 1000 characters.');
       return;
     }
-
-    setSending(true);
-    const newMessages = [
-      ...messages,
-      { id: messages.length + 1, sender: 'user', text: trimmed },
-    ];
-    setMessages(newMessages);
+    await sendMessage(trimmed);
     setInput('');
+  };
 
-    // Call backend GenAI API
-    const aiReply = await sendGenAIChat(trimmed);
-    const aiResponse = {
-      id: newMessages.length + 1,
-      sender: 'bot',
-      text: aiReply,
-    };
-    setMessages([...newMessages, aiResponse]);
-    setSending(false);
+  const isRideOptionsMessage = (text) => {
+    return text.includes('I found these rides from') &&
+           text.includes('Please click on the block of the ride you want to book');
+  };
+
+  const extractRideOptions = (text) => {
+    const optionRegex = /^\d+\.\s+Driver:.*$/gm;
+    return text.match(optionRegex) || [];
+  };
+
+  const getReplyInstruction = (text) => {
+    const match = text.match(/Please.*book\./i);
+    return match ? match[0] : '';
+  };
+
+  const handleSendOption = async (optionNumber) => {
+    await sendMessage(String(optionNumber));
   };
 
   return (
@@ -68,7 +88,6 @@ export default function RideChatScreen() {
           contentContainerStyle={{ padding: 24 }}
           showsVerticalScrollIndicator={false}
         >
-          {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity style={styles.backButton} onPress={handleBack}>
               <ArrowLeft size={24} color="#2d3748" />
@@ -77,7 +96,7 @@ export default function RideChatScreen() {
             <View style={styles.placeholder} />
           </View>
 
-          {/* Chat Messages */}
+          {/* Messages */}
           {messages.map((msg, index) => (
             <View
               key={index}
@@ -95,15 +114,32 @@ export default function RideChatScreen() {
               <View
                 style={msg.sender === 'user' ? styles.userBubble : styles.botBubble}
               >
-                <Text
-                  style={
-                    msg.sender === 'user'
-                      ? styles.userMessageText
-                      : styles.messageText
-                  }
-                >
-                  {msg.text}
-                </Text>
+                {msg.sender === 'bot' && isRideOptionsMessage(msg.text) ? (
+                  <View>
+                    {extractRideOptions(msg.text).map((option, i) => (
+                      <TouchableOpacity
+                        key={i}
+                        style={styles.rideOptionCard}
+                        onPress={() => handleSendOption(i + 1)}
+                      >
+                        <Text style={styles.rideOptionText}>{option}</Text>
+                      </TouchableOpacity>
+                    ))}
+                    <Text style={styles.messageText}>
+                      {getReplyInstruction(msg.text)}
+                    </Text>
+                  </View>
+                ) : (
+                  <Text
+                    style={
+                      msg.sender === 'user'
+                        ? styles.userMessageText
+                        : styles.messageText
+                    }
+                  >
+                    {msg.text}
+                  </Text>
+                )}
               </View>
               {msg.sender === 'user' && (
                 <Image
@@ -115,7 +151,7 @@ export default function RideChatScreen() {
           ))}
         </ScrollView>
 
-        {/* Input */}
+        {/* Input Field */}
         <View style={styles.inputWrapper}>
           <TextInput
             placeholder="Type your request..."
@@ -156,8 +192,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 8,         // Added space above
-    paddingBottom: 12,     // Reduced bottom space for better alignment
+    paddingTop: 8,
+    paddingBottom: 12,
     paddingHorizontal: 24,
     backgroundColor: '#ffffff',
     borderBottomWidth: 1,
@@ -172,10 +208,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 20,                   // Slightly larger font
+    fontSize: 20,
     fontWeight: '600',
     color: '#2d3748',
-    marginTop: 2,                   // Slight upward push
+    marginTop: 2,
   },
   placeholder: {
     width: 40,
@@ -206,6 +242,17 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 15,
     maxWidth: '80%',
+  },
+  rideOptionCard: {
+    backgroundColor: '#E0F7FA',
+    borderRadius: 10,
+    padding: 12,
+    marginVertical: 6,
+  },
+  rideOptionText: {
+    color: '#00796B',
+    fontSize: 15,
+    fontWeight: '500',
   },
   messageText: {
     fontSize: 15,
