@@ -37,21 +37,23 @@ export default function FindRideScreen() {
   
 
   useEffect(() => {
-    const fetchRides = async () => {
-      try {
-        setLoading(true);
-        const data = await ridesAPI.searchRides();
-        setRides(data);
-      } catch (err) {
-        console.error('Failed to fetch rides:', err);
-        setError('Failed to load rides. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchRides = async () => {
+    try {
+      setLoading(true);
+      const data = await ridesAPI.searchRides();
+      setRides(data);
+      setError(null);
+    } catch (err: any) {
+      console.error('Failed to fetch rides:', err);
+      setError(err.message || 'Failed to load rides. Please try again.');
+      setRides([]); // Reset rides on error
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchRides();
-  }, []);
+  fetchRides();
+}, []);
 
     const handleBack = () => {
       router.back();

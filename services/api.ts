@@ -216,8 +216,14 @@ export const usersAPI = {
 // Rides API
 export const ridesAPI = {
   async searchRides(limit: number = 50) {
-    return apiRequest(`/rides/?limit=${limit}`);
-  },
+  try {
+    const data = await apiRequest(`/rides/?limit=${limit}`);
+    return data || []; // Ensure we always return an array
+  } catch (error) {
+    console.error('Error searching rides:', error);
+    throw error;
+  }
+},
 
   async createRide(rideData: {
     car_id: number;

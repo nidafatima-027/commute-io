@@ -38,12 +38,7 @@ async def search_rides(
 ):
     try:
         rides = get_available_rides(db, current_user.id, limit)
-        if not rides:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="No available rides found"
-            )
-        return rides
+        return rides or []  # Return empty list if no rides found
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
