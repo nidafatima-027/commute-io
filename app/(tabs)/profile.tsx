@@ -47,7 +47,17 @@ export default function ProfileScreen() {
   };
   
   const handleEdit = () => {
-    router.push('/(tabs)/profile_screens/edit')
+    if (!profile) return; // Ensure profile exists
+  
+  router.push({
+    pathname: '/(tabs)/profile_screens/edit',
+    params: {
+      name: profile.name,
+      email: profile.email,
+      bio: profile.bio,
+      photo_url: profile.photo_url || '',
+    },
+  });
   }
 
   const handleHistory = () => {

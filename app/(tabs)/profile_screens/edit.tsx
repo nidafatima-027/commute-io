@@ -9,15 +9,25 @@ import {
   Image,
 } from 'react-native';
 import { ArrowLeft } from 'lucide-react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function EditProfileScreen() {
-  const [name, setName] = React.useState('Sophia Carter');
-  const [email, setEmail] = React.useState('sophia.carter@example.com');
+  const params = useLocalSearchParams();
+  const [name, setName] = React.useState(
+    Array.isArray(params.name) ? params.name[0] : params.name || ''
+  );
+  const [email, setEmail] = React.useState(
+    Array.isArray(params.email) ? params.email[0] : params.email || ''
+  );
+  const [bio, setBio] = React.useState(
+    Array.isArray(params.bio) ? params.bio[0] : params.bio || ''
+  );
   const [phone, setPhone] = React.useState('(+92)3082611469');
-  const [vehicle, setVehicle] = React.useState('Toyota Camry 2020');
   const [errors, setErrors] = React.useState<{ [key: string]: string }>({});
+  const [photoUrl, setPhotoUrl] = React.useState(
+    Array.isArray(params.photo_url) ? params.photo_url[0] : params.photo_url || ''
+  );
 
   const handleBack = () => {
     router.push('/(tabs)/profile');
@@ -74,13 +84,11 @@ export default function EditProfileScreen() {
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
             <Image
-              source={{
-                uri: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=200',
-              }}
+             source={{ uri: photoUrl }}
               style={styles.avatar}
             />
           </View>
-          <Text style={styles.name}>Sophia Carter</Text>
+          <Text style={styles.name}>{name}</Text>
           <Text style={styles.memberSince}>Member since 2021</Text>
         </View>
 
@@ -132,12 +140,12 @@ export default function EditProfileScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Vehicle (if applicable)</Text>
+            <Text style={styles.label}>Bio</Text>
             <TextInput
               style={styles.input}
-              value={vehicle}
-              onChangeText={setVehicle}
-              placeholder="Vehicle Details"
+              value={bio}
+              onChangeText={setBio}
+              placeholder="Your Bio"
               placeholderTextColor="#9CA3AF"
             />
           </View>
