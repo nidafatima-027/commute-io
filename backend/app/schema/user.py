@@ -90,6 +90,18 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
+class ProfileResponse(BaseModel):
+    id: int
+    name: str
+    email: str
+    bio: Optional[str]
+    is_driver: bool
+    photo_url: Optional[str] = None
+    rides_taken: int
+    rides_offered: int
+    
+    class Config:
+        extra = "ignore"
 
 class UserRegister(UserBase):
     password: str

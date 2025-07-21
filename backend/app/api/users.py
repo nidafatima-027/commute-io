@@ -7,8 +7,11 @@ from app.core.database import get_db
 from app.api.auth import get_current_user
 from app.db.crud.user import update_user
 from app.db.crud.schedule import get_user_schedule, create_schedule
-from app.schema.user import UserUpdate, UserResponse, UserPreferences, GenderPreference, MusicPreference, ConversationPreference, SmokingPreference
+from app.schema.user import UserUpdate, UserResponse, UserPreferences, ProfileResponse, GenderPreference, MusicPreference, ConversationPreference, SmokingPreference
 from app.schema.schedule import ScheduleCreate, ScheduleResponse
+from app.db.models.ride import Ride
+from app.db.models.ride_history import RideHistory
+from app.db.models.user import User
 
 router = APIRouter()
 
@@ -26,9 +29,31 @@ async def get_preference_options():
     }
 
 
-@router.get("/profile", response_model=UserResponse)
-async def get_profile(current_user = Depends(get_current_user)):
-    return current_user
+@router.get("/profile", response_model=ProfileResponse)
+async def get_profile(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    # Count rides taken (where user is passenger)
+    rides_taken = db.query(RideHistory).filter(
+        RideHistory.user_id == current_user.id
+    ).count()
+    
+    # Count rides offered (where user is driver)
+    rides_offered = db.query(Ride).filter(
+        Ride.driver_id == current_user.id
+    ).count()
+    
+    profile_data = {
+        "id": current_user.id,
+        "name": current_user.name,
+        "email": current_user.email,
+        "bio": current_user.bio,
+        "photo_url": current_user.photo_url,
+        "is_driver": current_user.is_driver,
+        # include all other fields you need
+        "rides_taken": rides_taken,
+        "rides_offered": rides_offered
+    }
+    
+    return profile_data
 
 
 @router.put("/profile", response_model=UserResponse)

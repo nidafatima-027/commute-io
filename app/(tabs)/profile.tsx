@@ -1,10 +1,42 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, CreditCard as Edit, Clock, Settings, ChevronRight, PenIcon } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { usersAPI } from '../../services/api';
+
+interface UserProfile {
+  name: string;
+  email: string;
+  bio: string;
+  is_driver: boolean;
+  rider_rating: number;
+  driver_rating: number;
+  rides_taken: number;
+  rides_offered: number;
+  photo_url?: string;
+}
 
 export default function ProfileScreen() {
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const data = await usersAPI.getProfile();
+        setProfile(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load profile');
+        console.error('Profile fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
   
   const handleSettings = () => {
         router.push('/(tabs)/setting');
@@ -22,10 +54,34 @@ export default function ProfileScreen() {
     router.push('/(tabs)/profile_screens/ride_history')
   }
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+      return (
+        <SafeAreaView style={styles.container}>
+          <Text>Error: {error}</Text>
+        </SafeAreaView>
+      );
+    }
+
+  if (!profile) {
+      return (
+        <SafeAreaView style={styles.container}>
+          <Text>No profile data available</Text>
+        </SafeAreaView>
+      );
+    }
+
   const activityStats = [
-    { label: 'Rider Rating', value: '4.9' },
-    { label: 'Rides\nTaken', value: '120' },
-    { label: 'Driver Rating', value: '4.7' },
+    { label: 'Rider Rating' },
+    { label: 'Rides\nTaken' },
+    { label: 'Driver Rating' },
   ];
 
   return (
@@ -46,12 +102,12 @@ export default function ProfileScreen() {
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
             <Image
-              source={require('../../assets/images/images.jpeg')}
+              source={{ uri: profile.photo_url }}
               style={styles.avatar}
             />
           </View>
-          <Text style={styles.name}>Sophia Carter</Text>
-          <Text style={styles.email}>sophia.carter@email.com</Text>
+          <Text style={styles.name}>{profile.name}</Text>
+          <Text style={styles.email}>{profile.email}</Text>
         </View>
 
         {/* Activity Section */}
@@ -61,21 +117,23 @@ export default function ProfileScreen() {
           <View style={styles.statsGrid}>
             <View style={styles.statsRow}>
               <View style={styles.statCard}>
-                <Text style={styles.statValue}>{activityStats[0].value}</Text>
+                <Text style={styles.statValue}>{0}</Text>
                 <Text style={styles.statLabel}>{activityStats[0].label}</Text>
               </View>
               <View style={styles.statCard}>
-                <Text style={styles.statValue}>{activityStats[1].value}</Text>
+                <Text style={styles.statValue}>{profile.rides_taken}</Text>
                 <Text style={styles.statLabel}>{activityStats[1].label}</Text>
               </View>
               <View style={styles.statCard}>
-                <Text style={styles.statValue}>{activityStats[2].value}</Text>
+                <Text style={styles.statValue}>{0}</Text>
                 <Text style={styles.statLabel}>{activityStats[2].label}</Text>
               </View>
             </View>
             
             <View style={styles.statCardFull}>
-              <Text style={styles.statValue}>90</Text>
+               <Text style={styles.statValue}>
+                {profile.is_driver ? profile.rides_offered: 'NOT APPLICABLE'}
+              </Text>
               <Text style={styles.statLabel}>Rides Offered</Text>
             </View>
           </View>
@@ -100,7 +158,7 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>About</Text>
           <Text style={styles.aboutText}>
-            I'm a friendly and reliable driver and rider, always up for a good conversation.
+            {profile.bio || "No bio available"}
           </Text>
         </View>
       </ScrollView>
