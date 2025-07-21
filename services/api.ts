@@ -135,10 +135,30 @@ export const authAPI = {
     });
   },
 
+  async sendMobileOTP(phone: string) {
+    return apiRequest('/auth/send-mobile-otp', {
+      method: 'POST',
+      body: JSON.stringify({ phone }),
+    });
+  },
+
   async verifyOTP(email: string, otp: string) {
     const response = await apiRequest('/auth/verify-otp', {
       method: 'POST',
       body: JSON.stringify({ email, otp }),
+    });
+    
+    if (response.access_token) {
+      await tokenManager.setToken(response.access_token);
+    }
+    
+    return response;
+  },
+
+  async verifyMobileOTP(phone: string, otp: string) {
+    const response = await apiRequest('/auth/verify-mobile-otp', {
+      method: 'POST',
+      body: JSON.stringify({ phone, otp }),
     });
     
     if (response.access_token) {
@@ -165,12 +185,14 @@ export const usersAPI = {
 
   async updateProfile(userData: {
     name?: string;
-    phone?: string;
+    email?: string;  // Optional for phone users
+    phone?: string;  // Optional for email users
     bio?: string;
     is_driver?: boolean;
     is_rider?: boolean;
     preferences?: any;
     photo_url?: string;
+    gender?: string;
   }) {
     return apiRequest('/users/profile', {
       method: 'PUT',

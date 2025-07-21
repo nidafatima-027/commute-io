@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Switch, KeyboardTypeOptions, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Upload, ChevronRight } from 'lucide-react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { usersAPI } from '../../services/api';
+import { getAuthMethod} from '../../services/auth';
 
 export default function ProfileSetupScreen() {
   const [formData, setFormData] = useState({
@@ -26,6 +27,7 @@ export default function ProfileSetupScreen() {
   const [loading, setLoading] = useState(false);
 
   type FormField = keyof typeof formData;
+  const [authMethod, setAuthMethod] = useState<'email' | 'phone' | null>(null);
 
   const [openGender, setOpenGender] = useState(false);
   const [genderItems, setGenderItems] = useState([
@@ -33,6 +35,15 @@ export default function ProfileSetupScreen() {
     { label: 'Female', value: 'female' },
     { label: 'Other', value: 'other' },
   ]);
+   useEffect(() => {
+    const loadAuthMethod = async () => {
+      const method = await getAuthMethod();
+      if (method) {
+        setAuthMethod(method as 'email' | 'phone');
+      }
+    };
+    loadAuthMethod();
+  }, []);
 const validateForm = (): boolean => {
   const newErrors: Partial<Record<FormField, string>> = {};
 
@@ -138,7 +149,7 @@ const validateForm = (): boolean => {
       
       const userData = {
         name: formData.name,
-        // email: formData.email,
+        email: formData.email,
         phone: formData.phoneNumber,
         bio: formData.gender,
         gender: formData.gender,

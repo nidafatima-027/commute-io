@@ -32,14 +32,8 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 def verify_token(token: str):
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        email: str = payload.get("sub")
-        if email is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Could not validate credentials",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        return email
+        # Return the entire payload, not just email
+        return payload
     except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -62,6 +56,12 @@ def store_otp(email: str, otp: str):
         "expires_at": datetime.utcnow() + timedelta(minutes=10)
     }
 
+def store_mobile_otp(phone: str, otp: str):
+    otp_storage[phone] = {
+        "otp": otp,
+        "expires_at": datetime.utcnow() + timedelta(minutes=10)
+    }
+
 
 def verify_otp(email: str, otp: str) -> bool:
     if email not in otp_storage:
@@ -74,6 +74,21 @@ def verify_otp(email: str, otp: str) -> bool:
     
     if stored_data["otp"] == otp:
         del otp_storage[email]
+        return True
+    
+    return False
+
+def verify_mobile_otp(phone: str, otp: str) -> bool:
+    if phone not in otp_storage:
+        return False
+    
+    stored_data = otp_storage[phone]
+    if datetime.utcnow() > stored_data["expires_at"]:
+        del otp_storage[phone]
+        return False
+    
+    if stored_data["otp"] == otp:
+        del otp_storage[phone]
         return True
     
     return False

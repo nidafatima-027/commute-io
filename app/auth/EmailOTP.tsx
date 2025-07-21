@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import { authAPI } from "../../services/api";
-
+import { storeToken, storeAuthMethod } from '../../services/auth';
 const EmailVerificationScreen = () => {
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
@@ -52,9 +52,12 @@ const EmailVerificationScreen = () => {
     setLoading(true);
     try {
       const response = await authAPI.verifyOTP(email as string, enteredCode);
-      console.log(response);
+      const { access_token, is_new_user, auth_method } = response;
+      console.log(auth_method)
+    await storeToken(access_token);
+    await storeAuthMethod(auth_method);
       // Check if user is new or existing
-      if (response?.is_new_user) {
+      if (is_new_user) {
         router.push('/auth/profile-setup');
       } else {
         router.push('/(tabs)'); // Or your index/home route

@@ -1,3 +1,4 @@
+import json
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
@@ -36,7 +37,12 @@ async def update_profile(
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    updated_user = update_user(db, current_user.id, user_update)
+    update_data = user_update.dict(exclude_unset=True)
+    if 'preferences' in update_data:
+        if isinstance(update_data['preferences'], dict):
+            update_data['preferences'] = json.dumps(update_data['preferences'])
+    
+    updated_user = update_user(db, current_user.id, update_data)
     if not updated_user:
         raise HTTPException(status_code=404, detail="User not found")
     return updated_user
