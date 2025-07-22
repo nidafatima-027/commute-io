@@ -205,7 +205,7 @@ export const usersAPI = {
     model: string;
     license_plate: string;
     seats: number;
-    has_ac: boolean;
+    ac_available: boolean;
     color?: string;
     year?: string;
   }) {

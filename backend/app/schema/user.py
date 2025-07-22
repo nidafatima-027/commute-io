@@ -44,6 +44,7 @@ class UserBase(BaseModel):
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
     bio: Optional[str] = None
+    gender: Optional[str] = None
     is_driver: bool = False
     is_rider: bool = False
     preferences: Optional[UserPreferences] = None
@@ -62,6 +63,7 @@ class UserUpdate(BaseModel):
     name: Optional[str] = None
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
+    gender: Optional[str] = None
     bio: Optional[str] = None
     is_driver: Optional[bool] = None
     is_rider: Optional[bool] = None
@@ -94,11 +96,15 @@ class ProfileResponse(BaseModel):
     id: int
     name: str
     email: str
+    phone: str
     bio: Optional[str]
+    gender: Optional[str] = None
     is_driver: bool
+    is_rider: bool
     photo_url: Optional[str] = None
     rides_taken: int
     rides_offered: int
+    preferences: Optional[UserPreferences] = None
     
     class Config:
         extra = "ignore"
@@ -111,6 +117,7 @@ class UserMobileRegister(BaseModel):
     name: str = ""  # Default empty string
     email: Optional[str] = None  # Truly optional
     bio: Optional[str] = None
+    gender: Optional[str] = None
     is_driver: bool = False
     is_rider: bool = False
     preferences: Optional[str] = None

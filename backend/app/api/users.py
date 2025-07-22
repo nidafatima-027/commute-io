@@ -45,12 +45,16 @@ async def get_profile(current_user: User = Depends(get_current_user), db: Sessio
         "id": current_user.id,
         "name": current_user.name,
         "email": current_user.email,
+        "phone": current_user.phone,
         "bio": current_user.bio,
+        "gender": current_user.gender,
         "photo_url": current_user.photo_url,
         "is_driver": current_user.is_driver,
+        "is_rider": current_user.is_rider,
         # include all other fields you need
         "rides_taken": rides_taken,
-        "rides_offered": rides_offered
+        "rides_offered": rides_offered,
+        "preferences": current_user.preferences
     }
     
     return profile_data
