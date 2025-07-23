@@ -183,6 +183,10 @@ export const usersAPI = {
     return apiRequest('/users/profile');
   },
 
+  async getUserProfileById(userId: number) {
+    return apiRequest(`/users/profile/${userId}`);
+  },
+
   async updateProfile(userData: {
     name?: string;
     email?: string;  // Optional for phone users

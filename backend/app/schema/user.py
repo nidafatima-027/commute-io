@@ -109,6 +109,13 @@ class ProfileResponse(BaseModel):
     class Config:
         extra = "ignore"
 
+class PublicUserProfile(BaseModel):
+    id: int
+    name: str
+    bio: Optional[str]
+    photo_url: Optional[str]
+    rides_taken: int
+
 class UserRegister(UserBase):
     password: str
 

@@ -1,64 +1,150 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Car, Star } from 'lucide-react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
+import {ridesAPI,usersAPI} from '../../services/api'
+
+interface RideRequest {
+  id: number;
+  name: string;
+  rating: number;
+  rides: number;
+  image: string;
+  bio: string;
+}
+
+interface RideInfo {
+  route: string;
+  start_time: string;
+  start_location: string;
+  end_location: string;
+  seats_available: number;
+  id: number;
+  price: number;
+}
 
 export default function JoinRequestsScreen() {
+
+  const [pendingRequests, setPendingRequests] = useState<RideRequest[]>([]);
+  const [rideInfo, setRideInfo] = useState<RideInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const { rideId } = useLocalSearchParams();
+
   const handleBack = () => {
     router.push('/(tabs)/create-recurring-ride');
   };
 
   const handleViewRequest = (request: any) => {
+    if (!rideInfo) return;
     // Navigate to ride request screen with driver details
     router.push({
       pathname: '/(tabs)/ride-request-screen',
       params: {
-        driverId: request.id,
-        driverName: request.name,
-        driverRating: request.rating,
-        driverRides: request.rides,
-        driverImage: request.image,
-        driverBio: request.bio,
-        route: rideInfo.route,
-        time: rideInfo.time,
-        seats: rideInfo.seats,
+        name: request.name,
+        rating: request.rating,
+        rides_taken: request.rides,
+        photo_url: request.image,
+        bio: request.bio,
+        route: rideInfo.start_location + ' TO ' + rideInfo.end_location,
+        time: new Date(rideInfo.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        seats: 1,
+        price: rideInfo.price/rideInfo.seats_available,
+        rideId: rideInfo.id,
+        requestId: request.id,
       }
     });
   };
 
-  const rideInfo = {
-    route: 'Campus to Downtown',
-    time: '10:00 AM',
-    seats: 2,
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch ride details
+      const rideIdNumber = Array.isArray(rideId) ? Number(rideId[0]) : Number(rideId);
+      const rideResponse = await ridesAPI.getRideDetails(rideIdNumber);
+      setRideInfo({
+        route: rideResponse.route,
+        start_time: rideResponse.start_time,
+        start_location: rideResponse.start_location,
+        end_location: rideResponse.end_location,
+        seats_available: rideResponse.seats_available,
+        id: rideResponse.id,
+        price: rideResponse.total_fare,
+      });
+      
+      // Fetch ride requests
+      console.log(rideIdNumber)
+      const requestsResponse = await ridesAPI.getRideRequests(rideIdNumber);
+      const users = await Promise.all(
+  requestsResponse.map(async (req: { rider_id: number }) => {
+    const user = await usersAPI.getUserProfileById(req.rider_id);
+    return {
+      id: user.id,
+      name: user.name,
+      rating: user.rating || 0.0,
+      rides: user.rides_taken || 0,
+      image: user.photo_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
+      bio: user.bio || 'No bio provided',
+    };
+  })
+);
+
+setPendingRequests(users);
+      
+    } catch (err) {
+      setError('Failed to load requests. Please try again.');
+      console.error('Error fetching ride requests:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const pendingRequests = [
-    {
-      id: 1,
-      name: 'Ethan Carter',
-      rating: 4.8,
-      rides: 12,
-      image: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
-      bio: 'Friendly and reliable driver with 3+ years of carpooling experience. I enjoy good conversations and always keep my car clean and comfortable. Non-smoker and punctual.',
-    },
-    {
-      id: 2,
-      name: 'Olivia Bennett',
-      rating: 4.9,
-      rides: 25,
-      image: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=150',
-      bio: 'Professional commuter who values safety and comfort. I drive a spacious SUV with AC and prefer quiet rides. Always on time and happy to help with luggage.',
-    },
-    {
-      id: 3,
-      name: 'Noah Thompson',
-      rating: 4.7,
-      rides: 8,
-      image: 'https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=150',
-      bio: 'Student driver offering affordable rides to fellow students. I drive a compact car, perfect for city commutes. Love music and good company during rides.',
-    },
-  ];
+  useEffect(() => {
+    fetchData();
+  }, [rideId]);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#4ECDC4" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity 
+            style={styles.retryButton}
+            onPress={() => {
+              setError(null);
+              setLoading(true);
+              fetchData();
+            }}
+          >
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!rideInfo) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Ride information not found</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -79,9 +165,9 @@ export default function JoinRequestsScreen() {
               <Car size={24} color="#4ECDC4" />
             </View>
             <View style={styles.rideDetails}>
-              <Text style={styles.routeText}>{rideInfo.route}</Text>
+              <Text style={styles.routeText}>{rideInfo.start_location} TO {rideInfo.end_location}</Text>
               <Text style={styles.rideTimeText}>
-                {rideInfo.time} • {rideInfo.seats} seats
+                {new Date(rideInfo.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {rideInfo.seats_available} seats
               </Text>
             </View>
           </View>
@@ -90,32 +176,38 @@ export default function JoinRequestsScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Pending Requests</Text>
             
-            {pendingRequests.map((request) => (
-              <View key={request.id} style={styles.requestCard}>
-                <View style={styles.requestInfo}>
-                  <Image source={{ uri: request.image }} style={styles.avatar} />
-                  <View style={styles.userDetails}>
-                    <Text style={styles.userName}>{request.name}</Text>
-                    <View style={styles.userStats}>
-                      <View style={styles.ratingContainer}>
-                        <Star size={14} color="#FFD700" fill="#FFD700" />
-                        <Text style={styles.ratingText}>{request.rating}</Text>
+            {pendingRequests.length > 0 ? (
+              pendingRequests.map((request) => (
+                <View key={request.id} style={styles.requestCard}>
+                  <View style={styles.requestInfo}>
+                    <Image source={{ uri: request.image }} style={styles.avatar} />
+                    <View style={styles.userDetails}>
+                      <Text style={styles.userName}>{request.name}</Text>
+                      <View style={styles.userStats}>
+                        <View style={styles.ratingContainer}>
+                          <Star size={14} color="#FFD700" fill="#FFD700" />
+                          <Text style={styles.ratingText}>{request.rating}</Text>
+                        </View>
+                        <Text style={styles.ridesText}>• {request.rides} rides</Text>
                       </View>
-                      <Text style={styles.ridesText}>• {request.rides} rides</Text>
+                       <Text style={styles.bioPreview} numberOfLines={2}>
+                        {request.bio}
+                      </Text>
                     </View>
-                    <Text style={styles.bioPreview} numberOfLines={2}>
-                      {request.bio}
-                    </Text>
                   </View>
+                  <TouchableOpacity 
+                    style={styles.viewButton}
+                    onPress={() => handleViewRequest(request)}
+                  >
+                    <Text style={styles.viewButtonText}>View</Text>
+                  </TouchableOpacity>
                 </View>
-                <TouchableOpacity 
-                  style={styles.viewButton}
-                  onPress={() => handleViewRequest(request)}
-                >
-                  <Text style={styles.viewButtonText}>View</Text>
-                </TouchableOpacity>
+              ))
+            ) : (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyStateText}>No pending requests yet</Text>
               </View>
-            ))}
+            )}
           </View>
         </View>
       </ScrollView>
@@ -280,5 +372,48 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
     color: '#2d3748',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  errorText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#EF4444',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: '#4ECDC4',
+    borderRadius: 20,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  retryButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#FFFFFF',
+  },
+  emptyState: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  emptyStateText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#718096',
   },
 });

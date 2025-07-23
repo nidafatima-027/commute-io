@@ -240,10 +240,10 @@ const handleInputChange = (field: FormField, value: string | boolean) => {
               seats: parseInt(formData.numberOfSeats),
               ac_available: formData.acAvailable,
               color: formData.vehicleColor, // Add if you have this field
-              year: formData.vehicleYear, // Add if you have this field
+              year: parseInt(formData.vehicleYear), // Convert to number
             };
-          
-            await usersAPI.createCar(carData);
+            const car = await carsAPI.getCars();
+            await carsAPI.updateCar(car[0].id, carData);
           }
           router.push('/(tabs)/profile');
         } catch (error) {

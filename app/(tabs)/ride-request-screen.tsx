@@ -47,17 +47,17 @@ export default function RideRequestScreen() {
   // Use params if available, otherwise use default data
   const requestDetails = {
     passenger: {
-      name: params.driverName as string || 'Ethan Carter',
-      rating: parseFloat(params.driverRating as string) || 4.8,
-      rides: parseInt(params.driverRides as string) || 12,
-      image: params.driverImage as string || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
-      bio: params.driverBio as string || 'Friendly and reliable driver with 3+ years of carpooling experience. I enjoy good conversations and always keep my car clean and comfortable. Non-smoker and punctual.',
+      name: params.name as string || 'Ethan Carter',
+      rating: params.rating as string,
+      rides: params.rides_taken as string,
+      image: params.photo_url as string || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
+      bio: params.bio as string || 'Friendly and reliable driver with 3+ years of carpooling experience. I enjoy good conversations and always keep my car clean and comfortable. Non-smoker and punctual.',
     },
     ride: {
       route: params.route as string || 'Campus to Downtown',
       time: params.time as string || '10:00 AM',
       seats: parseInt(params.seats as string) || 1,
-      price: 15,
+      price: params.price,
     }
   };
 

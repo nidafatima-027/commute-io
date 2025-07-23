@@ -6,7 +6,16 @@ import { Search, Settings, Menu, MessageCircle, Car, Plus, Navigation } from 'lu
 import { router } from 'expo-router';
 import { ridesAPI, usersAPI } from '../../services/api';
 
+interface Ride {
+  id: number;
+  start_time: string;
+  seats_available: number;
+  start_location: string;
+  end_location: string;
+}
+
 export default function HomeScreen() {
+  const [upcomingDriverRides, setUpcomingDriverRides] = useState<Ride[]>([]);
   const [selectedMode, setSelectedMode] = useState('Driver');
   const [searchText, setSearchText] = useState('');
   const [rides, setRides] = useState([]);
@@ -36,23 +45,75 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadUserProfile = async () => {
     try {
-      const [ridesData, profileData] = await Promise.all([
-        ridesAPI.searchRides(10),
-        usersAPI.getProfile()
-      ]);
-      setRides(ridesData);
+      const profileData = await usersAPI.getProfile();
       setUserProfile(profileData);
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.error('Failed to load user profile:', error);
+    }
+  };
+  loadUserProfile();
+}, []); // load profile only once
+
+useEffect(() => {
+  const loadRides = async () => {
+    if (!userProfile || !hasRequiredRole()) return;
+
+    try {
+      setLoading(true);
+
+      if (selectedMode === 'Driver' && userProfile.is_driver) {
+        const driverRides = await ridesAPI.getMyRides();
+        setUpcomingDriverRides(driverRides);
+        console.log('Driver rides received:', driverRides[0]);
+      }
+
+      if (selectedMode === 'Rider' && userProfile.is_rider) {
+        const ridesData = await ridesAPI.searchRides(10);
+        setRides(ridesData);
+      }
+    } catch (error) {
+      console.error('Error loading rides:', error);
     } finally {
       setLoading(false);
     }
   };
+
+  loadRides();
+}, [selectedMode, userProfile]); // now this won't cause loop since userProfile is set only once
+
+
+  const loadData = async () => {
+  try {
+    setLoading(true);
+    console.log('Starting data loading...');
+    
+    const profileData = await usersAPI.getProfile();
+    console.log('Profile data received:', profileData);
+    setUserProfile(profileData);
+    
+    if (selectedMode === 'Driver' && profileData?.is_driver) {
+      console.log('Fetching driver rides...');
+      const driverRides = await ridesAPI.getMyRides();
+      console.log('Driver rides received:', driverRides);
+      setUpcomingDriverRides(driverRides);
+    }
+    
+    if (selectedMode === 'Rider') {
+      console.log('Fetching rides for rider...');
+      const ridesData = await ridesAPI.searchRides(10);
+      console.log('Rides data received:', ridesData);
+      setRides(ridesData);
+    }
+  } catch (error) {
+    console.error('Error loading data:', error);
+  } finally {
+    console.log('Data loading completed');
+    setLoading(false);
+  }
+};
+
   const suggestedRides = [
     {
       id: 1,
@@ -192,17 +253,41 @@ export default function HomeScreen() {
                 {/* Upcoming Rides */}
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>Upcoming Rides</Text>
-                  {upcomingRides.map((ride) => (
-                    <View key={ride.id} style={styles.upcomingRideCard}>
-                      <View style={styles.upcomingRideIcon}>
-                        <Car size={20} color="#4ECDC4" />
-                      </View>
-                      <View style={styles.upcomingRideInfo}>
-                        <Text style={styles.upcomingRideDestination}>{ride.destination}</Text>
-                        <Text style={styles.upcomingRideTime}>{ride.time}</Text>
-                      </View>
-                    </View>
-                  ))}
+                  {upcomingDriverRides.length > 0 ? (
+        upcomingDriverRides.map((ride) => (
+          <TouchableOpacity 
+            key={ride.id} 
+            style={styles.upcomingRideCard}
+          
+            onPress={() => router.push({
+              pathname: '/(tabs)/join-requests',
+              params: { rideId: ride.id }
+            })}
+          >
+            <View style={styles.upcomingRideIcon}>
+              <Car size={20} color="#4ECDC4" />
+            </View>
+            <View style={styles.upcomingRideInfo}>
+              <Text style={styles.upcomingRideDestination}>
+                {ride.start_location} → {ride.end_location}
+              </Text>
+              <Text style={styles.upcomingRideTime}>
+                {new Date(ride.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {ride.seats_available} seats
+              </Text>
+            </View>
+          </TouchableOpacity>
+        ))
+      ) : (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateText}>No upcoming rides scheduled</Text>
+          <TouchableOpacity 
+            style={styles.emptyStateButton}
+            onPress={handleOfferRide}
+          >
+            <Text style={styles.emptyStateButtonText}>Create your first ride</Text>
+          </TouchableOpacity>
+        </View>
+      )}
                 </View>
 
                 {/* Recent Activity */}
@@ -401,6 +486,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical:12,
   },
+  emptyState: {
+  backgroundColor: '#F9FAFB',
+  borderRadius: 16,
+  padding: 24,
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginTop: 8,
+},
+emptyStateText: {
+  fontSize: 16,
+  fontFamily: 'Inter-Regular',
+  color: '#6B7280',
+  marginBottom: 16,
+  textAlign: 'center',
+},
+emptyStateButton: {
+  backgroundColor: '#E5E7EB',
+  paddingHorizontal: 24,
+  paddingVertical: 12,
+  borderRadius: 20,
+},
+emptyStateButtonText: {
+  fontSize: 14,
+  fontFamily: 'Inter-SemiBold',
+  color: '#4B5563',
+},
   suggestedRideCard: {
     width: 200,
     marginRight: 16,

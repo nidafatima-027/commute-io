@@ -7,7 +7,7 @@ from app.core.database import get_db
 from app.api.auth import get_current_user
 from app.db.crud.user import update_user
 from app.db.crud.schedule import get_user_schedule, create_schedule
-from app.schema.user import UserUpdate, UserResponse, UserPreferences, ProfileResponse, GenderPreference, MusicPreference, ConversationPreference, SmokingPreference
+from app.schema.user import UserUpdate, UserResponse, UserPreferences, PublicUserProfile, ProfileResponse, GenderPreference, MusicPreference, ConversationPreference, SmokingPreference
 from app.schema.schedule import ScheduleCreate, ScheduleResponse
 from app.db.models.ride import Ride
 from app.db.models.ride_history import RideHistory
@@ -93,3 +93,22 @@ async def create_user_schedule(
 ):
     return create_schedule(db, schedule.dict(), current_user.id)
 
+@router.get("/profile/{user_id}", response_model=PublicUserProfile)
+async def get_user_profile(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    rides_taken = db.query(RideHistory).filter(
+        RideHistory.user_id == user_id
+    ).count()
+
+
+    return {
+        "id": user.id,
+        "name": user.name,
+        "bio": user.bio,
+        "photo_url": user.photo_url,
+        "rides_taken": rides_taken,
+    }

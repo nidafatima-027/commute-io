@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, date
 from app.db.models.ride import Ride
 from app.schema.ride import RideCreate, RideUpdate
 from sqlalchemy.orm import joinedload
@@ -24,7 +24,17 @@ def get_available_rides(db: Session, user_id: int, limit: int = 50) -> List[Ride
     ).limit(limit).all()
 
 def get_user_rides(db: Session, user_id: int) -> List[Ride]:
-    return db.query(Ride).filter(Ride.driver_id == user_id).all()
+    today = date.today()
+    return (
+        db.query(Ride)
+        .filter(
+            Ride.driver_id == user_id,
+            Ride.status == 'active',  # adjust to your active flag
+            Ride.start_time >= datetime.combine(today, datetime.min.time()),
+            Ride.start_time <= datetime.combine(today, datetime.max.time())
+        )
+        .all()
+    )
 
 def create_ride(db: Session, ride: RideCreate, driver_id: int) -> Ride:
     db_ride = Ride(
