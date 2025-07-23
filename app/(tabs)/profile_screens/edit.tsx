@@ -243,7 +243,12 @@ const handleInputChange = (field: FormField, value: string | boolean) => {
               year: parseInt(formData.vehicleYear), // Convert to number
             };
             const car = await carsAPI.getCars();
+            if(car.length > 0) {
             await carsAPI.updateCar(car[0].id, carData);
+            }
+            else{
+              await carsAPI.createCar(carData);
+            }
           }
           router.push('/(tabs)/profile');
         } catch (error) {

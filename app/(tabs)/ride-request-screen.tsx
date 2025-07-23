@@ -9,7 +9,10 @@ export default function RideRequestScreen() {
   const params = useLocalSearchParams();
 
   const handleBack = () => {
-    router.push('/(tabs)/join-requests');
+    router.push({
+                  pathname: '/(tabs)/join-requests',
+                  params: { rideId: params.rideId }
+                })
   };
 
   const handleAccept = () => {

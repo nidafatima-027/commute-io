@@ -30,7 +30,7 @@ export default function JoinRequestsScreen() {
   const [rideInfo, setRideInfo] = useState<RideInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  const [seats, setSeats] = useState(0);
   const { rideId } = useLocalSearchParams();
 
   const handleBack = () => {
@@ -40,6 +40,7 @@ export default function JoinRequestsScreen() {
   const handleViewRequest = (request: any) => {
     if (!rideInfo) return;
     // Navigate to ride request screen with driver details
+    console.log(rideInfo.id)
     router.push({
       pathname: '/(tabs)/ride-request-screen',
       params: {
@@ -51,7 +52,7 @@ export default function JoinRequestsScreen() {
         route: rideInfo.start_location + ' TO ' + rideInfo.end_location,
         time: new Date(rideInfo.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         seats: 1,
-        price: rideInfo.price/rideInfo.seats_available,
+        price: rideInfo.price/seats,
         rideId: rideInfo.id,
         requestId: request.id,
       }
@@ -74,6 +75,7 @@ export default function JoinRequestsScreen() {
         id: rideResponse.id,
         price: rideResponse.total_fare,
       });
+      setSeats(rideResponse.car.seats);
       
       // Fetch ride requests
       console.log(rideIdNumber)
