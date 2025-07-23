@@ -39,8 +39,10 @@ async def genai_chat(request: GenAIChatRequest, db: Session = Depends(get_db), c
     # Step 1: Check if user is replying with a number to select a ride
     if user_id in conversation_state and isinstance(conversation_state[user_id], list):
         ride_options = conversation_state[user_id]
-        try:
-            idx = int(user_message.strip()) - 1  # user sends 1-based index
+
+        # Check if input is a valid digit (selection intent)
+        if user_message.isdigit():
+            idx = int(user_message) - 1
             if 0 <= idx < len(ride_options):
                 selected_ride_id = ride_options[idx]
 
@@ -52,21 +54,16 @@ async def genai_chat(request: GenAIChatRequest, db: Session = Depends(get_db), c
                     create_ride_request(db, selected_ride_id, user_id, message="Booked via AI chat")
                     reply = "Your ride has been booked successfully!"
 
-                # # Decrement seat count
-                # ride = db.query(Ride).filter(Ride.id == selected_ride_id).first()
-                # if ride and ride.seats_available > 0:
-                #     ride.seats_available -= 1
-                #     db.commit()
-
-                # Clear state
+                # Clear selection state after booking
                 del conversation_state[user_id]
             else:
                 reply = "Invalid ride selection number."
-        except ValueError:
-            reply = "Please enter a valid number corresponding to the ride option."
-        return {"reply": reply}
+            return {"reply": reply}
+        else:
+            # Non-numeric input — treat it as a new prompt, so reset state
+            del conversation_state[user_id]
 
-    # Step 2: Otherwise, treat as a new booking request
+    # Step 2: Treat as a new ride booking prompt
     prompt = f"""
 Extract the following from the user's message as JSON:
 - start_location
@@ -117,7 +114,7 @@ Return only valid JSON.
 
         return {"reply": f"Please enter your {', and '.join(missing)} to continue booking your ride."}
 
-    # Search future rides
+    # Search for rides
     query = db.query(Ride).filter(
         Ride.start_location.ilike(f"%{start_location}%"),
         Ride.end_location.ilike(f"%{end_location}%"),
@@ -141,10 +138,9 @@ Return only valid JSON.
             f"Time: {ride_time_str}, Fare: {ride.total_fare}"
         )
 
-    # Save state for selection
+    # Save state for ride selection
     conversation_state[user_id] = [ride.id for ride in rides]
 
-    # ✅ Don't use json.dumps — return raw string with real line breaks
     reply = (
         f"I found these rides from {start_location} to {end_location}:\n"
         + "\n".join(options)
