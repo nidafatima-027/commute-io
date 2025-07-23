@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Image,
 import { ArrowLeft, Search } from "lucide-react-native"; // example icons; install lucide-react-native or use react-native-vector-icons
 import { router} from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ridesAPI } from '../../services/api'; // Adjust the import path as needed
+import { ridesAPI, usersAPI  } from '../../services/api'; // Adjust the import path as needed
 
 
 interface Ride {
@@ -29,31 +29,53 @@ interface Ride {
     model: string;
   };
 }
-
+type UserProfile = {
+  is_driver: boolean;
+  is_rider: boolean;
+};
 export default function FindRideScreen() {
-   const [rides, setRides] = useState<Ride[]>([]);
+  const [rides, setRides] = useState<Ride[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   useEffect(() => {
-  const fetchRides = async () => {
-    try {
-      setLoading(true);
-      const data = await ridesAPI.searchRides();
-      setRides(data);
-      setError(null);
-    } catch (err: any) {
-      console.error('Failed to fetch rides:', err);
-      setError(err.message || 'Failed to load rides. Please try again.');
-      setRides([]); // Reset rides on error
-    } finally {
-      setLoading(false);
-    }
-  };
+    const loadUserProfile = async () => {
+      try {
+        const profileData = await usersAPI.getProfile();
+        setUserProfile(profileData);
+      } catch (error) {
+        console.error('Failed to load user profile:', error);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+    
+    loadUserProfile();
+  }, []);
 
-  fetchRides();
-}, []);
+  useEffect(() => {
+    const fetchRides = async () => {
+      // Don't fetch rides if user is not a rider
+      if (userProfile && !userProfile.is_rider) return;
+
+      try {
+        setLoading(true);
+        const data = await ridesAPI.searchRides();
+        setRides(data);
+        setError(null);
+      } catch (err: any) {
+        console.error('Failed to fetch rides:', err);
+        setError(err.message || 'Failed to load rides. Please try again.');
+        setRides([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRides();
+  }, [userProfile]);
 
     const handleBack = () => {
       router.back();
@@ -141,6 +163,10 @@ const handleChatPress = () => {
     };
   };
 
+  const handleEditProfile = () => {
+    router.push('/(tabs)/profile');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -166,51 +192,80 @@ const handleChatPress = () => {
 
       {/* Content */}
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Section Header */}
-        <Text style={styles.sectionTitle}>Suggested Rides</Text>
-{loading && (
+        {profileLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#4ECDC4" />
           </View>
-        )}
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
+        ) : userProfile && !userProfile.is_rider ? (
+          <View style={styles.roleWarningContainer}>
+            <Text style={styles.roleWarningText}>
+              You're not registered as a rider yet.
+            </Text>
+            <Text style={styles.roleWarningSubtext}>
+              Update your profile to access rider features.
+            </Text>
             <TouchableOpacity 
-              style={styles.retryButton}
-              onPress={() => {
-                setError(null);
-                setLoading(true);
-                ridesAPI.searchRides().then(setRides).catch(setError).finally(() => setLoading(false));
-              }}
+              style={styles.updateProfileButton}
+              onPress={handleEditProfile}
             >
-              <Text style={styles.retryButtonText}>Retry</Text>
+              <Text style={styles.updateProfileButtonText}>
+                Update Profile
+              </Text>
             </TouchableOpacity>
           </View>
-        )}
-        {!loading && !error && rides.length === 0 && (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>No rides available at the moment</Text>
-          </View>
-        )}
-        {/* Rides List */}
-        {!loading && !error && rides.map((ride) => {
-          const formattedRide = formatRideData(ride);
-          return (
-            <TouchableOpacity 
-              key={ride.id} 
-              style={styles.rideCard}
-              onPress={() => handleRidePress(ride)}
-              activeOpacity={0.7}
-            >
-              <Image source={{ uri: formattedRide.avatar }} style={styles.avatarImage} />
-              <View style={styles.rideInfo}>
-                <Text style={styles.destination}>To: {formattedRide.destination}</Text>
-                <Text style={styles.details}>{formattedRide.details}</Text>
+        ) : (
+          <>
+            {/* Section Header */}
+            <Text style={styles.sectionTitle}>Suggested Rides</Text>
+            
+            {loading && (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#4ECDC4" />
               </View>
-            </TouchableOpacity>
-          );
-        })}
+            )}
+            
+            {error && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
+                <TouchableOpacity 
+                  style={styles.retryButton}
+                  onPress={() => {
+                    setError(null);
+                    setLoading(true);
+                    ridesAPI.searchRides().then(setRides).catch(setError).finally(() => setLoading(false));
+                  }}
+                >
+                  <Text style={styles.retryButtonText}>Retry</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            
+            {!loading && !error && rides.length === 0 && (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyStateText}>No rides available at the moment</Text>
+              </View>
+            )}
+            
+            {/* Rides List */}
+            {!loading && !error && rides.map((ride) => {
+              const formattedRide = formatRideData(ride);
+              return (
+                <TouchableOpacity 
+                  key={ride.id} 
+                  style={styles.rideCard}
+                  onPress={() => handleRidePress(ride)}
+                  activeOpacity={0.7}
+                >
+                  <Image source={{ uri: formattedRide.avatar }} style={styles.avatarImage} />
+                  <View style={styles.rideInfo}>
+                    <Text style={styles.destination}>To: {formattedRide.destination}</Text>
+                    <Text style={styles.details}>{formattedRide.details}</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </>
+        )}
       </ScrollView>
 
       {/* Chat Button */}
@@ -374,5 +429,41 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Inter-SemiBold",
     color: "#ffffff",
+  },
+  roleWarningContainer: {
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  roleWarningText: {
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    color: '#2d3748',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  roleWarningSubtext: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#6B7280',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  updateProfileButton: {
+    backgroundColor: '#4ECDC4',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 25,
+    shadowColor: '#4ECDC4',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  updateProfileButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#ffffff',
   },
 });
