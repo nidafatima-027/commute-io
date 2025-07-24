@@ -39,17 +39,9 @@ export default function RideRequestScreen() {
 
       // Navigate to ride in progress page with driver details
       router.push({
-        pathname: '/(tabs)/ride-in-progress',
-        params: {
-          driverName: requestDetails.passenger.name,
-          driverRating: requestDetails.passenger.rating.toString(),
-          driverRides: requestDetails.passenger.rides.toString(),
-          driverImage: requestDetails.passenger.image,
-          route: requestDetails.ride.route,
-          time: requestDetails.ride.time,
-          price: requestDetails.ride.price.toString(),
-        }
-      });
+      pathname: '/(tabs)/join-requests',
+      params: { rideId: params.rideId }
+    })
     } catch (error) {
       console.error('Error accepting ride request:', error);
       Alert.alert('Error', 'Failed to accept ride request. Please try again.');

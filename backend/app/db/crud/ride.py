@@ -63,3 +63,5 @@ def update_ride(db: Session, ride_id: int, ride_update: RideUpdate, driver_id: i
     db.commit()
     db.refresh(db_ride)
     return db_ride
+
+    

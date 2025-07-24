@@ -70,9 +70,10 @@ class RideHistoryResponse(BaseModel):
         from_attributes = True
 
 class RideHistoryUpdateRequest(BaseModel):
-    completed_at: Optional[datetime] = None
-    rating_given: Optional[int] = None
     rating_received: Optional[int] = None
+
+class RiderHistoryUpdateRequest(BaseModel):
+    rating_given: Optional[int] = None
 
 class RideHistoryCreate(BaseModel):
     user_id: int
