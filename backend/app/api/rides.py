@@ -23,7 +23,9 @@ from app.schema.ride import (
     RideResponse, 
     RideRequestCreate,
     RideRequestResponse,
-    RideRequestUpdate
+    RideRequestUpdate,
+    RideHistoryUpdateRequest,
+    RideHistoryCreate
 )
 from app.db.crud.ride_history import create_ride_history_entry, get_user_ride_history
 
@@ -149,10 +151,34 @@ async def update_ride_request(
 
 @router.post("/history", response_model=RideHistoryResponse)
 async def create_ride_history(
-    ride_id: int,
-    role: str,  # "driver" or "rider"
-    current_user = Depends(get_current_user),
+    history_data: RideHistoryCreate,
     db: Session = Depends(get_db)
 ):
     """Create a ride history entry when a ride is completed"""
-    return create_ride_history_entry(db, current_user.id, ride_id, role)
+    return create_ride_history_entry(db, history_data.user_id, history_data.ride_id, history_data.role)
+
+@router.put("/history/{history_id}", response_model=RideHistoryResponse)
+async def update_ride_history(
+    history_id: int,
+    update_data: RideHistoryUpdateRequest,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update a ride history entry"""
+    db_history = get_ride_history(db, history_id)
+    if not db_history:
+        raise HTTPException(status_code=404, detail="Ride history not found")
+
+    if db_history.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to update this ride history")
+
+    if update_data.completed_at is not None:
+        db_history.completed_at = update_data.completed_at
+    if update_data.rating_given is not None:
+        db_history.rating_given = update_data.rating_given
+    if update_data.rating_received is not None:
+        db_history.rating_received = update_data.rating_received
+
+    db.commit()
+    db.refresh(db_history)
+    return db_history

@@ -10,7 +10,7 @@ def create_ride_request(db: Session, ride_id: int, rider_id: int, message: str =
     return db_request
 
 def get_ride_requests(db: Session, ride_id: int) -> List[RideRequest]:
-    return db.query(RideRequest).filter(RideRequest.ride_id == ride_id).all()
+    return db.query(RideRequest).filter(RideRequest.ride_id == ride_id, RideRequest.status == 'Pending').all()
 
 def get_user_ride_requests(db: Session, user_id: int) -> List[RideRequest]:
     return db.query(RideRequest).filter(RideRequest.rider_id == user_id).all()

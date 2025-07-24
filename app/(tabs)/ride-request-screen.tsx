@@ -1,41 +1,79 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Star, MessageCircle, Phone, User } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import {ridesAPI,usersAPI} from '../../services/api'
 
 export default function RideRequestScreen() {
   const [selectedAction, setSelectedAction] = useState<'accept' | 'reject' | null>(null);
   const params = useLocalSearchParams();
+  const [isProcessing, setIsProcessing] = useState(false);
+
 
   const handleBack = () => {
     router.push({
-                  pathname: '/(tabs)/join-requests',
-                  params: { rideId: params.rideId }
-                })
+      pathname: '/(tabs)/join-requests',
+      params: { rideId: params.rideId }
+    })
   };
 
-  const handleAccept = () => {
-    setSelectedAction('accept');
-    // Navigate to ride in progress page with driver details
-    router.push({
-      pathname: '/(tabs)/ride-in-progress',
-      params: {
-        driverName: requestDetails.passenger.name,
-        driverRating: requestDetails.passenger.rating.toString(),
-        driverRides: requestDetails.passenger.rides.toString(),
-        driverImage: requestDetails.passenger.image,
-        route: requestDetails.ride.route,
-        time: requestDetails.ride.time,
-        price: requestDetails.ride.price.toString(),
-      }
-    });
+  const handleAccept = async () => {
+    try {
+      setIsProcessing(true);
+      setSelectedAction('accept');
+      
+      // Update the request status to 'accepted'
+      await ridesAPI.updateRideRequest(parseInt(params.requestId as string), 'accepted');
+      
+      // Decrement available seats by 1
+      await ridesAPI.updateRide(parseInt(params.rideId as string), {
+        seats_available: parseInt(params.seats_available as string) - 1
+      });
+      await ridesAPI.createRideHistory(
+        parseInt(params.rider_id as string), // Assuming userId is passed in params
+      parseInt(params.rideId as string),
+      'rider'  // Since this is a passenger joining the ride
+    );
+
+
+      // Navigate to ride in progress page with driver details
+      router.push({
+        pathname: '/(tabs)/ride-in-progress',
+        params: {
+          driverName: requestDetails.passenger.name,
+          driverRating: requestDetails.passenger.rating.toString(),
+          driverRides: requestDetails.passenger.rides.toString(),
+          driverImage: requestDetails.passenger.image,
+          route: requestDetails.ride.route,
+          time: requestDetails.ride.time,
+          price: requestDetails.ride.price.toString(),
+        }
+      });
+    } catch (error) {
+      console.error('Error accepting ride request:', error);
+      Alert.alert('Error', 'Failed to accept ride request. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  const handleReject = () => {
-    setSelectedAction('reject');
-    // Navigate back to join requests
-    router.push('/(tabs)/join-requests');
+  const handleReject =async () => {
+    try {
+      setIsProcessing(true);
+      setSelectedAction('reject');
+      
+      // Update the request status to 'rejected'
+      await ridesAPI.updateRideRequest(parseInt(params.requestId as string), 'rejected');
+      
+      // Navigate back to join requests
+      router.push('/(tabs)/join-requests');
+    } catch (error) {
+      console.error('Error rejecting ride request:', error);
+      Alert.alert('Error', 'Failed to reject ride request. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleMessage = () => {
@@ -61,6 +99,7 @@ export default function RideRequestScreen() {
       time: params.time as string || '10:00 AM',
       seats: parseInt(params.seats as string) || 1,
       price: params.price,
+      seats_available: parseInt(params.seats_available as string) || 1,
     }
   };
 
@@ -136,19 +175,25 @@ export default function RideRequestScreen() {
           </View>
 
           {/* Action Buttons */}
-          <View style={styles.actionContainer}>
+           <View style={styles.actionContainer}>
             <TouchableOpacity 
               style={[styles.rejectButton, selectedAction === 'reject' && styles.selectedReject]} 
               onPress={handleReject}
+              disabled={isProcessing}
             >
-              <Text style={styles.rejectButtonText}>Reject</Text>
+              <Text style={styles.rejectButtonText}>
+                {isProcessing && selectedAction === 'reject' ? 'Processing...' : 'Reject'}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
               style={[styles.acceptButton, selectedAction === 'accept' && styles.selectedAccept]} 
               onPress={handleAccept}
+              disabled={isProcessing}
             >
-              <Text style={styles.acceptButtonText}>Accept</Text>
+              <Text style={styles.acceptButtonText}>
+                {isProcessing && selectedAction === 'accept' ? 'Processing...' : 'Accept'}
+              </Text>
             </TouchableOpacity>
           </View>
 

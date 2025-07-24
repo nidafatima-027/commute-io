@@ -316,10 +316,10 @@ export const ridesAPI = {
     return apiRequest('/rides/history');
   },
 
-  async createRideHistory(rideId: number, role: 'driver' | 'rider') {
+  async createRideHistory(userId: number, rideId: number, role: 'driver' | 'rider') {
     return apiRequest('/rides/history', {
       method: 'POST',
-      body: JSON.stringify({ ride_id: rideId, role }),
+      body: JSON.stringify({ user_id: userId, ride_id: rideId, role }),
     });
   }
 };
