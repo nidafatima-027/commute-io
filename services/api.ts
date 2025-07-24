@@ -373,13 +373,19 @@ export const carsAPI = {
 // Messages API
 export const messagesAPI = {
   async sendMessage(receiverId: number, content: string, rideId?: number) {
+    const payload: any = {
+      receiver_id: receiverId,
+      content,
+    };
+    
+    // Only include ride_id if it's a valid number
+    if (rideId && !isNaN(rideId)) {
+      payload.ride_id = rideId;
+    }
+    
     return apiRequest('/messages/', {
       method: 'POST',
-      body: JSON.stringify({
-        receiver_id: receiverId,
-        content,
-        ride_id: rideId,
-      }),
+      body: JSON.stringify(payload),
     });
   },
 

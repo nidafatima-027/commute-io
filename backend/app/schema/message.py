@@ -19,7 +19,10 @@ class MessageBase(BaseModel):
 
 
 class MessageCreate(MessageBase):
-    pass
+    class Config:
+        # Allow None values for optional fields
+        extra = "forbid"  # Don't allow extra fields
+        validate_assignment = True
 
 
 class MessageResponse(MessageBase):

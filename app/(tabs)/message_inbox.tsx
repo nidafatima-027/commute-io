@@ -85,6 +85,9 @@ export default function MessagesChatScreen() {
     try {
       setSending(true);
       
+      // Parse ride ID properly
+      const rideIdNum = rideId && rideId !== '' ? Number(rideId) : undefined;
+      
       // Optimistically add message to UI
       const tempMessage: Message = {
         id: Date.now(),
@@ -92,7 +95,7 @@ export default function MessagesChatScreen() {
         receiver_id: Number(userId),
         content: trimmedInput,
         sent_at: new Date().toISOString(),
-        ride_id: rideId ? Number(rideId) : undefined,
+        ride_id: rideIdNum,
       };
       
       setMessages(prev => [...prev, tempMessage]);
@@ -102,7 +105,7 @@ export default function MessagesChatScreen() {
       await messagesAPI.sendMessage(
         Number(userId), 
         trimmedInput, 
-        rideId ? Number(rideId) : undefined
+        rideIdNum
       );
 
       // Reload messages to get the actual message from server
