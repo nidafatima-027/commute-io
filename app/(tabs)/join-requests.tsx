@@ -7,6 +7,7 @@ import {ridesAPI,usersAPI} from '../../services/api'
 
 interface RideRequest {
   id: number;
+  rider_id: number;
   name: string;
   rating: number;
   rides: number;
@@ -15,7 +16,6 @@ interface RideRequest {
 }
 
 interface RideInfo {
-  route: string;
   start_time: string;
   start_location: string;
   end_location: string;
@@ -55,6 +55,8 @@ export default function JoinRequestsScreen() {
         price: rideInfo.price/seats,
         rideId: rideInfo.id,
         requestId: request.id,
+        seats_available: rideInfo.seats_available,
+        rider_id: request.rider_id,
       }
     });
   };
@@ -67,7 +69,6 @@ export default function JoinRequestsScreen() {
       const rideIdNumber = Array.isArray(rideId) ? Number(rideId[0]) : Number(rideId);
       const rideResponse = await ridesAPI.getRideDetails(rideIdNumber);
       setRideInfo({
-        route: rideResponse.route,
         start_time: rideResponse.start_time,
         start_location: rideResponse.start_location,
         end_location: rideResponse.end_location,
@@ -80,11 +81,13 @@ export default function JoinRequestsScreen() {
       // Fetch ride requests
       console.log(rideIdNumber)
       const requestsResponse = await ridesAPI.getRideRequests(rideIdNumber);
+      console.log(requestsResponse)
       const users = await Promise.all(
-  requestsResponse.map(async (req: { rider_id: number }) => {
+  requestsResponse.map(async (req: { id: number, rider_id: number }) => {
     const user = await usersAPI.getUserProfileById(req.rider_id);
     return {
-      id: user.id,
+      id: req.id,
+      rider_id: user.id,
       name: user.name,
       rating: user.rating || 0.0,
       rides: user.rides_taken || 0,

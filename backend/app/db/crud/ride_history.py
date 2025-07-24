@@ -7,6 +7,11 @@ def get_user_ride_history(db: Session, user_id: int) -> List[RideHistory]:
     """Get all ride history for a user (both as driver and rider)"""
     return db.query(RideHistory).filter(RideHistory.user_id == user_id).all()
 
+def get_ride_history(db: Session, history_id: int) -> List[RideHistory]:
+    """Get all ride history for a user (both as driver and rider)"""
+    return db.query(RideHistory).filter(RideHistory.id == history_id).first()
+
+
 def create_ride_history_entry(db: Session, user_id: int, ride_id: int, role: str) -> RideHistory:
     """Create a new ride history entry"""
     db_history = RideHistory(
