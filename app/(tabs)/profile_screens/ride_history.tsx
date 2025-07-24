@@ -19,6 +19,9 @@ interface RideHistoryItem {
     driver_id: number;
     start_time: string;
     status: string;
+    start_location: string;
+    end_location: string;
+    total_fare?: number;
     driver: {
       id: number;
       name: string;
@@ -29,16 +32,6 @@ interface RideHistoryItem {
       make: string;
       model: string;
       photo_url: string;
-    };
-    start_location: {
-      id: number;
-      name: string;
-      address: string;
-    };
-    end_location: {
-      id: number;
-      name: string;
-      address: string;
     };
   };
 }
@@ -109,7 +102,10 @@ export default function RideHistoryScreen() {
 
   const formatRoute = (ride: RideHistoryItem) => {
     if (!ride.ride) return 'Unknown Route';
-    return `${ride.ride.start_location.name} to ${ride.ride.end_location.name}`;
+    // Extract location names from the string format "Name - Address"
+    const startLocation = ride.ride.start_location.split(' - ')[0] || ride.ride.start_location;
+    const endLocation = ride.ride.end_location.split(' - ')[0] || ride.ride.end_location;
+    return `${startLocation} to ${endLocation}`;
   };
 
   const getDriverDetails = (ride: RideHistoryItem) => {

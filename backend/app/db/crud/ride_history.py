@@ -12,9 +12,7 @@ def get_user_ride_history(db: Session, user_id: int) -> List[RideHistory]:
             .options(
                 joinedload(RideHistory.user),
                 joinedload(RideHistory.ride).joinedload(Ride.driver),
-                joinedload(RideHistory.ride).joinedload(Ride.car),
-                joinedload(RideHistory.ride).joinedload(Ride.start_location),
-                joinedload(RideHistory.ride).joinedload(Ride.end_location)
+                joinedload(RideHistory.ride).joinedload(Ride.car)
             )
             .filter(RideHistory.user_id == user_id)
             .order_by(RideHistory.completed_at.desc())
