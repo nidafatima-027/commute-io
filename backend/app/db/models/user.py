@@ -8,8 +8,11 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
-    email = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=True)  # Made nullable for phone-only users
     phone = Column(String, unique=True, index=True, nullable=True)
+    hashed_password = Column(String, nullable=True)  # Added for authentication
+    email_verified = Column(Boolean, default=False, nullable=False)  # Added for verification
+    phone_verified = Column(Boolean, default=False, nullable=False)  # Added for verification
     gender = Column(String, nullable=True)
     photo_url = Column(Text, nullable=True)
     bio = Column(Text, nullable=True)
