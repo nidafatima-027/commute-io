@@ -1,11 +1,24 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 from datetime import datetime
 from app.db.models.ride_history import RideHistory
+from app.db.models.ride import Ride
+from app.db.models.user import User
+from app.db.models.car import Car
 
 def get_user_ride_history(db: Session, user_id: int) -> List[RideHistory]:
-    """Get all ride history for a user (both as driver and rider)"""
-    return db.query(RideHistory).filter(RideHistory.user_id == user_id).all()
+    """Get all ride history for a user (both as driver and rider) with related data"""
+    return (db.query(RideHistory)
+            .options(
+                joinedload(RideHistory.user),
+                joinedload(RideHistory.ride).joinedload(Ride.driver),
+                joinedload(RideHistory.ride).joinedload(Ride.car),
+                joinedload(RideHistory.ride).joinedload(Ride.start_location),
+                joinedload(RideHistory.ride).joinedload(Ride.end_location)
+            )
+            .filter(RideHistory.user_id == user_id)
+            .order_by(RideHistory.completed_at.desc())
+            .all())
 
 def create_ride_history_entry(db: Session, user_id: int, ride_id: int, role: str) -> RideHistory:
     """Create a new ride history entry"""

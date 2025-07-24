@@ -5,14 +5,22 @@ from datetime import datetime
 from app.schema.car import CarResponse
 from app.schema.user import UserResponse
 
+class LocationResponse(BaseModel):
+    id: int
+    name: str
+    address: str
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    
+    class Config:
+        from_attributes = True
 
 class RideBase(BaseModel):
     car_id: int
-    start_location: str
-    end_location: str
+    start_location_id: int
+    end_location_id: int
     start_time: datetime
     seats_available: int
-    total_fare: float
 
 
 class RideCreate(RideBase):
@@ -29,8 +37,11 @@ class RideResponse(RideBase):
     id: int
     driver_id: int
     status: str
-    driver: UserResponse  # Add this
-    car: CarResponse      # Add this
+    driver: UserResponse
+    car: CarResponse
+    start_location: LocationResponse
+    end_location: LocationResponse
+    
     class Config:
         from_attributes = True
 
@@ -65,6 +76,8 @@ class RideHistoryResponse(BaseModel):
     completed_at: Optional[datetime] = None
     rating_given: Optional[int] = None
     rating_received: Optional[int] = None
+    # Add ride details for frontend
+    ride: Optional["RideResponse"] = None
 
     class Config:
         from_attributes = True

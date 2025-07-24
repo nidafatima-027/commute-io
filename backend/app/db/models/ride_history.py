@@ -17,3 +17,4 @@ class RideHistory(Base):
 
     # Relationships
     user = relationship("User", back_populates="ride_history")
+    ride = relationship("Ride")
