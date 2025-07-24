@@ -63,7 +63,7 @@ export default function JoinRequestsScreen() {
     if (!rideInfo) return;
     // Navigate to message inbox with ride context
     router.push({
-      pathname: '/(tabs)/ride-message',
+      pathname: '/(tabs)/message_inbox',
       params: {
         userId: request.id,
         name: request.name,

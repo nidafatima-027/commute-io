@@ -42,8 +42,8 @@ const handleMessageUser = (request: any) => {
 </TouchableOpacity>
 ```
 
-### 2. Ride-Specific Messaging Screen
-**File**: `app/(tabs)/ride-message.tsx` (NEW)
+### 2. Enhanced Message Inbox Screen
+**File**: `app/(tabs)/message_inbox.tsx` (ENHANCED)
 
 - ✅ Real-time chat interface with ride context
 - ✅ Message bubbles with timestamps
@@ -263,9 +263,9 @@ Get conversation with specific user
 
 ### Frontend Files
 - ✅ `app/(tabs)/join-requests.tsx` - Added message buttons
-- ✅ `app/(tabs)/ride-message.tsx` - NEW: Chat interface
+- ✅ `app/(tabs)/message_inbox.tsx` - ENHANCED: Chat interface with ride context
 - ✅ `app/(tabs)/messages.tsx` - Enhanced conversations list
-- ✅ `app/(tabs)/_layout.tsx` - Added navigation routes
+- ✅ `app/(tabs)/_layout.tsx` - Updated navigation routes
 
 ### Backend Files
 - ✅ `backend/app/api/messages.py` - Enhanced API endpoints

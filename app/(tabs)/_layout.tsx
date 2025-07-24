@@ -162,12 +162,6 @@ export default function TabLayout() {
           href: null, // Hide this tab
         }}
       />
-      <Tabs.Screen
-        name="ride-message"
-        options={{
-          href: null, // Hide this tab
-        }}
-      />
     </Tabs>
   );
 }

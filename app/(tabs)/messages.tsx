@@ -70,13 +70,13 @@ export default function MessagesScreen() {
       style={styles.conversationItem}
       onPress={() =>
         router.push({
-          pathname: '/(tabs)/ride-message',
+          pathname: '/(tabs)/message_inbox',
           params: {
             userId: conversation.user_id,
             name: conversation.user_name,
             image: conversation.user_photo || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
             rideId: conversation.ride_id || '',
-            rideRoute: 'General Chat',
+            rideRoute: conversation.ride_id ? 'Ride Chat' : '',
           },
         })
       }
