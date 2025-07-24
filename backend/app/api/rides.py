@@ -62,6 +62,23 @@ async def get_my_rides(
     return get_user_rides(db, current_user.id)
 
 
+@router.get("/history", response_model=List[RideHistoryResponse])
+async def get_ride_history(
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get user's ride history (both as driver and rider)"""
+    return get_user_ride_history(db, current_user.id)
+
+
+@router.get("/my-requests", response_model=List[RideRequestResponse])
+async def get_my_ride_requests(
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    return get_user_ride_requests(db, current_user.id)
+
+
 @router.get("/{ride_id}", response_model=RideResponse)
 async def get_ride_details(
     ride_id: int,
@@ -128,23 +145,6 @@ async def update_ride_request(
     if not updated_request:
         raise HTTPException(status_code=404, detail="Request not found")
     return updated_request
-
-
-@router.get("/my-requests", response_model=List[RideRequestResponse])
-async def get_my_ride_requests(
-    current_user = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    return get_user_ride_requests(db, current_user.id)
-
-
-@router.get("/history", response_model=List[RideHistoryResponse])
-async def get_ride_history(
-    current_user = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Get user's ride history (both as driver and rider)"""
-    return get_user_ride_history(db, current_user.id)
 
 
 @router.post("/history", response_model=RideHistoryResponse)
