@@ -1,8 +1,10 @@
 import React, { useRef, useState } from "react";
+import { Alert } from "react-native";
+import { authAPI } from "../../services/api";
 
 import { router } from 'expo-router';
 import { useLocalSearchParams } from 'expo-router';
-
+import { storeToken, storeAuthMethod } from '../../services/auth';
 import {
   View,
   Text,
@@ -19,18 +21,20 @@ import { ArrowLeft } from 'lucide-react-native';
 const formatPhone = (num: string): string => {
   const digits = num.replace(/\D/g, "");
   if (digits.startsWith("92") && digits.length === 12) {
-    return `+92-${digits.slice(2, 5)}-${digits.slice(5)}`;
+    return `+92${digits.slice(2, 5)}${digits.slice(5)}`;
   }
   return num;
 };
 const PhoneVerificationScreen = () => {
   const [code, setCode] = useState<string[]>(["", "", "", "", "", ""]);
+    const [loading, setLoading] = useState(false);
+  
 
   // Refs for auto-focusing next inputs
   const inputs = useRef<Array<TextInput | null>>([]);
 
   const params = useLocalSearchParams();
-  const rawPhone = Array.isArray(params.phone) ? params.phone[0] : params.phone ?? "";
+  const rawPhone = Array.isArray(params.formattedPhone) ? params.formattedPhone[0] : params.formattedPhone ?? "";
   const formattedPhone = formatPhone(rawPhone);
 
   // Check if all digits are entered
@@ -52,17 +56,63 @@ const PhoneVerificationScreen = () => {
     }
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
+    console.log(params.formattedPhone)
+    console.log(formattedPhone)
     const enteredCode = code.join("");
-    console.log("Entered code:", enteredCode);
-    router.push("/auth/profile-setup");
+     if (!enteredCode || enteredCode.length !== 6) {
+          Alert.alert("Validation Error", "Please enter the complete 6-digit code.");
+          return;
+        }
+    setLoading(true);
+        try {
+          const response = await authAPI.verifyMobileOTP(formattedPhone as string, enteredCode);
+          const { access_token, is_new_user, auth_method } = response;
+          console.log(auth_method)
+    await storeToken(access_token);
+    await storeAuthMethod(auth_method);
+          // Check if user is new or existing
+          if (is_new_user) {
+            router.push('/auth/profile-setup');
+          } else {
+            router.push('/(tabs)'); // Or your index/home route
+          }
+          
+        } catch (error) {
+          Alert.alert("Error", error instanceof Error ? error.message : "Invalid OTP");
+        } finally {
+          setLoading(false);
+        }
   };
 
   const handleBack = () => {
     router.push("/auth/PhoneNumberPage");
   };
 
+const handleResendOTP = async () => {
+  // Clear all code inputs
+  
+  setCode(Array(6).fill(''));
+  // Focus the first input field
+  inputs.current[0]?.focus();
+  
+  setLoading(true);
+  const timeout = setTimeout(() => {
+    setLoading(false);
+    Alert.alert("Timeout", "Request took too long");
+  }, 15000);
 
+  try {
+    console.log("Resending OTP to:", formattedPhone);
+    await authAPI.sendMobileOTP(formattedPhone as string);
+    Alert.alert("Success", "New OTP code has been sent");
+  } catch (error) {
+    Alert.alert("Error", error instanceof Error ? error.message : "Failed to resend OTP");
+  } finally {
+    clearTimeout(timeout);
+    setLoading(false);
+  }
+};
 
   return (
   <SafeAreaView style={styles.container}>
@@ -105,8 +155,13 @@ const PhoneVerificationScreen = () => {
         </View>
 
         {/* Resend */}
-        <TouchableOpacity>
-          <Text style={styles.resendText}>Resend code</Text>
+       <TouchableOpacity 
+          onPress={handleResendOTP}
+          disabled={loading}
+        >
+          <Text style={[styles.resendText, loading && { opacity: 0.5 }]}>
+            Resend code
+          </Text>
         </TouchableOpacity>
 
         {/* Verify Button */}

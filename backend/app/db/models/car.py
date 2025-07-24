@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 
@@ -13,6 +13,7 @@ class Car(Base):
     color = Column(String, nullable=True)
     license_plate = Column(String, nullable=False)
     seats = Column(Integer, nullable=False)
+    ac_available = Column(Boolean, nullable=False, default=False)  # New field
     photo_url = Column(Text, nullable=True)
 
     user = relationship("User", back_populates="cars")

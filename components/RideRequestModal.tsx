@@ -1,13 +1,20 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
-import { Check } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, ActivityIndicator } from 'react-native';
+import { Check, X } from 'lucide-react-native';
 
 interface RideRequestModalProps {
   visible: boolean;
   onClose: () => void;
+  status: 'idle' | 'loading' | 'success' | 'error';
+  errorMessage?: string;
 }
 
-export default function RideRequestModal({ visible, onClose }: RideRequestModalProps) {
+export default function RideRequestModal({ 
+  visible, 
+  onClose, 
+  status = 'idle',
+  errorMessage 
+}: RideRequestModalProps) {
   return (
     <Modal
       visible={visible}
@@ -17,20 +24,41 @@ export default function RideRequestModal({ visible, onClose }: RideRequestModalP
     >
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>
-          {/* Success Icon */}
-          <View style={styles.iconContainer}>
-            <Check size={48} color="#ffffff" strokeWidth={3} />
-          </View>
-
-          {/* Title */}
-          <Text style={styles.title}>Your Ride Request is successfully Initiated.</Text>
-
-          {/* Subtitle */}
-          <Text style={styles.subtitle}>Driver will Contact you soon</Text>
-
-          {/* OK Button */}
-          <TouchableOpacity style={styles.okButton} onPress={onClose}>
-            <Text style={styles.okButtonText}>OK</Text>
+          {status === 'loading' && (
+            <>
+              <ActivityIndicator size="large" color="#4ECDC4" />
+              <Text style={styles.title}>Sending Request...</Text>
+            </>
+          )}
+          {status === 'success' && (
+            <>
+              <View style={styles.iconContainer}>
+                <Check size={48} color="#ffffff" strokeWidth={3} />
+              </View>
+              <Text style={styles.title}>Ride Request Sent Successfully</Text>
+              <Text style={styles.subtitle}>Driver will contact you soon</Text>
+            </>
+          )}
+          {status === 'error' && (
+            <>
+              <View style={[styles.iconContainer, { backgroundColor: '#EF4444' }]}>
+                <X size={48} color="#ffffff" strokeWidth={3} />
+              </View>
+              <Text style={styles.title}>Request Failed</Text>
+              <Text style={styles.subtitle}>{errorMessage || 'Please try again later'}</Text>
+            </>
+          )}
+          <TouchableOpacity 
+            style={[
+              styles.okButton,
+              status === 'error' && { backgroundColor: '#EF4444' }
+            ]} 
+            onPress={onClose}
+            disabled={status === 'loading'}
+          >
+            <Text style={styles.okButtonText}>
+              {status === 'loading' ? 'Processing...' : 'OK'}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

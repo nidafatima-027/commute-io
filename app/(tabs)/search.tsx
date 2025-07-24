@@ -1,81 +1,83 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Image } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Image, ActivityIndicator  } from "react-native";
 import { ArrowLeft, Search } from "lucide-react-native"; // example icons; install lucide-react-native or use react-native-vector-icons
 import { router} from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ridesAPI, usersAPI  } from '../../services/api'; // Adjust the import path as needed
 
 
+interface Ride {
+  id: string;
+  driver_id: number;
+  car_id: number;
+  start_location: string;
+  end_location: string;
+  start_time: string;
+  seats_available: number;
+  total_fare: number;
+  status: string;
+  driver: {
+    id: number;
+    name: string;
+    photo_url: string;
+    rating: number;
+    rides_count: number;
+  };
+  car: {
+    id: number;
+    make: string;
+    model: string;
+    seats: number;
+  };
+}
+type UserProfile = {
+  is_driver: boolean;
+  is_rider: boolean;
+};
 export default function FindRideScreen() {
-   const rides = [
-    {
-      id: "1",
-      destination: "123 Main St",
-      details: "12 miles · $15/seat · 25 min",
-      avatar: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150",
-      driverName: "Ethan Carter",
-      rating: 4.8,
-      ridesCount: 12,
-      fromLocation: "Campus",
-      fromAddress: "123 University Ave",
-      toLocation: "Downtown",
-      toAddress: "123 Main St",
-      departureTime: "10:00 AM",
-      vehicle: "Toyota Camry",
-      seatsAvailable: 3,
-      price: "$15",
-    },
-    {
-      id: "2",
-      destination: "456 Oak Ave",
-      details: "15 miles · $18/seat · 30 min",
-      avatar: "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=150",
-      driverName: "Noah Thompson",
-      rating: 4.7,
-      ridesCount: 8,
-      fromLocation: "Campus",
-      fromAddress: "123 University Ave",
-      toLocation: "Oak Avenue",
-      toAddress: "456 Oak Ave",
-      departureTime: "11:30 AM",
-      vehicle: "Honda Civic",
-      seatsAvailable: 2,
-      price: "$18",
-    },
-    {
-      id: "3",
-      destination: "789 Pine Ln",
-      details: "10 miles · $12/seat · 20 min",
-      avatar: "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=150",
-      driverName: "Olivia Bennett",
-      rating: 4.9,
-      ridesCount: 25,
-      fromLocation: "Campus",
-      fromAddress: "123 University Ave",
-      toLocation: "Pine Lane",
-      toAddress: "789 Pine Ln",
-      departureTime: "2:00 PM",
-      vehicle: "BMW 3 Series",
-      seatsAvailable: 1,
-      price: "$12",
-    },
-    {
-      id: "4",
-      destination: "101 Elm St",
-      details: "18 miles · $20/seat · 35 min",
-      avatar: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150",
-      driverName: "Emma Wilson",
-      rating: 4.9,
-      ridesCount: 15,
-      fromLocation: "Campus",
-      fromAddress: "123 University Ave",
-      toLocation: "Elm Street",
-      toAddress: "101 Elm St",
-      departureTime: "4:30 PM",
-      vehicle: "Tesla Model 3",
-      seatsAvailable: 4,
-      price: "$20",
-    },
-  ];
+  const [rides, setRides] = useState<Ride[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      try {
+        const profileData = await usersAPI.getProfile();
+        setUserProfile(profileData);
+      } catch (error) {
+        console.error('Failed to load user profile:', error);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+    
+    loadUserProfile();
+  }, []);
+
+  useEffect(() => {
+    const fetchRides = async () => {
+      // Don't fetch rides if user is not a rider
+      if (userProfile && !userProfile.is_rider) return;
+
+      try {
+        setLoading(true);
+        const data = await ridesAPI.searchRides();
+        setRides(data);
+        setError(null);
+      } catch (err: any) {
+        console.error('Failed to fetch rides:', err);
+        setError(err.message || 'Failed to load rides. Please try again.');
+        setRides([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRides();
+  }, [userProfile]);
+
     const handleBack = () => {
       router.back();
     };
@@ -84,25 +86,88 @@ const handleChatPress = () => {
     router.push('/(tabs)/ride-chat');
   };
 
-    const handleRidePress = (ride: any) => {
-    router.push({
+    const handleRidePress = (ride: Ride) => {
+      router.push({
       pathname: '/(tabs)/ride-details',
       params: {
-        driverName: ride.driverName,
-        driverRating: ride.rating.toString(),
-        driverRides: ride.ridesCount.toString(),
-        driverImage: ride.avatar,
-        fromLocation: ride.fromLocation,
-        fromAddress: ride.fromAddress,
-        toLocation: ride.toLocation,
-        toAddress: ride.toAddress,
-        departureTime: ride.departureTime,
-        vehicle: ride.vehicle,
-        seatsAvailable: ride.seatsAvailable.toString(),
-        price: ride.price,
+        ride: ride.id, // Pass the ride ID to the details screen
+        driverName: ride.driver.name,
+        driverRating: ride.driver?.rating || 0,
+        driverRides: ride.driver.rides_count || 0,
+        driverImage: ride.driver.photo_url,
+        fromLocation: ride.start_location,
+        fromAddress: ride.start_location + 'Stop',
+        toLocation: ride.end_location,
+        toAddress: ride.end_location + 'Stop',
+        departureTime: ride.start_time,
+        vehicle: ride.car.make,
+        seatsAvailable: ride.seats_available.toString(),
+        price: ride.total_fare/ride.car.seats,
       }
     });
   };
+
+  const formatRideData = (ride: Ride) => {
+  if (!ride.start_time || typeof ride.start_time !== 'string') {
+    console.error('Invalid start_time:', ride.start_time);
+    return {
+      // ... other fields
+      details: `Time not available · $${(ride.total_fare/ride.car.seats)?.toFixed(2) || '0.00'}/seat`,
+      durationMinutes: 0
+    };
+  }
+
+  // 2. Parse as local Karachi time (UTC+5)
+  let departureTime: Date;
+  try {
+    // Handle both "YYYY-MM-DD HH:MM:SS" and "YYYY-MM-DDTHH:MM:SS" formats
+    const timeStr = ride.start_time.includes('T') 
+      ? ride.start_time 
+      : ride.start_time.replace(' ', 'T');
+    
+    departureTime = new Date(timeStr);
+     console.log('ride start time:', ride.start_time.toString());
+
+    // Validate the date
+    if (isNaN(departureTime.getTime())) {
+      throw new Error('Invalid date format');
+    }
+  } catch (error) {
+    console.error('Error parsing departure time:', error);
+    return {
+      // ... other fields
+      details: `Time not available · $${(ride.total_fare/ride.car.seats)?.toFixed(2) || '0.00'}/seat`,
+      durationMinutes: 0
+    };
+  }
+
+  // 3. Get current local time (Karachi)
+  const now = new Date();
+  // 4. Calculate minutes remaining
+  const durationMinutes = Math.round((departureTime.getTime() - now.getTime()) / (1000 * 60));  // Calculate arrival time (departure time + duration)
+    return {
+      id: ride.id.toString(),
+      destination: ride.end_location,
+      details: `${ride.start_location} · $${(ride.total_fare/ride.car.seats).toFixed(2)}/seat . ${Math.abs(durationMinutes)} min`,
+      avatar: ride.driver.photo_url,
+      driverName: ride.driver.name,
+      rating: ride.driver.rating,
+      ridesCount: ride.driver.rides_count,
+      fromLocation: "Campus", // Adjust as needed
+      fromAddress: ride.start_location,
+      toLocation: "Downtown", // Adjust as needed
+      toAddress: ride.end_location,
+      departureTime: new Date(ride.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      vehicle: `${ride.car.make} ${ride.car.model}`,
+      seatsAvailable: ride.seats_available,
+      price: `$${ride.total_fare.toFixed(2)}`,
+    };
+  };
+
+  const handleEditProfile = () => {
+    router.push('/(tabs)/profile');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -128,24 +193,80 @@ const handleChatPress = () => {
 
       {/* Content */}
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Section Header */}
-        <Text style={styles.sectionTitle}>Suggested Rides</Text>
-
-        {/* Rides List */}
-        {rides.map((ride) => (
-          <TouchableOpacity 
-            key={ride.id} 
-            style={styles.rideCard}
-            onPress={() => handleRidePress(ride)}
-            activeOpacity={0.7}
-          >
-            <Image source={{ uri: ride.avatar }} style={styles.avatarImage} />
-            <View style={styles.rideInfo}>
-              <Text style={styles.destination}>To: {ride.destination}</Text>
-              <Text style={styles.details}>{ride.details}</Text>
-            </View>
-          </TouchableOpacity>
-        ))}
+        {profileLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#4ECDC4" />
+          </View>
+        ) : userProfile && !userProfile.is_rider ? (
+          <View style={styles.roleWarningContainer}>
+            <Text style={styles.roleWarningText}>
+              You're not registered as a rider yet.
+            </Text>
+            <Text style={styles.roleWarningSubtext}>
+              Update your profile to access rider features.
+            </Text>
+            <TouchableOpacity 
+              style={styles.updateProfileButton}
+              onPress={handleEditProfile}
+            >
+              <Text style={styles.updateProfileButtonText}>
+                Update Profile
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <>
+            {/* Section Header */}
+            <Text style={styles.sectionTitle}>Suggested Rides</Text>
+            
+            {loading && (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#4ECDC4" />
+              </View>
+            )}
+            
+            {error && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
+                <TouchableOpacity 
+                  style={styles.retryButton}
+                  onPress={() => {
+                    setError(null);
+                    setLoading(true);
+                    ridesAPI.searchRides().then(setRides).catch(setError).finally(() => setLoading(false));
+                  }}
+                >
+                  <Text style={styles.retryButtonText}>Retry</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            
+            {!loading && !error && rides.length === 0 && (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyStateText}>No rides available at the moment</Text>
+              </View>
+            )}
+            
+            {/* Rides List */}
+            {!loading && !error && rides.map((ride) => {
+              const formattedRide = formatRideData(ride);
+              return (
+                <TouchableOpacity 
+                  key={ride.id} 
+                  style={styles.rideCard}
+                  onPress={() => handleRidePress(ride)}
+                  activeOpacity={0.7}
+                >
+                  <Image source={{ uri: formattedRide.avatar }} style={styles.avatarImage} />
+                  <View style={styles.rideInfo}>
+                    <Text style={styles.destination}>To: {formattedRide.destination}</Text>
+                    <Text style={styles.details}>{formattedRide.details}</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </>
+        )}
       </ScrollView>
 
       {/* Chat Button */}
@@ -179,6 +300,43 @@ const styles = StyleSheet.create({
     backgroundColor: "#F9FAFB",
     justifyContent: "center",
     alignItems: "center",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  errorContainer: {
+    padding: 20,
+    backgroundColor: '#FFF6F6',
+    borderRadius: 8,
+    marginVertical: 10,
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#DC2626',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: '#4ECDC4',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  emptyState: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyStateText: {
+    color: '#9CA3AF',
+    fontSize: 16,
   },
   title: {
     fontSize: 20,
@@ -272,5 +430,41 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Inter-SemiBold",
     color: "#ffffff",
+  },
+  roleWarningContainer: {
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  roleWarningText: {
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    color: '#2d3748',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  roleWarningSubtext: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#6B7280',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  updateProfileButton: {
+    backgroundColor: '#4ECDC4',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 25,
+    shadowColor: '#4ECDC4',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  updateProfileButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#ffffff',
   },
 });

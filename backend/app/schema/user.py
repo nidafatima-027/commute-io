@@ -1,5 +1,5 @@
-from pydantic import BaseModel, EmailStr
-from typing import Optional, List
+from pydantic import BaseModel, EmailStr, computed_field
+from typing import Optional, List, Literal
 from datetime import datetime
 from enum import Enum
 
@@ -9,6 +9,9 @@ class GenderPreference(str, Enum):
     MALE_ONLY = "Male only"
     FEMALE_ONLY = "Female only"
 
+class AuthMethod(str, Enum):
+    EMAIL = "email"
+    PHONE = "phone"
 
 class MusicPreference(str, Enum):
     NO_MUSIC = "No music"
@@ -37,14 +40,20 @@ class UserPreferences(BaseModel):
 
 
 class UserBase(BaseModel):
-    name: str
-    email: EmailStr
+    name: str = ""
+    email: Optional[EmailStr] = None
     phone: Optional[str] = None
     bio: Optional[str] = None
-    is_driver: Optional[bool] = None
-    is_rider: Optional[bool] = None
-    preferences: Optional[str] = None
+    gender: Optional[str] = None
+    is_driver: bool = False
+    is_rider: bool = False
     preferences: Optional[UserPreferences] = None
+
+class UserCreateEmail(UserBase):
+    email: EmailStr  # Required for email flow
+
+class UserCreatePhone(UserBase):
+    phone: str  # Required for phone flow
 
 class UserCreate(UserBase):
     pass
@@ -52,9 +61,10 @@ class UserCreate(UserBase):
 
 class UserUpdate(BaseModel):
     name: Optional[str] = None
+    email: Optional[EmailStr] = None
     phone: Optional[str] = None
-    bio: Optional[str] = None
     gender: Optional[str] = None
+    bio: Optional[str] = None
     is_driver: Optional[bool] = None
     is_rider: Optional[bool] = None
     preferences: Optional[UserPreferences] = None
@@ -66,7 +76,14 @@ class UserResponse(UserBase):
     photo_url: Optional[str] = None
     trust_score: float
     created_at: datetime
-
+    @computed_field
+    def auth_methods(self) -> list[AuthMethod]:
+        methods = []
+        if getattr(self, "email", None):  # Check if email exists and is not None
+            methods.append(AuthMethod.EMAIL)
+        if getattr(self, "phone", None):  # Check if phone exists and is not None
+            methods.append(AuthMethod.PHONE)
+        return methods
     class Config:
         from_attributes = True
 
@@ -75,26 +92,66 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
+class ProfileResponse(BaseModel):
+    id: int
+    name: str
+    email: str
+    phone: str
+    bio: Optional[str]
+    gender: Optional[str] = None
+    is_driver: bool
+    is_rider: bool
+    photo_url: Optional[str] = None
+    rides_taken: int
+    rides_offered: int
+    preferences: Optional[UserPreferences] = None
+    
+    class Config:
+        extra = "ignore"
+
+class PublicUserProfile(BaseModel):
+    id: int
+    name: str
+    bio: Optional[str]
+    photo_url: Optional[str]
+    rides_taken: int
 
 class UserRegister(UserBase):
     password: str
 
+class UserMobileRegister(BaseModel):
+    phone: str  # Required for mobile registration
+    name: str = ""  # Default empty string
+    email: Optional[str] = None  # Truly optional
+    bio: Optional[str] = None
+    gender: Optional[str] = None
+    is_driver: bool = False
+    is_rider: bool = False
+    preferences: Optional[str] = None
+    password: str = ""  # Default empty (or use dummy value)
 
 class Token(BaseModel):
     access_token: str
     token_type: str
     is_new_user: bool 
+    auth_method: AuthMethod
     user: UserResponse
 
 
 class TokenData(BaseModel):
-    email: Optional[str] = None
-
+    identifier: str  # Can be email or phone
+    auth_method: AuthMethod
 
 class OTPRequest(BaseModel):
     email: EmailStr
 
+class OTPMobileRequest(BaseModel):
+    phone: str
 
 class OTPVerify(BaseModel):
     email: EmailStr
+    otp: str
+
+class OTPMobileVerify(BaseModel):
+    phone: str
     otp: str

@@ -1,28 +1,45 @@
 import React, { useState } from "react";
-import { View, ScrollView, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions } from "react-native";
+import { View, ScrollView, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, Alert } from "react-native";
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
+import { authAPI } from "../../services/api";
 
 const { width } = Dimensions.get("window");
 
 const PhoneNumberScreen = () => {
   const [phone, setPhone] = useState("");
+  const [loading, setLoading] = useState(false);
+
 
   const handleBack = () => {
     router.push('/auth/signup');
 
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
   const cleaned = phone.replace(/\D/g, ''); // remove non-digit characters
 
   if (cleaned.length === 11 && cleaned.startsWith('03')) {
     const formattedPhone = `+92${cleaned.slice(1)}`; // convert 03XX to +923XX
-    router.push({
-      pathname: '/auth/PhoneOTP',
-      params: { phone: formattedPhone },
-    });
+    setLoading(true);
+        const timeout = setTimeout(() => {
+        setLoading(false);
+        Alert.alert("Timeout", "Request took too long");
+      }, 15000);
+      try {
+            await authAPI.sendMobileOTP(formattedPhone);
+            console.log("OTP sent to:", formattedPhone);
+            router.push({
+              pathname: '/auth/PhoneOTP',
+              params: { formattedPhone },
+            });
+          } catch (error) {
+            Alert.alert("Error", error instanceof Error ? error.message : "Failed to send OTP");
+          } finally {
+                clearTimeout(timeout);
+            setLoading(false);
+          }
   } else {
     alert("Please enter a valid Pakistani phone number (e.g. 03XX-XXXXXXX)");
   }

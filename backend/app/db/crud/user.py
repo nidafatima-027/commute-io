@@ -1,3 +1,4 @@
+import json
 from sqlalchemy.orm import Session
 from typing import Optional
 from app.db.models.user import User
@@ -27,19 +28,20 @@ def create_user(db: Session, user: UserCreate) -> User:
     db.refresh(db_user)
     return db_user
 
-def update_user(db: Session, user_id: int, user_update: UserUpdate) -> Optional[User]:
+def update_user(db: Session, user_id: int, update_data: dict) -> Optional[User]:
     db_user = get_user(db, user_id)
     if not db_user:
         return None
-    
-    update_data = user_update.dict(exclude_unset=True)
+    if 'preferences' in update_data:
+        if isinstance(update_data['preferences'], str):
+            try:
+                update_data['preferences'] = json.loads(update_data['preferences'])
+            except json.JSONDecodeError:
+                update_data['preferences'] = None
+        elif isinstance(update_data['preferences'], dict):
+            update_data['preferences'] = json.dumps(update_data['preferences'])
     for field, value in update_data.items():
-        if isinstance(value, dict):
-            setattr(db_user, field, value)
-        elif hasattr(value, 'dict'):
-            setattr(db_user, field, value.dict())
-        else:
-            setattr(db_user, field, value)
+        setattr(db_user, field, value)
     
     db.commit()
     db.refresh(db_user)

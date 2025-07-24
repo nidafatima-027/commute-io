@@ -113,7 +113,9 @@ export default function MessagesScreen() {
         {loading ? (
           <Text style={styles.loadingText}>Loading conversations...</Text>
         ) : (
-          (conversations.length > 0 ? conversations : defaultConversations).map(renderConversation)
+          (conversations.length > 0 ? conversations.map(renderConversation) : <View style={styles.emptyState}>
+                      <Text style={styles.emptyStateText}>No conversation found at the moment</Text>
+                    </View>)
         )}
       </ScrollView>
     </SafeAreaView>
@@ -133,6 +135,15 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
+  },
+  emptyState: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyStateText: {
+    color: '#9CA3AF',
+    fontSize: 16,
   },
   backButton: {
     width: 40,

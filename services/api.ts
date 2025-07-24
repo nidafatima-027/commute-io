@@ -135,10 +135,30 @@ export const authAPI = {
     });
   },
 
+  async sendMobileOTP(phone: string) {
+    return apiRequest('/auth/send-mobile-otp', {
+      method: 'POST',
+      body: JSON.stringify({ phone }),
+    });
+  },
+
   async verifyOTP(email: string, otp: string) {
     const response = await apiRequest('/auth/verify-otp', {
       method: 'POST',
       body: JSON.stringify({ email, otp }),
+    });
+    
+    if (response.access_token) {
+      await tokenManager.setToken(response.access_token);
+    }
+    
+    return response;
+  },
+
+  async verifyMobileOTP(phone: string, otp: string) {
+    const response = await apiRequest('/auth/verify-mobile-otp', {
+      method: 'POST',
+      body: JSON.stringify({ phone, otp }),
     });
     
     if (response.access_token) {
@@ -163,14 +183,20 @@ export const usersAPI = {
     return apiRequest('/users/profile');
   },
 
+  async getUserProfileById(userId: number) {
+    return apiRequest(`/users/profile/${userId}`);
+  },
+
   async updateProfile(userData: {
     name?: string;
-    phone?: string;
+    email?: string;  // Optional for phone users
+    phone?: string;  // Optional for email users
     bio?: string;
     is_driver?: boolean;
     is_rider?: boolean;
     preferences?: any;
     photo_url?: string;
+    gender?: string;
   }) {
     return apiRequest('/users/profile', {
       method: 'PUT',
@@ -183,7 +209,7 @@ export const usersAPI = {
     model: string;
     license_plate: string;
     seats: number;
-    has_ac: boolean;
+    ac_available: boolean;
     color?: string;
     year?: string;
   }) {
@@ -216,8 +242,14 @@ export const usersAPI = {
 // Rides API
 export const ridesAPI = {
   async searchRides(limit: number = 50) {
-    return apiRequest(`/rides/?limit=${limit}`);
-  },
+  try {
+    const data = await apiRequest(`/rides/?limit=${limit}`);
+    return data || []; // Ensure we always return an array
+  } catch (error) {
+    console.error('Error searching rides:', error);
+    throw error;
+  }
+},
 
   async createRide(rideData: {
     car_id: number;
@@ -255,12 +287,22 @@ export const ridesAPI = {
   async requestRide(rideId: number, message?: string) {
     return apiRequest('/rides/request', {
       method: 'POST',
-      body: JSON.stringify({ ride_id: rideId, message }),
+      headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ 
+      ride_id: rideId, 
+      message: message || "I'd like to join your ride" 
+    }),
     });
   },
 
   async getRideRequests(rideId: number) {
     return apiRequest(`/rides/${rideId}/requests`);
+  },
+
+  async getAcceptedRideRequests(rideId: number) {
+    return apiRequest(`/rides/${rideId}/acceptedrequests`);
   },
 
   async updateRideRequest(requestId: number, status: 'accepted' | 'rejected') {
@@ -274,14 +316,34 @@ export const ridesAPI = {
     return apiRequest('/rides/my-requests');
   },
 
+  async getRiderRideHistory(user_id: number, ride_id: number) {
+    return apiRequest(`/rides/history/${user_id}/${ride_id}`);
+  },
+
   async getRideHistory() {
     return apiRequest('/rides/history');
   },
 
-  async createRideHistory(rideId: number, role: 'driver' | 'rider') {
+  async createRideHistory(userId: number, rideId: number, role: 'driver' | 'rider') {
     return apiRequest('/rides/history', {
       method: 'POST',
-      body: JSON.stringify({ ride_id: rideId, role }),
+      body: JSON.stringify({ user_id: userId, ride_id: rideId, role }),
+    });
+  },
+  async updateRideHistory(historyId: number, updateData: {
+    rating_received?: number;
+  }) {
+    return apiRequest(`/rides/history/${historyId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
+    });
+  },
+  async updateRideHistoryByUser(historyId: number, updateData: {
+    rating_given?: number;
+  }) {
+    return apiRequest(`/rides/history/rider/${historyId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
     });
   }
 };
@@ -395,19 +457,14 @@ export const testConnection = async () => {
 
 export async function sendGenAIChat(message: string): Promise<string> {
   try {
-    const response = await fetch('/api/genai-chat', {
+    const response = await apiRequest('/genai-chat/api/genai-chat', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify({ message }),
     });
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-    const data = await response.json();
-    return data.reply;
+
+    return response.reply;
   } catch (error) {
+    console.error('❌ GenAI Chat error:', error);
     return "Sorry, I couldn't process your request right now.";
   }
 }

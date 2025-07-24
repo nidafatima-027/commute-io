@@ -9,6 +9,7 @@ class CarBase(BaseModel):
     color: Optional[str] = None
     license_plate: str
     seats: int
+    ac_available: Optional[bool] = False  # New field
     photo_url: Optional[str] = None
 
 
@@ -23,6 +24,7 @@ class CarUpdate(BaseModel):
     color: Optional[str] = None
     license_plate: Optional[str] = None
     seats: Optional[int] = None
+    ac_available: Optional[bool] = None  # New field
     photo_url: Optional[str] = None
 
 

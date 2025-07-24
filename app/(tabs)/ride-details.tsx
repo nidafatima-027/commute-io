@@ -4,18 +4,30 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, MapPin, Clock, Car, Users, MessageCircle } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import RideRequestModal from '@/components/RideRequestModal';
-
+import { ridesAPI } from '@/services/api'; // Adjust the import path as needed
 export default function RideDetailsScreen() {
   const params = useLocalSearchParams();
   const [showModal, setShowModal] = useState(false);
-
+const [requestStatus, setRequestStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+const [errorMessage, setErrorMessage] = useState('');
   const handleBack = () => {
     router.back();
   };
 
-  const handleRequestRide = () => {
-    setShowModal(true);
-  };
+  const handleRequestRide = async () => {
+   setRequestStatus('loading');
+  setShowModal(true);
+  
+  try {
+    const rideId = parseInt(params.ride as string); 
+    const response = await ridesAPI.requestRide(rideId, "Please accept my ride request");
+    setRequestStatus('success');
+  } catch (error: any) {
+    setRequestStatus('error');
+    setErrorMessage(error.message || 'Request failed');
+  }
+};
+
 
   const handleModalClose = () => {
     setShowModal(false);
@@ -176,9 +188,11 @@ export default function RideDetailsScreen() {
 
       {/* Ride Request Modal */}
       <RideRequestModal 
-        visible={showModal} 
-        onClose={handleModalClose} 
-      />
+  visible={showModal} 
+  onClose={handleModalClose}
+  status={requestStatus}
+  errorMessage={errorMessage}
+/>
     </SafeAreaView>
   );
 }

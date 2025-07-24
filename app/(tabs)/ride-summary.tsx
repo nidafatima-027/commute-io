@@ -1,25 +1,93 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Switch } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Switch, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { X, Star } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { ridesAPI } from '../../services/api';
+
+interface RideHistoryDetails {
+  id: number;
+  user_id: number;
+  ride_id: number;
+  role: string;
+  joined_at: string;
+  completed_at: string | null;
+  rating_given: number | null;
+  rating_received: number | null;
+}
 
 export default function RideSummaryScreen() {
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState('');
   const [saveAsFavorite, setSaveAsFavorite] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+  const [historyDetails, setHistoryDetails] = useState<RideHistoryDetails | null>(null);
   const params = useLocalSearchParams();
 
+  const rideId = params.rideId ? Number(params.rideId) : null;
+  const userId = params.userId ? Number(params.userId) : null;
+
+  useEffect(() => {
+    const fetchHistoryDetails = async () => {
+      if (!userId || !rideId) {
+        setFetching(false);
+        return;
+      }
+
+      try {
+        setFetching(true);
+        const response = await ridesAPI.getRiderRideHistory(userId, rideId);
+        setHistoryDetails(response);
+      } catch (error) {
+        console.error('Error fetching ride history:', error);
+        Alert.alert('Error', 'Failed to load ride details');
+      } finally {
+        setFetching(false);
+      }
+    };
+
+    fetchHistoryDetails();
+  }, [userId, rideId]);
+
+  
   const handleClose = () => {
     router.push('/(tabs)');
   };
 
-  const handleSubmit = () => {
-    // Handle submission logic here
-    console.log('Rating:', rating);
-    console.log('Review:', review);
-    console.log('Save as favorite:', saveAsFavorite);
-    router.push('/(tabs)/profile_screens/ride_history');
+  const handleSubmit = async () => {
+    if (!historyDetails?.id) {
+      Alert.alert('Error', 'Missing ride history information');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      // Prepare update data
+      const updateData = {
+        rating_received: rating,
+        // Note: You might want to add review to your backend model
+      };
+
+      console.log(updateData)
+      // Update ride history
+      await ridesAPI.updateRideHistory(historyDetails.id, updateData);
+
+      // Handle save as favorite if needed
+      if (saveAsFavorite) {
+        // You would call your favorite API here
+        console.log('Saved as favorite');
+      }
+
+      // Navigate to ride history
+      router.push('/(tabs)/profile_screens/ride_history');
+    } catch (error) {
+      console.error('Error submitting ride summary:', error);
+      Alert.alert('Error', 'Failed to submit ride summary. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleStarPress = (starRating: number) => {
@@ -28,7 +96,7 @@ export default function RideSummaryScreen() {
 
   // Use params if available, otherwise use default data
   const rideData = {
-    driverName: params.driverName as string || 'Alex',
+    riderName: params.driverName as string || 'Alex',
     distance: params.distance as string || '12.5 mi',
     duration: params.duration as string || '25 min',
     cost: params.cost as string || '$15.00',
@@ -76,6 +144,27 @@ export default function RideSummaryScreen() {
     );
   };
 
+  if (fetching) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#4ECDC4" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#4ECDC4" />
+          <Text style={styles.loadingText}>Submitting your rating...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -90,9 +179,9 @@ export default function RideSummaryScreen() {
 
         <View style={styles.content}>
           {/* Main Title */}
-          <Text style={styles.mainTitle}>Your ride with {rideData.driverName}</Text>
+          <Text style={styles.mainTitle}>Your ride with {rideData.riderName}</Text>
           <Text style={styles.subtitle}>
-            Here's a summary of your ride with {rideData.driverName}. You can rate your experience, leave a review, and save this ride as a favorite for future trips.
+            Here's a summary of your ride with {rideData.riderName}. You can rate your experience, leave a review, and save this ride as a favorite for future trips.
           </Text>
 
           {/* Ride Stats */}
@@ -404,5 +493,23 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#718096',
+  },
+  routeValue: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#2d3748',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

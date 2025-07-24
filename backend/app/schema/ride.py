@@ -2,6 +2,9 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 
+from app.schema.car import CarResponse
+from app.schema.user import UserResponse
+
 
 class RideBase(BaseModel):
     car_id: int
@@ -26,7 +29,8 @@ class RideResponse(RideBase):
     id: int
     driver_id: int
     status: str
-
+    driver: UserResponse  # Add this
+    car: CarResponse      # Add this
     class Config:
         from_attributes = True
 
@@ -64,3 +68,14 @@ class RideHistoryResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class RideHistoryUpdateRequest(BaseModel):
+    rating_received: Optional[int] = None
+
+class RiderHistoryUpdateRequest(BaseModel):
+    rating_given: Optional[int] = None
+
+class RideHistoryCreate(BaseModel):
+    user_id: int
+    ride_id: int
+    role: str  # "driver" or "rider"

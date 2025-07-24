@@ -10,6 +10,7 @@ class User(Base):
     name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     phone = Column(String, unique=True, index=True, nullable=True)
+    gender = Column(String, nullable=True)
     photo_url = Column(Text, nullable=True)
     bio = Column(Text, nullable=True)
     is_driver = Column(Boolean, nullable=False, default=False)
