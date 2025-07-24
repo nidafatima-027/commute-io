@@ -290,26 +290,6 @@ useEffect(() => {
       )}
                 </View>
 
-                {/* Recent Activity */}
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Recent Activity</Text>
-                  <View style={styles.statsContainer}>
-                    <View style={styles.statsRow}>
-                      <View style={styles.statCard}>
-                        <Text style={styles.statTitle}>{driverStats[0].title}</Text>
-                        <Text style={styles.statValue}>{driverStats[0].value}</Text>
-                      </View>
-                      <View style={styles.statCard}>
-                        <Text style={styles.statTitle}>{driverStats[1].title}</Text>
-                        <Text style={styles.statValue}>{driverStats[1].value}</Text>
-                      </View>
-                    </View>
-                    <View style={styles.statCardFull}>
-                      <Text style={styles.statTitle}>{driverStats[2].title}</Text>
-                      <Text style={styles.statValue}>{driverStats[2].value}</Text>
-                    </View>
-                  </View>
-                </View>
               </>
             ) : (
               <>
