@@ -118,7 +118,7 @@ export default function RideChatScreen() {
                   <View>
                     {extractRideOptions(msg.text).map((option, i) => (
                       <TouchableOpacity
-                        key={i}
+                        key={`ride-option-${i}-${option.substring(0, 10)}`}
                         style={styles.rideOptionCard}
                         onPress={() => handleSendOption(i + 1)}
                       >

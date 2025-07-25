@@ -49,7 +49,7 @@ export default function PreferedPickupLocations() {
             { title: 'Office', subtitle: '456 Oak Avenue, Anytown',Icon: Briefcase, },
             { title: 'University', subtitle: '789 Pine Road, Anytown',Icon: GraduationCap, },
           ].map((location, index) => (
-            <View key={index} style={styles.locationCard}>
+            <View key={`location-${location.title}-${index}`} style={styles.locationCard}>
                 
               <View style={styles.iconBox}>
                 <location.Icon size={24} color="#2d3748" />
