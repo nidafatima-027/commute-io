@@ -70,3 +70,14 @@ class RideHistoryResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class RideHistoryUpdateRequest(BaseModel):
+    rating_received: Optional[int] = None
+
+class RiderHistoryUpdateRequest(BaseModel):
+    rating_given: Optional[int] = None
+
+class RideHistoryCreate(BaseModel):
+    user_id: int
+    ride_id: int
+    role: str  # "driver" or "rider"
