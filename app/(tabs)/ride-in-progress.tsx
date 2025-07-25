@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator  } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Star } from 'lucide-react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import {ridesAPI,usersAPI} from '../../services/api'
 
 interface DriverDetails {
@@ -61,6 +61,8 @@ const fetchData = async () => {
       const ridersData = await Promise.all(
         requestsResponse.map(async (req: any) => {
           const riderProfile = await usersAPI.getUserProfileById(req.rider_id);
+          const rideHistory = await ridesAPI.getRiderRideHistory(req.rider_id, Number(rideId));
+        const isCompleted = rideHistory.completed_at !== null;
           return {
             id: req.rider_id,
             rider_id: req.rider_id,
@@ -71,7 +73,7 @@ const fetchData = async () => {
             pickup: rideResponse.start_location,
             dropoff: rideResponse.end_location,
             price: (rideResponse.total_fare / rideResponse.car.seats).toFixed(2),
-            completed: false,
+            completed: isCompleted,
             request_id: req.id,
           };
         })
@@ -124,21 +126,23 @@ const handleCompleteRide = (riderId: number) => {
     }
   };
 
-  const handleEndAllRides = () => {
+  const handleEndAllRides = async () => {
     // Handle ending all rides
     try {
       // In a real app, you would call an API here to end all rides
       // await ridesAPI.endAllRides(Number(rideId));
-      
+      const hasPendingRides = riders.some(rider => !rider.completed);
+    
+    if (hasPendingRides) {
+      setError('Please complete all rides before ending');
+      return;
+    }
+      await ridesAPI.updateRide(parseInt(params.rideId as string), {
+              status: "end"
+            });
       // Navigate to ride summary screen
       router.push({
-        pathname: '/(tabs)/ride-summary',
-        params: {
-          driverName: driverDetails?.name,
-          distance: '12.5 mi',
-          duration: '25 min',
-          cost: `$${riders.reduce((total, rider) => total + Number(rider.price), 0).toFixed(2)}`,
-        }
+        pathname: '/(tabs)',
       });
     } catch (err) {
       console.error('Error ending all rides:', err);
@@ -149,6 +153,12 @@ const handleCompleteRide = (riderId: number) => {
   useEffect(() => {
     fetchData();
   }, [rideId]);
+
+  useFocusEffect(
+  React.useCallback(() => {
+    fetchData();
+  }, [rideId,params.refresh])
+);
 
   if (loading) {
     return (
@@ -290,14 +300,27 @@ const handleCompleteRide = (riderId: number) => {
           </View>
 
           {/* End All Rides Button */}
-          {riders.length > 0 && (
-            <TouchableOpacity 
-              style={styles.endAllButton} 
-              onPress={handleEndAllRides}
-            >
-              <Text style={styles.endAllButtonText}>End All Rides</Text>
-            </TouchableOpacity>
-          )}
+{riders.length > 0 && (
+  <>
+    {error && (
+      <View style={styles.errorMessageContainer}>
+        <Text style={styles.errorMessageText}>{error}</Text>
+      </View>
+    )}
+    <TouchableOpacity 
+      style={[
+        styles.endAllButton,
+        riders.some(r => !r.completed) && styles.disabledButton
+      ]} 
+      onPress={handleEndAllRides}
+      disabled={riders.some(r => !r.completed)}
+    >
+      <Text style={styles.endAllButtonText}>
+        {riders.some(r => !r.completed) ? 'Complete All Rides First' : 'End All Rides'}
+      </Text>
+    </TouchableOpacity>
+  </>
+)}
         </ScrollView>
       </View>
     </SafeAreaView>
@@ -658,4 +681,18 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     backgroundColor: '#E5E7EB',
   },
+  errorMessageContainer: {
+  backgroundColor: '#FFF0F0',
+  padding: 12,
+  borderRadius: 8,
+  marginBottom: 8,
+},
+errorMessageText: {
+  color: '#EF4444',
+  textAlign: 'center',
+  fontFamily: 'Inter-Regular',
+},
+disabledButton: {
+  backgroundColor: '#9CA3AF',
+},
 });

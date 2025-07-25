@@ -1,6 +1,9 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
+from datetime import datetime, timedelta
 from app.db.models.ride_request import RideRequest
+from app.db.models.ride import Ride
+
 
 def create_ride_request(db: Session, ride_id: int, rider_id: int, message: str = None) -> RideRequest:
     db_request = RideRequest(ride_id=ride_id, rider_id=rider_id, message=message)
@@ -16,7 +19,19 @@ def get_ride_accepted_requests(db: Session, ride_id: int) -> List[RideRequest]:
     return db.query(RideRequest).filter(RideRequest.ride_id == ride_id, RideRequest.status == 'accepted').all()
 
 def get_user_ride_requests(db: Session, user_id: int) -> List[RideRequest]:
-    return db.query(RideRequest).filter(RideRequest.rider_id == user_id).all()
+    current_time = datetime.now()
+    print(f"Current Time: {current_time}")
+    six_hours_before = current_time - timedelta(hours=6)
+    six_hours_after = current_time + timedelta(hours=6)
+    
+    return db.query(RideRequest)\
+        .join(Ride, RideRequest.ride_id == Ride.id)\
+        .filter(
+            RideRequest.rider_id == user_id,
+            Ride.start_time >= six_hours_before,
+            Ride.start_time <= six_hours_after
+        )\
+        .all()
 
 def update_ride_request_status(db: Session, request_id: int, status: str) -> Optional[RideRequest]:
     db_request = db.query(RideRequest).filter(RideRequest.id == request_id).first()

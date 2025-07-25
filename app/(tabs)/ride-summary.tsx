@@ -81,7 +81,10 @@ export default function RideSummaryScreen() {
       }
 
       // Navigate to ride history
-      router.push('/(tabs)/profile_screens/ride_history');
+      router.push({
+              pathname: '/(tabs)/ride-in-progress',
+              params: { rideId: rideId, refresh: Date.now().toString() }
+            });
     } catch (error) {
       console.error('Error submitting ride summary:', error);
       Alert.alert('Error', 'Failed to submit ride summary. Please try again.');

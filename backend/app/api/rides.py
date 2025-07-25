@@ -30,7 +30,7 @@ from app.schema.ride import (
     RideHistoryCreate,
     RiderHistoryUpdateRequest
 )
-from app.db.crud.ride_history import create_ride_history_entry, get_user_ride_history, get_rider_ride_history, get_ride_history_by_id, complete_ride_history, update_received_rating
+from app.db.crud.ride_history import create_ride_history_entry, get_user_ride_history_by_id, get_rider_ride_history, get_ride_history_by_id, complete_ride_history, update_received_rating
 
 router = APIRouter()
 
@@ -66,16 +66,6 @@ async def get_my_rides(
 ):
     return get_user_rides(db, current_user.id)
 
-
-@router.get("/history", response_model=List[RideHistoryResponse])
-async def get_ride_history(
-    current_user = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Get user's ride history (both as driver and rider)"""
-    return get_user_ride_history(db, current_user.id)
-
-
 @router.get("/my-requests", response_model=List[RideRequestResponse])
 async def get_my_ride_requests(
     current_user = Depends(get_current_user),
@@ -83,6 +73,13 @@ async def get_my_ride_requests(
 ):
     return get_user_ride_requests(db, current_user.id)
 
+@router.get("/history", response_model=List[RideHistoryResponse])
+async def get_ride_history(
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get user's ride history (both as driver and rider)"""
+    return get_user_ride_history_by_id(db, current_user.id)
 
 @router.get("/{ride_id}", response_model=RideResponse)
 async def get_ride_details(
@@ -174,15 +171,6 @@ async def get_my_ride_requests(
     db: Session = Depends(get_db)
 ):
     return get_user_ride_requests(db, current_user.id)
-
-
-@router.get("/history", response_model=List[RideHistoryResponse])
-async def get_ride_history(
-    current_user = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Get user's ride history (both as driver and rider)"""
-    return get_user_ride_history(db, current_user.id)
 
 @router.get("/history/{user_id}/{ride_id}", response_model=RideHistoryResponse)
 async def get_user_ride_history(

@@ -8,7 +8,7 @@ from app.db.models.car import Car
 import pytz
 
 
-def get_user_ride_history(db: Session, user_id: int) -> List[RideHistory]:
+def get_user_ride_history_by_id(db: Session, user_id: int) -> List[RideHistory]:
     """Get all ride history for a user (both as driver and rider) with related data"""
     return (db.query(RideHistory)
             .options(

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Car, Star } from 'lucide-react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, useFocusEffect  } from 'expo-router';
 import {ridesAPI,usersAPI} from '../../services/api'
 
 interface RideRequest {
@@ -31,7 +31,7 @@ export default function JoinRequestsScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [seats, setSeats] = useState(0);
-  const { rideId } = useLocalSearchParams();
+  const { rideId, refresh } = useLocalSearchParams();
 
   const handleBack = () => {
     router.push('/(tabs)/create-recurring-ride');
@@ -64,6 +64,7 @@ export default function JoinRequestsScreen() {
   const fetchData = async () => {
     try {
       setLoading(true);
+      setError(null);
       
       // Fetch ride details
       const rideIdNumber = Array.isArray(rideId) ? Number(rideId[0]) : Number(rideId);
@@ -79,12 +80,10 @@ export default function JoinRequestsScreen() {
       setSeats(rideResponse.car.seats);
       
       // Fetch ride requests
-      console.log(rideIdNumber)
       const requestsResponse = await ridesAPI.getRideRequests(rideIdNumber);
-      console.log(requestsResponse)
       const users = await Promise.all(
-      requestsResponse.map(async (req: { id: number, rider_id: number }) => {
-        const user = await usersAPI.getUserProfileById(req.rider_id);
+        requestsResponse.map(async (req: { id: number, rider_id: number }) => {
+          const user = await usersAPI.getUserProfileById(req.rider_id);
           return {
             id: req.id,
             rider_id: user.id,
@@ -96,9 +95,7 @@ export default function JoinRequestsScreen() {
           };
         })
       );
-
-      setPendingRequests(users);
-      
+      setPendingRequests(users);      
     } catch (err) {
       setError('Failed to load requests. Please try again.');
       console.error('Error fetching ride requests:', err);
@@ -109,7 +106,13 @@ export default function JoinRequestsScreen() {
 
   useEffect(() => {
     fetchData();
-  }, [rideId]);
+  }, [rideId,refresh]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchData();
+    }, [rideId])
+  );
 
   if (loading) {
     return (

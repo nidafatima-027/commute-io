@@ -14,7 +14,7 @@ export default function RideRequestScreen() {
   const handleBack = () => {
     router.push({
       pathname: '/(tabs)/join-requests',
-      params: { rideId: params.rideId }
+      params: { rideId: params.rideId, refresh: Date.now().toString() }
     })
   };
 
@@ -40,7 +40,7 @@ export default function RideRequestScreen() {
       // Navigate to ride in progress page with driver details
       router.push({
       pathname: '/(tabs)/join-requests',
-      params: { rideId: params.rideId }
+      params: { rideId: params.rideId, refresh: Date.now().toString() }
     })
     } catch (error) {
       console.error('Error accepting ride request:', error);
@@ -59,7 +59,10 @@ export default function RideRequestScreen() {
       await ridesAPI.updateRideRequest(parseInt(params.requestId as string), 'rejected');
       
       // Navigate back to join requests
-      router.push('/(tabs)/join-requests');
+      router.push({
+      pathname: '/(tabs)/join-requests',
+      params: { rideId: params.rideId, refresh: Date.now().toString() }
+    })
     } catch (error) {
       console.error('Error rejecting ride request:', error);
       Alert.alert('Error', 'Failed to reject ride request. Please try again.');
