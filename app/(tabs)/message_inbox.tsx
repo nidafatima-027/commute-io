@@ -16,7 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Phone, Send } from 'lucide-react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { messagesAPI, usersAPI } from '../../services/api';
-import webSocketService from '../../services/websocket';
+import webSocketService from '../../services/websocket-mock';
 
 interface Message {
   id: number;

@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, MessageCircle, Check, X, User, Star } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { ridesAPI, usersAPI } from '../../services/api';
-import webSocketService from '../../services/websocket';
+import webSocketService from '../../services/websocket-mock';
 
 interface RideRequest {
   id: number;

@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Settings } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { messagesAPI } from '../../services/api';
-import webSocketService from '../../services/websocket';
+import webSocketService from '../../services/websocket-mock';
 
 type Conversation = {
   user_id: number;

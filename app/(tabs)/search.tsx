@@ -4,7 +4,7 @@ import { ArrowLeft, Search } from "lucide-react-native"; // example icons; insta
 import { router} from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ridesAPI, usersAPI  } from '../../services/api'; // Adjust the import path as needed
-import webSocketService from '../../services/websocket';
+import webSocketService from '../../services/websocket-mock';
 
 
 interface Ride {
