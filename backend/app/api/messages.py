@@ -19,7 +19,7 @@ async def send_message(
     return create_message(db, message, current_user.id)
 
 
-@router.get("/conversations", response_model=List[MessageResponse])
+@router.get("/conversations", response_model=List[ConversationResponse])
 async def get_conversations(
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)

@@ -120,7 +120,7 @@ export default function RideSummaryScreen() {
       
       return (
         <TouchableOpacity
-          key={index}
+          key={`star-${interactive ? 'interactive' : 'display'}-${index}`}
           onPress={interactive ? () => handleStarPress(starNumber) : undefined}
           disabled={!interactive}
           style={styles.starButton}

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Car, Star } from 'lucide-react-native';
+import { ArrowLeft, Car, Star, MessageCircle } from 'lucide-react-native';
 import { router, useLocalSearchParams, useFocusEffect  } from 'expo-router';
 import {ridesAPI,usersAPI} from '../../services/api'
 
@@ -57,6 +57,21 @@ export default function JoinRequestsScreen() {
         requestId: request.id,
         seats_available: rideInfo.seats_available,
         rider_id: request.rider_id,
+      }
+    });
+  };
+
+  const handleMessageUser = (request: any) => {
+    if (!rideInfo) return;
+    // Navigate to message inbox with ride context
+    router.push({
+      pathname: '/(tabs)/message_inbox',
+      params: {
+        userId: request.id,
+        name: request.name,
+        image: request.image,
+        rideId: rideInfo.id,
+        rideRoute: `${rideInfo.start_location} to ${rideInfo.end_location}`,
       }
     });
   };
@@ -190,7 +205,15 @@ export default function JoinRequestsScreen() {
                   <View style={styles.requestInfo}>
                     <Image source={{ uri: request.image }} style={styles.avatar} />
                     <View style={styles.userDetails}>
-                      <Text style={styles.userName}>{request.name}</Text>
+                      <View style={styles.userHeader}>
+                        <Text style={styles.userName}>{request.name}</Text>
+                        <TouchableOpacity 
+                          style={styles.messageButton}
+                          onPress={() => handleMessageUser(request)}
+                        >
+                          <MessageCircle size={20} color="#4ECDC4" />
+                        </TouchableOpacity>
+                      </View>
                       <View style={styles.userStats}>
                         <View style={styles.ratingContainer}>
                           <Star size={14} color="#FFD700" fill="#FFD700" />
@@ -347,11 +370,26 @@ const styles = StyleSheet.create({
   userDetails: {
     flex: 1,
   },
+  userHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
   userName: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
     color: '#2d3748',
-    marginBottom: 4,
+    flex: 1,
+  },
+  messageButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F0FDFA',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
   },
   userStats: {
     flexDirection: 'row',

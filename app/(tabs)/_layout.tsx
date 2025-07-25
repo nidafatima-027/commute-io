@@ -35,6 +35,15 @@ export default function TabLayout() {
       <Tabs.Screen
         name="search"
         options={{
+          title: 'Find Rides',
+          tabBarIcon: ({ size, color }) => (
+            <Search size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="driver-requests"
+        options={{
           title: 'Requests',
           tabBarIcon: ({ size, color }) => (
             <Car size={size} color={color} />
@@ -162,13 +171,18 @@ export default function TabLayout() {
           href: null, // Hide this tab
         }}
       />
-
-
-        
-
-      
-    
-
+      <Tabs.Screen
+        name="ride-message"
+        options={{
+          href: null, // Hide this tab
+        }}
+      />
+      <Tabs.Screen
+        name="ride-confirmed"
+        options={{
+          href: null, // Hide this tab
+        }}
+      />
     </Tabs>
   );
 }

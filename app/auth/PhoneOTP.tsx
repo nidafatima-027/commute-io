@@ -141,7 +141,7 @@ const handleResendOTP = async () => {
         <View style={styles.codeContainer}>
           {code.map((digit, index) => (
             <TextInput
-              key={index}
+              key={`phone-otp-${index}`}
               ref={(ref) => {
                 inputs.current[index] = ref;
               }}

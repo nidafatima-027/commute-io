@@ -123,7 +123,7 @@ const EmailVerificationScreen = () => {
           <View style={styles.codeContainer}>
             {code.map((digit, index) => (
               <TextInput
-                key={index}
+                key={`email-otp-${index}`}
 ref={(ref) => {
   inputs.current[index] = ref;
 }}
