@@ -228,10 +228,6 @@ const handleChatPress = () => {
     };
   };
 
-  const handleEditProfile = () => {
-    router.push('/(tabs)/profile');
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
