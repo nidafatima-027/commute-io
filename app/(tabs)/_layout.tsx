@@ -171,6 +171,12 @@ export default function TabLayout() {
           href: null, // Hide this tab
         }}
       />
+      <Tabs.Screen
+        name="ride-confirmed"
+        options={{
+          href: null, // Hide this tab
+        }}
+      />
     </Tabs>
   );
 }

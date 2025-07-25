@@ -35,10 +35,13 @@ type UserProfile = {
 };
 export default function FindRideScreen() {
   const [rides, setRides] = useState<Ride[]>([]);
+  const [allRides, setAllRides] = useState<Ride[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [pickupLocation, setPickupLocation] = useState('');
+  const [destinationLocation, setDestinationLocation] = useState('');
 
   useEffect(() => {
     const loadUserProfile = async () => {
@@ -63,11 +66,13 @@ export default function FindRideScreen() {
       try {
         setLoading(true);
         const data = await ridesAPI.searchRides();
+        setAllRides(data);
         setRides(data);
         setError(null);
       } catch (err: any) {
         console.error('Failed to fetch rides:', err);
         setError(err.message || 'Failed to load rides. Please try again.');
+        setAllRides([]);
         setRides([]);
       } finally {
         setLoading(false);
@@ -77,12 +82,43 @@ export default function FindRideScreen() {
     fetchRides();
   }, [userProfile]);
 
+  const filterRides = () => {
+    if (!pickupLocation && !destinationLocation) {
+      setRides(allRides);
+      return;
+    }
+
+    const filteredRides = allRides.filter(ride => {
+      const matchesPickup = !pickupLocation || 
+        ride.start_location.toLowerCase().includes(pickupLocation.toLowerCase());
+      const matchesDestination = !destinationLocation || 
+        ride.end_location.toLowerCase().includes(destinationLocation.toLowerCase());
+      
+      return matchesPickup && matchesDestination;
+    });
+
+    setRides(filteredRides);
+  };
+
+  useEffect(() => {
+    filterRides();
+  }, [pickupLocation, destinationLocation, allRides]);
+
     const handleBack = () => {
       router.back();
     };
 
 const handleChatPress = () => {
     router.push('/(tabs)/ride-chat');
+  };
+
+  const handleEditProfile = () => {
+    router.push('/(tabs)/profile');
+  };
+
+  const clearFilters = () => {
+    setPickupLocation('');
+    setDestinationLocation('');
   };
 
     const handleRidePress = (ride: Ride) => {
@@ -184,11 +220,28 @@ const handleChatPress = () => {
           <Search size={20} color="#9CA3AF" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Where to?"
+            placeholder="Pickup location"
             placeholderTextColor="#9CA3AF"
+            value={pickupLocation}
+            onChangeText={setPickupLocation}
           />
         </View>
-      </View>
+        <View style={styles.searchInputContainer}>
+          <Search size={20} color="#9CA3AF" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Destination"
+            placeholderTextColor="#9CA3AF"
+            value={destinationLocation}
+            onChangeText={setDestinationLocation}
+          />
+                  </View>
+          {(pickupLocation || destinationLocation) && (
+            <TouchableOpacity style={styles.clearButton} onPress={clearFilters}>
+              <Text style={styles.clearButtonText}>Clear Filters</Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
       {/* Content */}
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -349,6 +402,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 16,
     backgroundColor: "#ffffff",
+    gap: 12,
   },
   searchInputContainer: {
     flexDirection: "row",
@@ -465,5 +519,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: '#ffffff',
+  },
+  clearButton: {
+    alignSelf: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 20,
+    marginTop: 8,
+  },
+  clearButtonText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#6B7280',
   },
 });

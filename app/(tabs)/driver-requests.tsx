@@ -72,16 +72,25 @@ export default function DriverRequestsScreen() {
   const handleAcceptRequest = async (requestId: number) => {
     setProcessingRequest(requestId);
     try {
+      const request = requests.find(r => r.id === requestId);
+      if (!request) return;
+
       await ridesAPI.updateRideRequest(requestId, 'accepted');
-      Alert.alert('Success', 'Ride request accepted!', [
-        {
-          text: 'OK',
-          onPress: () => {
-            // Refresh the list to remove accepted request
-            loadRequests();
-          },
+      
+      // Navigate to ride confirmation screen
+      router.push({
+        pathname: '/(tabs)/ride-confirmed',
+        params: {
+          driverName: 'You', // Current user is the driver
+          riderName: request.rider.name,
+          riderImage: request.rider.photo_url,
+          startLocation: request.ride.start_location,
+          endLocation: request.ride.end_location,
+          startTime: request.ride.start_time,
+          totalFare: request.ride.total_fare,
+          userRole: 'driver',
         },
-      ]);
+      });
     } catch (error) {
       console.error('Error accepting request:', error);
       Alert.alert('Error', 'Failed to accept request');
