@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, MessageCircle, Check, X, User, Star } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { ridesAPI, usersAPI } from '../../services/api';
+import webSocketService from '../../services/websocket';
 
 interface RideRequest {
   id: number;
@@ -47,6 +48,19 @@ export default function DriverRequestsScreen() {
 
   useEffect(() => {
     loadRequests();
+
+    // Set up WebSocket listeners for real-time updates
+    const handleNewRequest = (data: any) => {
+      console.log('New ride request received:', data);
+      loadRequests(); // Refresh the list
+    };
+
+    webSocketService.onNewRideRequest(handleNewRequest);
+
+    // Cleanup on unmount
+    return () => {
+      webSocketService.off('new_ride_request', handleNewRequest);
+    };
   }, []);
 
   const loadRequests = async () => {

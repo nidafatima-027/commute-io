@@ -4,6 +4,7 @@ import { ArrowLeft, Search } from "lucide-react-native"; // example icons; insta
 import { router} from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ridesAPI, usersAPI  } from '../../services/api'; // Adjust the import path as needed
+import webSocketService from '../../services/websocket';
 
 
 interface Ride {
@@ -81,6 +82,34 @@ export default function FindRideScreen() {
 
     fetchRides();
   }, [userProfile]);
+
+  useEffect(() => {
+    // Set up WebSocket listeners for real-time ride updates
+    const handleNewRide = (data: any) => {
+      console.log('New ride available:', data);
+      // Refresh the rides list
+      if (userProfile?.is_rider) {
+        const loadNewRides = async () => {
+          try {
+            const data = await ridesAPI.searchRides();
+            setAllRides(data);
+            // Apply current filters
+            filterRides();
+          } catch (error) {
+            console.error('Error refreshing rides:', error);
+          }
+        };
+        loadNewRides();
+      }
+    };
+
+    webSocketService.onNewRideAvailable(handleNewRide);
+
+    // Cleanup on unmount
+    return () => {
+      webSocketService.off('new_ride_available', handleNewRide);
+    };
+  }, [userProfile, pickupLocation, destinationLocation]);
 
   const filterRides = () => {
     if (!pickupLocation && !destinationLocation) {

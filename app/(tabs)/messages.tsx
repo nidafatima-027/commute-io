@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Settings } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { messagesAPI } from '../../services/api';
+import webSocketService from '../../services/websocket';
 
 type Conversation = {
   user_id: number;
@@ -22,6 +23,19 @@ export default function MessagesScreen() {
 
   useEffect(() => {
     loadConversations();
+
+    // Set up WebSocket listener for real-time message updates
+    const handleNewMessage = (data: any) => {
+      console.log('New message in conversations:', data);
+      loadConversations(); // Refresh conversations list
+    };
+
+    webSocketService.onNewMessage(handleNewMessage);
+
+    // Cleanup on unmount
+    return () => {
+      webSocketService.off('new_message', handleNewMessage);
+    };
   }, []);
 
   const loadConversations = async () => {

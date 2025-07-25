@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Phone, Send } from 'lucide-react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { messagesAPI, usersAPI } from '../../services/api';
+import webSocketService from '../../services/websocket';
 
 interface Message {
   id: number;
@@ -44,6 +45,24 @@ export default function MessagesChatScreen() {
       loadMessages();
     }
   }, [currentUserId, userId]);
+
+  useEffect(() => {
+    // Set up WebSocket listener for real-time messages
+    const handleNewMessage = (data: any) => {
+      console.log('New message received:', data);
+      // Check if the message is for this conversation
+      if (data.sender_id === Number(userId) || data.receiver_id === Number(userId)) {
+        loadMessages(); // Refresh messages
+      }
+    };
+
+    webSocketService.onNewMessage(handleNewMessage);
+
+    // Cleanup on unmount
+    return () => {
+      webSocketService.off('new_message', handleNewMessage);
+    };
+  }, [userId]);
 
   useEffect(() => {
     // Auto-scroll to bottom when new messages arrive
