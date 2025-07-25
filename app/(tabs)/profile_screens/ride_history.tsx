@@ -1,11 +1,64 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator } from 'react-native';
 import { ArrowLeft, X, Clock } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { ridesAPI } from '../../../services/api';
+
+interface RideHistoryItem {
+  id: number;
+  user_id: number;
+  ride_id: number;
+  role: 'driver' | 'rider';
+  joined_at: string;
+  completed_at: string | null;
+  rating_given: number | null;
+  rating_received: number | null;
+  ride?: {
+    id: number;
+    driver_id: number;
+    start_time: string;
+    status: string;
+    start_location: string;
+    end_location: string;
+    total_fare?: number;
+    driver: {
+      id: number;
+      name: string;
+      photo_url: string;
+    };
+    car: {
+      id: number;
+      make: string;
+      model: string;
+      photo_url: string;
+    };
+  };
+}
 
 export default function RideHistoryScreen() {
-  const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('past');
+  const [rideHistory, setRideHistory] = useState<RideHistoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  useEffect(() => {
+    fetchRideHistory();
+  }, []);
+
+  const fetchRideHistory = async () => {
+    try {
+      setLoading(true);
+      const response = await ridesAPI.getRideHistory();
+      setRideHistory(response);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching ride history:', err);
+      setError('Failed to load ride history');
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const handleBack = () => {
     router.push('/(tabs)/profile');
@@ -15,47 +68,68 @@ export default function RideHistoryScreen() {
     router.push('/(tabs)/create-recurring-ride');
   };
 
-  const handleRidePress = (ride: any) => {
+  const handleRidePress = (ride: RideHistoryItem) => {
     // Navigate to ride summary screen with ride details
-    router.push({
-      pathname: '/(tabs)/ride-summary',
-      params: {
-        driverName: ride.driverName || 'Driver',
-        distance: '12.5 mi',
-        duration: '25 min',
-        cost: '$15.00',
-      }
-    });
+    if (ride.ride) {
+      router.push({
+        pathname: '/(tabs)/ride-summary',
+        params: {
+          driverName: ride.ride.driver.name || 'Driver',
+          distance: '12.5 mi',
+          duration: '25 min',
+          cost: '$15.00',
+        }
+      });
+    }
   };
 
-  // Sample ride data matching the design
-  const driverRides = [
-    {
-      id: 1,
-      type: 'driver',
-      date: 'Today, 8:00 AM',
-      route: 'Campus to Downtown',
-      details: '2 seats available',
-      action: 'Cancel',
-      secondaryAction: 'Reschedule',
-      image: 'https://images.pexels.com/photos/120049/pexels-photo-120049.jpeg?auto=compress&cs=tinysrgb&w=400',
-      driverName: 'You',
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) {
+      return `Today, ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
+    } else if (diffDays === 1) {
+      return `Yesterday, ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
+    } else if (diffDays < 7) {
+      return `${diffDays} days ago`;
+    } else {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     }
-  ];
+  };
 
-  const riderRides = [
-    {
-      id: 2,
-      type: 'rider',
-      date: 'Tomorrow, 10:00 AM',
-      route: 'Campus to Airport',
-      details: 'Driver: Omar',
-      action: 'Cancel',
-      secondaryAction: 'Reschedule',
-      image: 'https://images.pexels.com/photos/120049/pexels-photo-120049.jpeg?auto=compress&cs=tinysrgb&w=400',
-      driverName: 'Omar',
-    },
-  ];
+  const formatRoute = (ride: RideHistoryItem) => {
+    if (!ride.ride) return 'Unknown Route';
+    // Extract location names from the string format "Name - Address"
+    const startLocation = ride.ride.start_location.split(' - ')[0] || ride.ride.start_location;
+    const endLocation = ride.ride.end_location.split(' - ')[0] || ride.ride.end_location;
+    return `${startLocation} to ${endLocation}`;
+  };
+
+  const getDriverDetails = (ride: RideHistoryItem) => {
+    if (!ride.ride) return 'Unknown Driver';
+    if (ride.role === 'driver') {
+      return 'You were driving';
+    }
+    return `Driver: ${ride.ride.driver.name}`;
+  };
+
+  const getRideImage = (ride: RideHistoryItem) => {
+    if (ride.ride?.car?.photo_url) {
+      return ride.ride.car.photo_url;
+    }
+    return 'https://images.pexels.com/photos/120049/pexels-photo-120049.jpeg?auto=compress&cs=tinysrgb&w=400';
+  };
+
+  // Filter rides based on completion status
+  const completedRides = rideHistory.filter(ride => ride.completed_at !== null);
+  const upcomingRides = rideHistory.filter(ride => ride.completed_at === null);
+
+  // Separate by role
+  const driverRides = (activeTab === 'past' ? completedRides : upcomingRides).filter(ride => ride.role === 'driver');
+  const riderRides = (activeTab === 'past' ? completedRides : upcomingRides).filter(ride => ride.role === 'rider');
 
   return (
     <SafeAreaView style={styles.container}>
@@ -91,59 +165,115 @@ export default function RideHistoryScreen() {
 
         {/* Content */}
         <View style={styles.content}>
-          {/* Driver Section */}
-          <Text style={styles.sectionTitle}>As a Driver</Text>
-          {driverRides.map((ride) => (
-            <View key={ride.id} style={styles.rideCard}>
-              <TouchableOpacity 
-                style={styles.rideContent}
-                onPress={() => handleRidePress(ride)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.rideDetails}>
-                  <Text style={styles.rideDate}>{ride.date}</Text>
-                  <Text style={styles.rideRoute}>{ride.route}</Text>
-                  <Text style={styles.rideInfo}>{ride.details}</Text>
-                </View>
-                <Image source={{ uri: ride.image }} style={styles.rideImage} />
-              </TouchableOpacity>
-              <View style={styles.actionContainer}>
-                <TouchableOpacity style={styles.cancelButton}>
-                  <Text style={styles.cancelText}>{ride.action}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.rescheduleButton} onPress={handleReschedule}>
-                  <Text style={styles.rescheduleText}>{ride.secondaryAction}</Text>
-                </TouchableOpacity>
-              </View>
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#4ECDC4" />
+              <Text style={styles.loadingText}>Loading ride history...</Text>
             </View>
-          ))}
+          ) : error ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+              <TouchableOpacity style={styles.retryButton} onPress={fetchRideHistory}>
+                <Text style={styles.retryText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              {/* Driver Section */}
+              <Text style={styles.sectionTitle}>As a Driver</Text>
+              {driverRides.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>
+                    {activeTab === 'past' ? 'No past rides as a driver' : 'No upcoming rides as a driver'}
+                  </Text>
+                </View>
+              ) : (
+                driverRides.map((ride) => (
+                  <View key={ride.id} style={styles.rideCard}>
+                    <TouchableOpacity 
+                      style={styles.rideContent}
+                      onPress={() => handleRidePress(ride)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.rideDetails}>
+                        <Text style={styles.rideDate}>
+                          {activeTab === 'past' 
+                            ? formatDate(ride.completed_at || ride.joined_at)
+                            : formatDate(ride.ride?.start_time || ride.joined_at)
+                          }
+                        </Text>
+                        <Text style={styles.rideRoute}>{formatRoute(ride)}</Text>
+                        <Text style={styles.rideInfo}>{getDriverDetails(ride)}</Text>
+                        {ride.rating_received && (
+                          <Text style={styles.ratingText}>
+                            Rating received: {ride.rating_received}/5 ⭐
+                          </Text>
+                        )}
+                      </View>
+                      <Image source={{ uri: getRideImage(ride) }} style={styles.rideImage} />
+                    </TouchableOpacity>
+                    {activeTab === 'upcoming' && (
+                      <View style={styles.actionContainer}>
+                        <TouchableOpacity style={styles.cancelButton}>
+                          <Text style={styles.cancelText}>Cancel</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.rescheduleButton} onPress={handleReschedule}>
+                          <Text style={styles.rescheduleText}>Reschedule</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </View>
+                ))
+              )}
 
-          {/* Rider Section */}
-          <Text style={[styles.sectionTitle, { marginTop: 32 }]}>As a Rider</Text>
-          {riderRides.map((ride) => (
-            <View key={ride.id} style={styles.rideCard}>
-              <TouchableOpacity 
-                style={styles.rideContent}
-                onPress={() => handleRidePress(ride)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.rideDetails}>
-                  <Text style={styles.rideDate}>{ride.date}</Text>
-                  <Text style={styles.rideRoute}>{ride.route}</Text>
-                  <Text style={styles.rideInfo}>{ride.details}</Text>
+              {/* Rider Section */}
+              <Text style={[styles.sectionTitle, { marginTop: 32 }]}>As a Rider</Text>
+              {riderRides.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>
+                    {activeTab === 'past' ? 'No past rides as a rider' : 'No upcoming rides as a rider'}
+                  </Text>
                 </View>
-                <Image source={{ uri: ride.image }} style={styles.rideImage} />
-              </TouchableOpacity>
-              <View style={styles.actionContainer}>
-                <TouchableOpacity style={styles.cancelButton}>
-                  <Text style={styles.cancelText}>{ride.action}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.rescheduleButton} onPress={handleReschedule}>
-                  <Text style={styles.rescheduleText}>{ride.secondaryAction}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          ))}
+              ) : (
+                riderRides.map((ride) => (
+                  <View key={ride.id} style={styles.rideCard}>
+                    <TouchableOpacity 
+                      style={styles.rideContent}
+                      onPress={() => handleRidePress(ride)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.rideDetails}>
+                        <Text style={styles.rideDate}>
+                          {activeTab === 'past' 
+                            ? formatDate(ride.completed_at || ride.joined_at)
+                            : formatDate(ride.ride?.start_time || ride.joined_at)
+                          }
+                        </Text>
+                        <Text style={styles.rideRoute}>{formatRoute(ride)}</Text>
+                        <Text style={styles.rideInfo}>{getDriverDetails(ride)}</Text>
+                        {ride.rating_received && (
+                          <Text style={styles.ratingText}>
+                            Rating received: {ride.rating_received}/5 ⭐
+                          </Text>
+                        )}
+                      </View>
+                      <Image source={{ uri: getRideImage(ride) }} style={styles.rideImage} />
+                    </TouchableOpacity>
+                    {activeTab === 'upcoming' && (
+                      <View style={styles.actionContainer}>
+                        <TouchableOpacity style={styles.cancelButton}>
+                          <Text style={styles.cancelText}>Cancel</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.rescheduleButton} onPress={handleReschedule}>
+                          <Text style={styles.rescheduleText}>Reschedule</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </View>
+                ))
+              )}
+            </>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -284,5 +414,57 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
     color: '#ffffff',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: '#6B7280',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  errorText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: '#EF4444',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  retryButton: {
+    backgroundColor: '#4ECDC4',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 20,
+  },
+  retryText: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: '#ffffff',
+  },
+  emptyContainer: {
+    paddingVertical: 40,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
+    textAlign: 'center',
+  },
+  ratingText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    color: '#4ECDC4',
+    marginTop: 4,
   },
 });
