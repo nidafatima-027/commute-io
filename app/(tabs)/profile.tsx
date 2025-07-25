@@ -173,7 +173,7 @@ export default function ProfileScreen() {
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
             <Image
-              source={{ uri: profile.photo_url }}
+              source={{ uri: profile.photo_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150' }}
               style={styles.avatar}
             />
           </View>

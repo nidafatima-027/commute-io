@@ -200,11 +200,10 @@ export default function MessagesChatScreen() {
             ) : (
               messages.map((message, index) => {
                 const isMe = isMyMessage(message);
-                const avatarUri = Array.isArray(image) ? image[0] : image;
 
                 return (
                   <View
-                    key={message.id || index}
+                    key={message.id ? `msg-${message.id}` : `temp-msg-${index}-${Date.now()}`}
                     style={[
                       styles.messageContainer,
                       isMe ? styles.messageRight : styles.messageLeft,

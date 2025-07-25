@@ -99,7 +99,7 @@ export default function RideChatScreen() {
           {/* Messages */}
           {messages.map((msg, index) => (
             <View
-              key={index}
+              key={`chat-msg-${index}-${msg.sender}-${msg.timestamp}`}
               style={[
                 styles.messageRow,
                 msg.sender === 'user' ? styles.userMessageRow : {},

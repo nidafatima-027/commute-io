@@ -97,7 +97,7 @@ export default function DriverRequestsScreen() {
         params: {
           driverName: 'You', // Current user is the driver
           riderName: request.rider.name,
-          riderImage: request.rider.photo_url,
+          riderImage: request.rider.photo_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
           startLocation: request.ride.start_location,
           endLocation: request.ride.end_location,
           startTime: request.ride.start_time,
@@ -133,7 +133,7 @@ export default function DriverRequestsScreen() {
       params: {
         userId: request.rider.id,
         name: request.rider.name,
-        image: request.rider.photo_url,
+        image: request.rider.photo_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
         rideId: request.ride_id,
         rideRoute: `${request.ride.start_location} to ${request.ride.end_location}`,
       },
@@ -165,7 +165,7 @@ export default function DriverRequestsScreen() {
           onPress={() => handleViewProfile(request.rider_id)}
         >
           <Image
-            source={{ uri: request.rider.photo_url }}
+            source={{ uri: request.rider.photo_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150' }}
             style={styles.riderAvatar}
           />
           <View style={styles.riderDetails}>
