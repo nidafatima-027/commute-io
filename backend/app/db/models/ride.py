@@ -14,7 +14,7 @@ class Ride(Base):
     start_time = Column(DateTime, nullable=False)
     seats_available = Column(Integer, nullable=False)
     total_fare = Column(Float, nullable=True)        # Added as used in CRUD
-    status = Column(String, nullable=False, default="active")  # active, completed, cancelled
+    status = Column(String, nullable=False, default="pending")  # pending, confirmed, in_progress, completed, cancelled
 
     # Relationships
     driver = relationship("User", foreign_keys=[driver_id], back_populates="driver_rides")

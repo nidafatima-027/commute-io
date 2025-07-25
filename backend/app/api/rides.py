@@ -14,6 +14,7 @@ from app.db.crud.ride_request import (
     create_ride_request,
     get_ride_requests,
     get_user_ride_requests,
+    get_driver_ride_requests,
     update_ride_request_status
 )
 from app.schema.ride import (
@@ -77,6 +78,15 @@ async def get_my_ride_requests(
     db: Session = Depends(get_db)
 ):
     return get_user_ride_requests(db, current_user.id)
+
+
+@router.get("/driver-requests", response_model=List[RideRequestResponse])
+async def get_driver_ride_requests_endpoint(
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all ride requests for the driver's rides"""
+    return get_driver_ride_requests(db, current_user.id)
 
 
 @router.get("/{ride_id}", response_model=RideResponse)

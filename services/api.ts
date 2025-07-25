@@ -312,6 +312,10 @@ export const ridesAPI = {
     return apiRequest('/rides/my-requests');
   },
 
+  async getDriverRideRequests() {
+    return apiRequest('/rides/driver-requests');
+  },
+
   async getRideHistory() {
     return apiRequest('/rides/history');
   },

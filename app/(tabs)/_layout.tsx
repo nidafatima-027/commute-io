@@ -35,6 +35,15 @@ export default function TabLayout() {
       <Tabs.Screen
         name="search"
         options={{
+          title: 'Find Rides',
+          tabBarIcon: ({ size, color }) => (
+            <Search size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="driver-requests"
+        options={{
           title: 'Requests',
           tabBarIcon: ({ size, color }) => (
             <Car size={size} color={color} />
