@@ -28,6 +28,7 @@ interface Ride {
     id: number;
     make: string;
     model: string;
+    seats: number;
   };
 }
 type UserProfile = {
@@ -156,7 +157,7 @@ const handleChatPress = () => {
       params: {
         ride: ride.id, // Pass the ride ID to the details screen
         driverName: ride.driver.name,
-    driverRating: ride.driver?.rating || 0,
+        driverRating: ride.driver?.rating || 0,
         driverRides: ride.driver.rides_count || 0,
         driverImage: ride.driver.photo_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
         fromLocation: ride.start_location,
@@ -166,7 +167,7 @@ const handleChatPress = () => {
         departureTime: ride.start_time,
         vehicle: ride.car.make,
         seatsAvailable: ride.seats_available.toString(),
-        price: ride.total_fare,
+        price: ride.total_fare/ride.car.seats,
       }
     });
   };
@@ -176,7 +177,7 @@ const handleChatPress = () => {
     console.error('Invalid start_time:', ride.start_time);
     return {
       // ... other fields
-      details: `Time not available · $${ride.total_fare?.toFixed(2) || '0.00'}/seat`,
+      details: `Time not available · $${(ride.total_fare/ride.car.seats)?.toFixed(2) || '0.00'}/seat`,
       durationMinutes: 0
     };
   }
@@ -200,7 +201,7 @@ const handleChatPress = () => {
     console.error('Error parsing departure time:', error);
     return {
       // ... other fields
-      details: `Time not available · $${ride.total_fare?.toFixed(2) || '0.00'}/seat`,
+      details: `Time not available · $${(ride.total_fare/ride.car.seats)?.toFixed(2) || '0.00'}/seat`,
       durationMinutes: 0
     };
   }
@@ -212,8 +213,9 @@ const handleChatPress = () => {
     return {
       id: ride.id.toString(),
       destination: ride.end_location,
-      details: `${ride.start_location} · $${ride.total_fare.toFixed(2)}/seat . ${Math.abs(durationMinutes)} min`,
-      avatar: ride.driver.photo_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
+
+      details: `${ride.start_location} · $${(ride.total_fare/ride.car.seats).toFixed(2)}/seat . ${Math.abs(durationMinutes)} min`,
+      avatar: ride.driver.photo_url,
       driverName: ride.driver.name,
       rating: ride.driver.rating,
       ridesCount: ride.driver.rides_count,

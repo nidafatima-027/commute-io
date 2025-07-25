@@ -301,6 +301,10 @@ export const ridesAPI = {
     return apiRequest(`/rides/${rideId}/requests`);
   },
 
+  async getAcceptedRideRequests(rideId: number) {
+    return apiRequest(`/rides/${rideId}/acceptedrequests`);
+  },
+
   async updateRideRequest(requestId: number, status: 'accepted' | 'rejected') {
     return apiRequest(`/rides/requests/${requestId}`, {
       method: 'PUT',
@@ -315,15 +319,34 @@ export const ridesAPI = {
   async getDriverRideRequests() {
     return apiRequest('/rides/driver-requests');
   },
+  async getRiderRideHistory(user_id: number, ride_id: number) {
+    return apiRequest(`/rides/history/${user_id}/${ride_id}`);
+  },
 
   async getRideHistory() {
     return apiRequest('/rides/history');
   },
 
-  async createRideHistory(rideId: number, role: 'driver' | 'rider') {
+  async createRideHistory(userId: number, rideId: number, role: 'driver' | 'rider') {
     return apiRequest('/rides/history', {
       method: 'POST',
-      body: JSON.stringify({ ride_id: rideId, role }),
+      body: JSON.stringify({ user_id: userId, ride_id: rideId, role }),
+    });
+  },
+  async updateRideHistory(historyId: number, updateData: {
+    rating_received?: number;
+  }) {
+    return apiRequest(`/rides/history/${historyId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
+    });
+  },
+  async updateRideHistoryByUser(historyId: number, updateData: {
+    rating_given?: number;
+  }) {
+    return apiRequest(`/rides/history/rider/${historyId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
     });
   }
 };
