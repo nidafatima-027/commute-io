@@ -105,7 +105,12 @@ export default function MessagesChatScreen() {
       setSending(true);
       
       // Parse ride ID properly
-      const rideIdNum = rideId && rideId !== '' ? Number(rideId) : undefined;
+      const receiverId = Number(userId);
+    const rideIdNum = rideId && rideId !== '' ? Number(rideId) : undefined;
+    
+    if (isNaN(receiverId)) {
+      throw new Error("Invalid receiver ID");
+    }
       
       // Optimistically add message to UI
       const tempMessage: Message = {
@@ -122,10 +127,10 @@ export default function MessagesChatScreen() {
 
       // Send to backend
       await messagesAPI.sendMessage(
-        Number(userId), 
-        trimmedInput, 
-        rideIdNum
-      );
+      receiverId, 
+      trimmedInput, 
+      rideIdNum
+    );
 
       // Reload messages to get the actual message from server
       loadMessages();

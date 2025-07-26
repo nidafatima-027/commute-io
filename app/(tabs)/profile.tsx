@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, CreditCard as Edit, Clock, Settings, ChevronRight, PenIcon, Car } from 'lucide-react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { usersAPI, carsAPI } from '../../services/api';
 
 interface UserProfile {
@@ -43,8 +43,7 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
+  const fetchData = async () => {
       try {
         const [profileData, carsData] = await Promise.all([
           usersAPI.getProfile(),
@@ -60,8 +59,16 @@ export default function ProfileScreen() {
       }
     };
 
+  useEffect(() => {
     fetchData();
   }, []);
+useFocusEffect(
+  useCallback(() => {
+    fetchData();
+  }, [])
+);
+
+
   
   const handleSettings = () => {
     router.push('/(tabs)/setting');
@@ -248,7 +255,7 @@ export default function ProfileScreen() {
           <View style={styles.statsGrid}>
             <View style={styles.statsRow}>
               <View style={styles.statCard}>
-                <Text style={styles.statValue}>{profile.is_rider ? '0.0': 'N/A'}</Text>
+                <Text style={styles.statValue}>{profile.is_rider ? profile.rider_rating: 'N/A'}</Text>
                 <Text style={styles.statLabel}>{activityStats[0].label}</Text>
               </View>
               <View style={styles.statCard}>
@@ -256,7 +263,7 @@ export default function ProfileScreen() {
                 <Text style={styles.statLabel}>{activityStats[1].label}</Text>
               </View>
               <View style={styles.statCard}>
-                <Text style={styles.statValue}>{profile.is_driver ? '0.0': 'N/A'}</Text>
+                <Text style={styles.statValue}>{profile.is_driver ? profile.driver_rating: 'N/A'}</Text>
                 <Text style={styles.statLabel}>{activityStats[2].label}</Text>
               </View>
             </View>

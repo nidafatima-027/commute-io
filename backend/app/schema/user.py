@@ -105,6 +105,8 @@ class ProfileResponse(BaseModel):
     rides_taken: int
     rides_offered: int
     preferences: Optional[UserPreferences] = None
+    driver_rating: float
+    rider_rating: float
     
     class Config:
         extra = "ignore"
@@ -115,6 +117,7 @@ class PublicUserProfile(BaseModel):
     bio: Optional[str]
     photo_url: Optional[str]
     rides_taken: int
+    rides_offered: int
 
 class UserRegister(UserBase):
     password: str

@@ -53,7 +53,7 @@ const fetchData = async () => {
       setDriverDetails({
         name: driver.name,
         rating: driver.rating || 0.0,
-        rides: driverProfile.rides_taken || 0,
+        rides: driverProfile.rides_offered || 0,
         image: driver.photo_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg',
       });
 

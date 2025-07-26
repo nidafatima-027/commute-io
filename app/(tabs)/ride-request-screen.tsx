@@ -72,7 +72,13 @@ export default function RideRequestScreen() {
   };
 
   const handleMessage = () => {
-    router.push('/(tabs)/messages');
+    router.push({
+          pathname: '/(tabs)/message_inbox',
+          params: {
+            name: requestDetails.passenger.name,
+            image: requestDetails.passenger.image,
+          },
+        });
   };
 
   const handleCall = () => {

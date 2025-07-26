@@ -39,12 +39,33 @@ interface RideRequest {
     total_fare: number;
   };
 }
+type UserProfile = {
+  is_driver: boolean;
+  is_rider: boolean;
+};
 
 export default function DriverRequestsScreen() {
   const [requests, setRequests] = useState<RideRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [processingRequest, setProcessingRequest] = useState<number | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  
+  useEffect(() => {
+      const loadUserProfile = async () => {
+        try {
+          const profileData = await usersAPI.getProfile();
+          setUserProfile(profileData);
+        } catch (error) {
+          console.error('Failed to load user profile:', error);
+        } finally {
+          setProfileLoading(false);
+        }
+      };
+      
+      loadUserProfile();
+    }, []);
 
   useEffect(() => {
     loadRequests();
@@ -90,7 +111,14 @@ export default function DriverRequestsScreen() {
       if (!request) return;
 
       await ridesAPI.updateRideRequest(requestId, 'accepted');
-      
+      await ridesAPI.updateRide(request.ride.id, {
+              seats_available: request.ride.seats_available - 1
+            });
+            await ridesAPI.createRideHistory(
+             request.rider_id, // Assuming userId is passed in params
+            request.ride_id,
+            'rider'  // Since this is a passenger joining the ride
+          );
       // Navigate to ride confirmation screen
       router.push({
         pathname: '/(tabs)/ride-confirmed',
@@ -112,7 +140,9 @@ export default function DriverRequestsScreen() {
       setProcessingRequest(null);
     }
   };
-
+const handleEditProfile = () => {
+    router.push('/(tabs)/profile');
+  };
   const handleRejectRequest = async (requestId: number) => {
     setProcessingRequest(requestId);
     try {
@@ -277,12 +307,29 @@ export default function DriverRequestsScreen() {
         }
         showsVerticalScrollIndicator={false}
       >
-        {loading ? (
-          <View style={styles.loadingContainer}>
+        {profileLoading ? (
+                  <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#4ECDC4" />
             <Text style={styles.loadingText}>Loading requests...</Text>
           </View>
-        ) : requests.length === 0 ? (
+                ) : userProfile && !userProfile.is_driver ? (
+                  <View style={styles.roleWarningContainer}>
+                    <Text style={styles.roleWarningText}>
+                      You're not registered as a rider yet.
+                    </Text>
+                    <Text style={styles.roleWarningSubtext}>
+                      Update your profile to access rider features.
+                    </Text>
+                    <TouchableOpacity 
+                      style={styles.updateProfileButton}
+                      onPress={handleEditProfile}
+                    >
+                      <Text style={styles.updateProfileButtonText}>
+                        Update Profile
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : requests.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateTitle}>No Pending Requests</Text>
             <Text style={styles.emptyStateText}>
@@ -493,5 +540,41 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: '#FFFFFF',
+  },
+  roleWarningContainer: {
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  roleWarningText: {
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    color: '#2d3748',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  roleWarningSubtext: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#6B7280',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  updateProfileButton: {
+    backgroundColor: '#4ECDC4',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 25,
+    shadowColor: '#4ECDC4',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  updateProfileButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#ffffff',
   },
 });

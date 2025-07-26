@@ -1,6 +1,7 @@
 import json
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import func, case
 from typing import List
 
 from app.core.database import get_db
@@ -40,6 +41,20 @@ async def get_profile(current_user: User = Depends(get_current_user), db: Sessio
     rides_offered = db.query(Ride).filter(
         Ride.driver_id == current_user.id
     ).count()
+
+    driver_rating = db.query(
+        func.avg(func.coalesce(RideHistory.rating_given, 5))
+    ).join(
+        Ride, RideHistory.ride_id == Ride.id
+    ).filter(
+        Ride.driver_id == current_user.id
+    ).scalar() if rides_offered > 0 else 0
+
+    rider_rating = db.query(
+        func.avg(func.coalesce(RideHistory.rating_received, 5))
+    ).filter(
+        RideHistory.user_id == current_user.id
+    ).scalar() if rides_taken > 0 else 0
     
     profile_data = {
         "id": current_user.id,
@@ -54,7 +69,9 @@ async def get_profile(current_user: User = Depends(get_current_user), db: Sessio
         # include all other fields you need
         "rides_taken": rides_taken,
         "rides_offered": rides_offered,
-        "preferences": current_user.preferences
+        "preferences": current_user.preferences,
+        "driver_rating": driver_rating,
+        "rider_rating": rider_rating
     }
     
     return profile_data
@@ -104,6 +121,10 @@ async def get_user_profile(user_id: int, db: Session = Depends(get_db)):
         RideHistory.user_id == user_id
     ).count()
 
+    rides_offered = db.query(Ride).filter(
+        Ride.driver_id == user_id
+    ).count()
+
 
     return {
         "id": user.id,
@@ -111,4 +132,5 @@ async def get_user_profile(user_id: int, db: Session = Depends(get_db)):
         "bio": user.bio,
         "photo_url": user.photo_url,
         "rides_taken": rides_taken,
+        "rides_offered": rides_offered,
     }

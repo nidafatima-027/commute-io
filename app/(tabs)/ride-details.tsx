@@ -102,6 +102,9 @@ const formatRequestTime = (timestamp: string): string => {
       params: {
         name: rideDetails.driverName,
         image: rideDetails.driverImage,
+        userId: rideDetails.driverId.toString(),
+        rideId: params.ride as string, // Pass the ride ID
+        rideRoute: `${rideDetails.fromLocation} to ${rideDetails.toLocation}`,
       },
     });
   };
@@ -109,6 +112,7 @@ const formatRequestTime = (timestamp: string): string => {
   // Use params if available, otherwise use default data
   const rideDetails = {
     driverName: params.driverName as string || 'Ethan Carter',
+    driverId: parseInt(params.driverId as string) || 1,
     driverRating: parseFloat(params.driverRating as string) || 4.8,
     driverRides: parseInt(params.driverRides as string) || 12,
     driverImage: params.driverImage as string || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=200',
