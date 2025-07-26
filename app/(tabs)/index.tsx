@@ -12,6 +12,7 @@ interface Ride {
   seats_available: number;
   start_location: string;
   end_location: string;
+  
 }
 
 export default function HomeScreen() {
@@ -30,6 +31,20 @@ export default function HomeScreen() {
     end_location: string;
     requestStatus: string;
     requestId: number;
+    total_fare: number;
+    driver: {
+    id: number;
+    name: string;
+    photo_url: string;
+    rating: number;
+    rides_count: number;
+  };
+  car: {
+    id: number;
+    make: string;
+    model: string;
+    seats: number;
+  };
     // Add any other properties returned by getRideDetails if needed
   }
   
@@ -424,9 +439,23 @@ const handleRefresh = async () => {
         key={ride.id} 
         style={styles.upcomingRideCard}
         onPress={() => router.push({
-          pathname: '/(tabs)/ride-details',
-          params: { rideId: ride.id }
-        })}
+              pathname: '/(tabs)/ride-details',
+              params: {
+                ride: ride.id, // Pass the ride ID to the details screen
+                driverName: ride.driver.name,
+                driverRating: ride.driver?.rating || 0,
+                driverRides: ride.driver.rides_count || 0,
+                driverImage: ride.driver.photo_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
+                fromLocation: ride.start_location,
+                fromAddress: ride.start_location + 'Stop',
+                toLocation: ride.end_location,
+                toAddress: ride.end_location + 'Stop',
+                departureTime: ride.start_time,
+                vehicle: ride.car.make,
+                seatsAvailable: ride.seats_available.toString(),
+                price: ride.total_fare/ride.car.seats,
+              }
+            })}
       >
         <View style={styles.upcomingRideIcon}>
           <Car size={20} color="#4ECDC4" />

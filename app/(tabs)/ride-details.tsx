@@ -8,23 +8,83 @@ import { ridesAPI } from '@/services/api'; // Adjust the import path as needed
 export default function RideDetailsScreen() {
   const params = useLocalSearchParams();
   const [showModal, setShowModal] = useState(false);
-const [requestStatus, setRequestStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+const [requestStatus, setRequestStatus] = useState<'idle' | 'loading' | 'success' | 'error' | 'already_requested'>('idle');
 const [errorMessage, setErrorMessage] = useState('');
+const [additionalInfo, setAdditionalInfo] = useState<{ requestedAt?: string } | null>(null);
+
   const handleBack = () => {
     router.back();
   };
 
-  const handleRequestRide = async () => {
-   setRequestStatus('loading');
-  setShowModal(true);
+const formatRequestTime = (timestamp: string): string => {
+  if (!timestamp) return 'Unknown time';
   
+  const date = new Date(timestamp);
+  
+  // Handle invalid dates
+  if (isNaN(date.getTime())) {
+    return 'Unknown time';
+  }
+
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  });
+};
+
+
+  const handleRequestRide = async () => {
+  setRequestStatus('loading');
+  setShowModal(true);
+
   try {
     const rideId = parseInt(params.ride as string); 
     const response = await ridesAPI.requestRide(rideId, "Please accept my ride request");
     setRequestStatus('success');
   } catch (error: any) {
-    setRequestStatus('error');
-    setErrorMessage(error.message || 'Request failed');
+    try {
+      // Parse the error if it's a stringified JSON
+      const errorObj = typeof error === 'string' ? JSON.parse(error) : error;
+      
+      console.log('Full error:', errorObj);
+      
+      // Extract error details with fallbacks
+      const errorResponse = errorObj.message || {};
+      const errorData = errorResponse || {};
+      const statusCode = errorObj.response.status || 500;
+
+      // Handle duplicate request case
+      if (errorData.code === 'duplicate_request') {
+        console.log('Duplicate request detected:', errorData);
+        setRequestStatus('already_requested');
+        setErrorMessage(
+          typeof errorData.message === 'string' 
+            ? errorData.message 
+            : 'You have already requested this ride'
+        );
+        setAdditionalInfo({
+          requestedAt: errorData.metadata?.requested_at
+            ? formatRequestTime(errorData.metadata.requested_at)
+            : "Unknown time"
+        });
+      } 
+      // Handle other error cases
+      else {
+        setRequestStatus('error');
+        setErrorMessage(
+          typeof errorData.message === 'string' ? errorData.message :
+          typeof errorData.detail === 'string' ? errorData.detail :
+          statusCode === 500 ? 'Server error' : 'Request failed'
+        );
+      }
+    } catch (parseError) {
+      console.error('Error parsing error:', parseError);
+      setRequestStatus('error');
+      setErrorMessage('An unexpected error occurred');
+    }
   }
 };
 

@@ -18,6 +18,7 @@ from app.db.crud.ride_request import (
     update_ride_request_status,
     user_already_requested,
     get_ride_accepted_requests,
+    get_existing_request_time
 )
 from app.schema.ride import (
     RideCreate,
@@ -121,19 +122,60 @@ async def request_ride(
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    # Check if ride exists and user is not the driver
-    ride = get_ride(db, request.ride_id)
-    if not ride:
-        raise HTTPException(status_code=404, detail="Ride not found")
-    
-    if ride.driver_id == current_user.id:
-        raise HTTPException(status_code=400, detail="Cannot request your own ride")
+    try:
+        # Check if ride exists and user is not the driver
+        ride = get_ride(db, request.ride_id)
+        if not ride:
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    "code": "ride_not_found",
+                    "message": "Ride not found"
+                }
+            )
+        
+        if ride.driver_id == current_user.id:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "code": "self_request",
+                    "message": "Cannot request your own ride"
+                }
+            )
 
-    if user_already_requested(db, request.ride_id, current_user.id):
-        raise HTTPException(status_code=400, detail="You have already requested this ride")
-    
-    return create_ride_request(db, request.ride_id, current_user.id, request.message)
+        # Check for existing request
+        if user_already_requested(db, request.ride_id, current_user.id):
+            existing_request_time = get_existing_request_time(db, request.ride_id, current_user.id)
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "code": "duplicate_request",
+                    "message": "You have already requested this ride",
+                    "metadata": {
+                        "ride_id": request.ride_id,
+                        "requested_at": existing_request_time
+                    }
+                }
+            )
+        
+        # Create new request
+        ride_request = create_ride_request(db, request.ride_id, current_user.id, request.message)
+        db.commit()
+        return ride_request
 
+    except HTTPException as http_exc:
+        # Re-raise HTTP exceptions we've created
+        raise http_exc
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "code": "server_error",
+                "message": "Internal server error",
+                "error": str(e)
+            }
+        )
 
 @router.get("/{ride_id}/requests", response_model=List[RideRequestResponse])
 async def get_ride_join_requests(

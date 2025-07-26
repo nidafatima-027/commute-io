@@ -29,7 +29,8 @@ def get_user_ride_requests(db: Session, user_id: int) -> List[RideRequest]:
         .filter(
             RideRequest.rider_id == user_id,
             Ride.start_time >= six_hours_before,
-            Ride.start_time <= six_hours_after
+            Ride.start_time <= six_hours_after,
+            Ride.status == 'active'
         )\
         .all()
 
@@ -42,7 +43,7 @@ def get_driver_ride_requests(db: Session, driver_id: int) -> List[RideRequest]:
                 joinedload(RideRequest.ride).joinedload(Ride.driver),
                 joinedload(RideRequest.ride).joinedload(Ride.car)
             )
-            .filter(Ride.driver_id == driver_id)
+            .filter(Ride.driver_id == driver_id,Ride.status == 'active')
             .order_by(RideRequest.requested_at.desc())
             .all())
 
@@ -60,3 +61,16 @@ def user_already_requested(db: Session, ride_id: int, user_id: int) -> bool:
         RideRequest.ride_id == ride_id,
         RideRequest.rider_id == user_id
     ).first() is not None
+
+def get_existing_request_time(db: Session, ride_id: int, user_id: int) -> str:
+    """
+    Returns the ISO formatted datetime string of when the user previously requested this ride
+    """
+    existing_request = db.query(RideRequest).filter(
+        RideRequest.ride_id == ride_id,
+        RideRequest.rider_id == user_id
+    ).first()
+
+    if existing_request:
+        return existing_request.requested_at.isoformat()
+    return None

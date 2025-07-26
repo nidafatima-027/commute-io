@@ -316,7 +316,7 @@ const handleCompleteRide = (riderId: number) => {
       disabled={riders.some(r => !r.completed)}
     >
       <Text style={styles.endAllButtonText}>
-        {riders.some(r => !r.completed) ? 'Complete All Rides First' : 'End All Rides'}
+        {riders.some(r => !r.completed) ? 'Complete All Rides First' : 'End Ride'}
       </Text>
     </TouchableOpacity>
   </>
