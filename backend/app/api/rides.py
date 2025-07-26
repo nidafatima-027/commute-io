@@ -15,7 +15,7 @@ from app.db.crud.ride_request import (
     get_ride_requests,
     get_user_ride_requests,
     get_driver_ride_requests,
-    update_ride_request_status
+    update_ride_request_status,
     user_already_requested,
     get_ride_accepted_requests,
 )
