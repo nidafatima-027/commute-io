@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Search, Settings, Menu, MessageCircle, Car, Plus, Navigation } from 'lucide-react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { ridesAPI, usersAPI } from '../../services/api';
 
 interface Ride {
@@ -12,6 +12,7 @@ interface Ride {
   seats_available: number;
   start_location: string;
   end_location: string;
+  
 }
 
 export default function HomeScreen() {
@@ -19,6 +20,35 @@ export default function HomeScreen() {
   const [selectedMode, setSelectedMode] = useState('Driver');
   const [searchText, setSearchText] = useState('');
   const [rides, setRides] = useState([]);
+  const [allRiderRequests, setAllRiderRequests] = useState([]); // Add this with your other state declarations
+  const [refreshing, setRefreshing] = useState(false);
+  interface RiderRide {
+    // Define the properties based on what you return in ridesWithDetails
+    id: number;
+    start_time: string;
+    seats_available: number;
+    start_location: string;
+    end_location: string;
+    requestStatus: string;
+    requestId: number;
+    total_fare: number;
+    driver: {
+    id: number;
+    name: string;
+    photo_url: string;
+    rating: number;
+    rides_count: number;
+  };
+  car: {
+    id: number;
+    make: string;
+    model: string;
+    seats: number;
+  };
+    // Add any other properties returned by getRideDetails if needed
+  }
+  
+  const [upcomingRiderRides, setUpcomingRiderRides] = useState<RiderRide[]>([]);
   type UserProfile = {
     is_driver: boolean;
     is_rider: boolean;
@@ -83,52 +113,118 @@ useEffect(() => {
   loadRides();
 }, [selectedMode, userProfile]); // now this won't cause loop since userProfile is set only once
 
+useFocusEffect(
+  React.useCallback(() => {
+    const loadDriverRides = async () => {
+      if (!userProfile?.is_driver) return;
+      
+      try {
+        setLoading(true);
+        const driverRides = await ridesAPI.getMyRides();
+        setUpcomingDriverRides(driverRides);
+      } catch (error) {
+        console.error('Error loading driver rides:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const loadData = async () => {
-  try {
-    setLoading(true);
-    console.log('Starting data loading...');
-    
-    const profileData = await usersAPI.getProfile();
-    console.log('Profile data received:', profileData);
-    setUserProfile(profileData);
-    
-    if (selectedMode === 'Driver' && profileData?.is_driver) {
-      console.log('Fetching driver rides...');
-      const driverRides = await ridesAPI.getMyRides();
-      console.log('Driver rides received:', driverRides);
-      setUpcomingDriverRides(driverRides);
-    }
-    
-    if (selectedMode === 'Rider') {
-      console.log('Fetching rides for rider...');
-      const ridesData = await ridesAPI.searchRides(10);
-      console.log('Rides data received:', ridesData);
-      setRides(ridesData);
-    }
-  } catch (error) {
-    console.error('Error loading data:', error);
-  } finally {
-    console.log('Data loading completed');
-    setLoading(false);
+    loadDriverRides();
+  }, [userProfile?.is_driver])
+);
+useFocusEffect(
+  React.useCallback(() => {
+    const loadRiderRides = async () => {
+      if (!userProfile?.is_rider) return;
+      
+      try {
+        setLoading(true);
+        const riderRequests = await ridesAPI.getMyRideRequests();
+            setAllRiderRequests(riderRequests); // Store all requests
+
+         const now = new Date();
+    const sixHoursBefore = new Date(now.getTime() - 6 * 60 * 60 * 1000);
+    const sixHoursAfter = new Date(now.getTime() + 6 * 60 * 60 * 1000);
+        // Fetch details for each requested ride
+        const ridesWithDetails = await Promise.all(
+          riderRequests.map(async (request: any) => {
+            const rideDetails = await ridesAPI.getRideDetails(request.ride_id);
+            const rideTime = new Date(rideDetails.start_time);
+            return {
+              ...rideDetails,
+              requestStatus: request.status,
+              requestId: request.id,
+              rideTime: rideTime,
+            };
+          })
+        );
+        const filteredRides = ridesWithDetails.filter(ride => {
+      return ride.rideTime >= sixHoursBefore && ride.rideTime <= sixHoursAfter;
+    });
+        setUpcomingRiderRides(ridesWithDetails);
+      } catch (error) {
+        console.error('Error loading rider rides:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadRiderRides();
+  }, [userProfile?.is_rider])
+);
+
+const formatTimeDifference = (rideTime: Date) => {
+  const now = new Date();
+  const diffHours = Math.abs(rideTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+  
+  if (rideTime > now) {
+    return `In ${Math.round(diffHours)} hours`;
+  } else {
+    return `${Math.round(diffHours)} hours ago`;
   }
 };
 
+const handleRefresh = async () => {
+  setRefreshing(true);
+  try {
+    if (selectedMode === 'Driver') {
+      const driverRides = await ridesAPI.getMyRides();
+      setUpcomingDriverRides(driverRides);
+    } else {
+      const riderRequests = await ridesAPI.getMyRideRequests();
+      const ridesWithDetails = await Promise.all(
+        riderRequests.map(async (request: any) => {
+          const rideDetails = await ridesAPI.getRideDetails(request.ride_id);
+          return {
+            ...rideDetails,
+            requestStatus: request.status,
+            requestId: request.id
+          };
+        })
+      );
+      setUpcomingRiderRides(ridesWithDetails);
+    }
+  } catch (error) {
+    console.error('Error refreshing:', error);
+  } finally {
+    setRefreshing(false);
+  }
+};
   const suggestedRides = [
     {
-      id: 1,
+      id: 101, // Changed from 1 to avoid conflict
       destination: 'To Downtown',
       time: '10:00 AM',
       image: 'https://images.pexels.com/photos/466685/pexels-photo-466685.jpeg?auto=compress&cs=tinysrgb&w=400',
     },
     {
-      id: 2,
+      id: 102, // Changed from 2 to avoid conflict
       destination: 'To Airport',
       time: '11:30 AM',
       image: 'https://images.pexels.com/photos/378570/pexels-photo-378570.jpeg?auto=compress&cs=tinysrgb&w=400',
     },
     {
-      id: 3,
+      id: 103, // Changed from 3 to avoid conflict
       destination: 'To University',
       time: '1:00 PM',
       image: 'https://images.pexels.com/photos/1105766/pexels-photo-1105766.jpeg?auto=compress&cs=tinysrgb&w=400',
@@ -137,12 +233,12 @@ useEffect(() => {
 
   const upcomingRides = [
     {
-      id: 1,
+      id: 201, // Changed from 1 to avoid conflict
       destination: 'To Downtown',
       time: '10:00 AM',
     },
     {
-      id: 2,
+      id: 202, // Changed from 2 to avoid conflict
       destination: 'To Airport',
       time: '11:30 AM',
     },
@@ -170,7 +266,16 @@ useEffect(() => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false}
+      refreshControl={
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={handleRefresh}
+      colors={['#4ECDC4']}
+      tintColor="#4ECDC4"
+    />
+  }
+      >
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.appTitle}>Commute_io</Text>
@@ -326,20 +431,73 @@ useEffect(() => {
                 </View>
 
                 {/* Upcoming Rides */}
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Upcoming Rides</Text>
-                  {upcomingRides.map((ride) => (
-                    <View key={ride.id} style={styles.upcomingRideCard}>
-                      <View style={styles.upcomingRideIcon}>
-                        <Car size={20} color="#4ECDC4" />
-                      </View>
-                      <View style={styles.upcomingRideInfo}>
-                        <Text style={styles.upcomingRideDestination}>{ride.destination}</Text>
-                        <Text style={styles.upcomingRideTime}>{ride.time}</Text>
-                      </View>
-                    </View>
-                  ))}
-                </View>
+<View style={styles.section}>
+  <Text style={styles.sectionTitle}>Upcoming Rides</Text>
+  {upcomingRiderRides.length > 0 ? (
+    upcomingRiderRides.map((ride) => (
+      <TouchableOpacity 
+        key={ride.id} 
+        style={styles.upcomingRideCard}
+        onPress={() => router.push({
+              pathname: '/(tabs)/ride-details',
+              params: {
+                ride: ride.id, // Pass the ride ID to the details screen
+                driverName: ride.driver.name,
+                driverRating: ride.driver?.rating || 0,
+                driverRides: ride.driver.rides_count || 0,
+                driverImage: ride.driver.photo_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
+                fromLocation: ride.start_location,
+                fromAddress: ride.start_location + 'Stop',
+                toLocation: ride.end_location,
+                toAddress: ride.end_location + 'Stop',
+                departureTime: ride.start_time,
+                vehicle: ride.car.make,
+                seatsAvailable: ride.seats_available.toString(),
+                price: ride.total_fare/ride.car.seats,
+              }
+            })}
+      >
+        <View style={styles.upcomingRideIcon}>
+          <Car size={20} color="#4ECDC4" />
+        </View>
+        <View style={styles.upcomingRideInfo}>
+          <Text style={styles.upcomingRideDestination}>
+            {ride.start_location} → {ride.end_location}
+          </Text>
+          <Text style={[
+  styles.upcomingRideTime,
+  ride.requestStatus === 'pending' && styles.statusPending,
+  ride.requestStatus === 'accepted' && styles.statusAccepted,
+  ride.requestStatus === 'rejected' && styles.statusRejected,
+]}>
+  {formatTimeDifference(new Date(ride.start_time))} • Status: {ride.requestStatus}
+</Text>
+        </View>
+      </TouchableOpacity>
+    ))
+  ) : (
+    <View style={styles.emptyState}>
+       <Text style={styles.emptyStateText}>
+      {allRiderRequests.length > 0 
+        ? "No rides within the next 6 hours" 
+        : "No ride requests found"}
+    </Text>
+    {allRiderRequests.length > 0 && (
+      <Text style={styles.emptyStateSubtext}>
+        You have {allRiderRequests.length} ride request(s) outside this time window
+      </Text>
+    )}
+      <TouchableOpacity 
+        style={styles.emptyStateButton}
+        onPress={() => router.push('/(tabs)/search')}
+      >
+       <Text style={styles.emptyStateButtonText}>
+        {allRiderRequests.length > 0 ? "View all requests" : "Find a ride"}
+      </Text>
+      </TouchableOpacity>
+    </View>
+  )}
+</View>
               </>
             )}
           </>
@@ -646,4 +804,20 @@ emptyStateButtonText: {
     fontFamily: 'Inter-SemiBold',
     color: '#ffffff',
   },
+  statusPending: {
+  color: '#F59E0B',
+},
+statusAccepted: {
+  color: '#10B981',
+},
+statusRejected: {
+  color: '#EF4444',
+},
+emptyStateSubtext: {
+  fontSize: 14,
+  fontFamily: 'Inter-Regular',
+  color: '#9CA3AF',
+  marginBottom: 16,
+  textAlign: 'center',
+},
 });

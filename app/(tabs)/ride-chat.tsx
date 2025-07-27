@@ -99,7 +99,7 @@ export default function RideChatScreen() {
           {/* Messages */}
           {messages.map((msg, index) => (
             <View
-              key={index}
+              key={`chat-msg-${index}-${msg.sender}-${msg.timestamp}`}
               style={[
                 styles.messageRow,
                 msg.sender === 'user' ? styles.userMessageRow : {},
@@ -118,7 +118,7 @@ export default function RideChatScreen() {
                   <View>
                     {extractRideOptions(msg.text).map((option, i) => (
                       <TouchableOpacity
-                        key={i}
+                        key={`ride-option-${i}-${option.substring(0, 10)}`}
                         style={styles.rideOptionCard}
                         onPress={() => handleSendOption(i + 1)}
                       >

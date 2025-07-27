@@ -5,12 +5,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Settings } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { messagesAPI } from '../../services/api';
+import webSocketService from '../../services/websocket-mock';
 
 type Conversation = {
-  id: number;
-  name: string;
-  lastMessage: string;
-  image: string;
+  user_id: number;
+  user_name: string;
+  user_photo: string | null;
+  last_message: string;
+  last_message_time: string;
+  last_message_id: number;
+  ride_id?: number;
 };
 
 export default function MessagesScreen() {
@@ -19,6 +23,19 @@ export default function MessagesScreen() {
 
   useEffect(() => {
     loadConversations();
+
+    // Set up WebSocket listener for real-time message updates
+    const handleNewMessage = (data: any) => {
+      console.log('New message in conversations:', data);
+      loadConversations(); // Refresh conversations list
+    };
+
+    webSocketService.onNewMessage(handleNewMessage);
+
+    // Cleanup on unmount
+    return () => {
+      webSocketService.off('new_message', handleNewMessage);
+    };
   }, []);
 
   const loadConversations = async () => {
@@ -27,6 +44,8 @@ export default function MessagesScreen() {
       setConversations(data);
     } catch (error) {
       console.error('Error loading conversations:', error);
+      // For development, show some default conversations if API fails
+      setConversations([]);
     } finally {
       setLoading(false);
     }
@@ -40,57 +59,56 @@ export default function MessagesScreen() {
     router.back();
   };
 
-  const defaultConversations: Conversation[] = [
-    {
-      id: 1,
-      name: 'Ethan Carter',
-      lastMessage: 'See you at the usual spot!',
-      image: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
-    },
-    {
-      id: 2,
-      name: 'Sophia Clark',
-      lastMessage: "I'm running a bit late, sorry!",
-      image: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=150',
-    },
-    {
-      id: 3,
-      name: 'Liam Walker',
-      lastMessage: 'Thanks for the ride!',
-      image: 'https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=150',
-    },
-    {
-      id: 4,
-      name: 'Olivia Green',
-      lastMessage: 'No problem, happy to help!',
-      image: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150',
-    },
-    {
-      id: 5,
-      name: 'Noah Hill',
-      lastMessage: 'Are you still on for tomorrow?',
-      image: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=150',
-    },
-  ];
+  const formatTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffTime = now.getTime() - date.getTime();
+    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffHours < 1) {
+      const diffMinutes = Math.floor(diffTime / (1000 * 60));
+      return diffMinutes < 1 ? 'Now' : `${diffMinutes}m`;
+    } else if (diffHours < 24) {
+      return `${diffHours}h`;
+    } else if (diffDays < 7) {
+      return `${diffDays}d`;
+    } else {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+  };
 
   const renderConversation = (conversation: Conversation) => (
     <TouchableOpacity
-      key={conversation.id}
+      key={conversation.user_id}
       style={styles.conversationItem}
       onPress={() =>
         router.push({
           pathname: '/(tabs)/message_inbox',
           params: {
-            name: conversation.name,
-            image: conversation.image,
+            userId: conversation.user_id,
+            name: conversation.user_name,
+            image: conversation.user_photo || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
+            rideId: conversation.ride_id || '',
+            rideRoute: conversation.ride_id ? 'Ride Chat' : '',
           },
         })
       }
     >
-      <Image source={{ uri: conversation.image }} style={styles.avatar} />
+      <Image 
+        source={{ 
+          uri: conversation.user_photo || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150' 
+        }} 
+        style={styles.avatar} 
+      />
       <View style={styles.conversationContent}>
-        <Text style={styles.name}>{conversation.name}</Text>
-        <Text style={styles.lastMessage}>{conversation.lastMessage}</Text>
+        <View style={styles.conversationHeader}>
+          <Text style={styles.name}>{conversation.user_name || 'Unknown User'}</Text>
+          <Text style={styles.timestamp}>{formatTime(conversation.last_message_time)}</Text>
+        </View>
+        <Text style={styles.lastMessage} numberOfLines={2}>
+          {conversation.last_message || 'No messages yet'}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -112,10 +130,15 @@ export default function MessagesScreen() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {loading ? (
           <Text style={styles.loadingText}>Loading conversations...</Text>
+        ) : conversations.length > 0 ? (
+          conversations.map(renderConversation)
         ) : (
-          (conversations.length > 0 ? conversations.map(renderConversation) : <View style={styles.emptyState}>
-                      <Text style={styles.emptyStateText}>No conversation found at the moment</Text>
-                    </View>)
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>No conversations yet</Text>
+            <Text style={styles.emptyStateSubText}>
+              Start a conversation with riders or drivers from ride requests
+            </Text>
+          </View>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -137,13 +160,22 @@ const styles = StyleSheet.create({
     borderBottomColor: '#F3F4F6',
   },
   emptyState: {
-    padding: 20,
+    padding: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
   emptyStateText: {
+    color: '#2d3748',
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    marginBottom: 8,
+  },
+  emptyStateSubText: {
     color: '#9CA3AF',
     fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    textAlign: 'center',
+    lineHeight: 22,
   },
   backButton: {
     width: 40,
@@ -183,16 +215,28 @@ const styles = StyleSheet.create({
   conversationContent: {
     flex: 1,
   },
+  conversationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
   name: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
     color: '#2d3748',
-    marginBottom: 4,
+    flex: 1,
+  },
+  timestamp: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    color: '#9CA3AF',
   },
   lastMessage: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
     color: '#9CA3AF',
+    lineHeight: 20,
   },
   loadingText: {
     textAlign: 'center',

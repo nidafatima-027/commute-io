@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,15 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Home, Briefcase, GraduationCap } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { locationsAPI } from '../../services/api';
+
+type Location = {
+  id: number;
+  name: string;
+  address: string;
+  latitude?: number;
+  longitude?: number;
+};
 
 export default function PreferedPickupLocations() {
     const handleClose = () => {
@@ -20,6 +29,27 @@ export default function PreferedPickupLocations() {
     // TODO: Implement add location functionality
     router.push('/auth/AddLocationScreen')
     console.log('Add new location pressed');
+  };
+
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchLocations();
+  }, []);
+
+  const fetchLocations = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await locationsAPI.getLocations();
+      setLocations(data);
+    } catch (err) {
+      setError('Failed to load locations.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -42,27 +72,28 @@ export default function PreferedPickupLocations() {
               placeholderTextColor="#9CA3AF"
             />
           </View>
-
-          {/* Saved Locations */}
-          {[
-            { title: 'Home', subtitle: '123 Elm Street, Anytown', Icon: Home, },
-            { title: 'Office', subtitle: '456 Oak Avenue, Anytown',Icon: Briefcase, },
-            { title: 'University', subtitle: '789 Pine Road, Anytown',Icon: GraduationCap, },
-          ].map((location, index) => (
-            <View key={index} style={styles.locationCard}>
-                
-              <View style={styles.iconBox}>
-                <location.Icon size={24} color="#2d3748" />
+          {error && <Text style={{ color: 'red', marginBottom: 8 }}>{error}</Text>}
+          {loading ? (
+            <Text>Loading...</Text>
+          ) : (
+            locations.map((location, index) => (
+              <View key={`location-${location.id}-${index}`} style={styles.locationCard}>
+                <View style={styles.iconBox}>
+                  {/* Optionally choose icon based on location.name */}
+                  <Home size={24} color="#2d3748" />
+                </View>
+                <View style={styles.locationInfo}>
+                  <Text style={styles.locationTitle}>{location.name}</Text>
+                  <Text style={styles.locationSubtitle}>{location.address}</Text>
+                </View>
               </View>
-              <View style={styles.locationInfo}>
-                <Text style={styles.locationTitle}>{location.title}</Text>
-                <Text style={styles.locationSubtitle}>{location.subtitle}</Text>
-              </View>
-            </View>
-          ))}
-
+            ))
+          )}
           {/* Add New Location Button */}
-          <TouchableOpacity style={styles.addButton} onPress={handleAddNewLocation}>
+          <TouchableOpacity style={styles.addButton} onPress={() => {
+            router.push('/auth/AddLocationScreen');
+            setTimeout(fetchLocations, 1000); // Refresh after navigation
+          }}>
             <Text style={styles.addButtonText}>Add New Location</Text>
           </TouchableOpacity>
         </View>

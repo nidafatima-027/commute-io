@@ -1,19 +1,23 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ActivityIndicator } from 'react-native';
-import { Check, X } from 'lucide-react-native';
+import { Check, X, Clock } from 'lucide-react-native';
 
 interface RideRequestModalProps {
   visible: boolean;
   onClose: () => void;
-  status: 'idle' | 'loading' | 'success' | 'error';
+  status: 'idle' | 'loading' | 'success' | 'error' | 'already_requested';
   errorMessage?: string;
+  additionalInfo?: {
+    requestedAt?: string;
+  };
 }
 
 export default function RideRequestModal({ 
   visible, 
   onClose, 
   status = 'idle',
-  errorMessage 
+  errorMessage ,
+  additionalInfo
 }: RideRequestModalProps) {
   return (
     <Modal
@@ -37,6 +41,21 @@ export default function RideRequestModal({
               </View>
               <Text style={styles.title}>Ride Request Sent Successfully</Text>
               <Text style={styles.subtitle}>Driver will contact you soon</Text>
+            </>
+          )}
+          {/* Already requested state */}
+          {status === 'already_requested' && (
+            <>
+              <View style={[styles.iconContainer, { backgroundColor: '#F59E0B' }]}>
+                <Clock size={48} color="#ffffff" strokeWidth={3} />
+              </View>
+              <Text style={styles.title}>Request Already Submitted</Text>
+              <Text style={styles.subtitle}>{errorMessage}</Text>
+              {additionalInfo?.requestedAt && (
+                <Text style={styles.infoText}>
+                  Requested on: {additionalInfo.requestedAt}
+                </Text>
+              )}
             </>
           )}
           {status === 'error' && (
@@ -132,5 +151,13 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
+  },
+  infoText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#6B7280', // A slightly lighter gray than your subtitle
+    textAlign: 'center',
+    marginTop: 8,
+    marginBottom: 24,
   },
 });

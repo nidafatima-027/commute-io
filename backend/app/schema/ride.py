@@ -40,6 +40,27 @@ class RideRequestCreate(BaseModel):
     message: Optional[str] = None
 
 
+class UserPublic(BaseModel):
+    id: int
+    name: str
+    photo_url: Optional[str] = None
+    rating: Optional[float] = None
+    rides_taken: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+
+class RidePublic(BaseModel):
+    id: int
+    start_location: str
+    end_location: str
+    start_time: datetime
+    seats_available: int
+    total_fare: float
+
+    class Config:
+        from_attributes = True
+
 class RideRequestResponse(BaseModel):
     id: int
     rider_id: int
@@ -47,6 +68,8 @@ class RideRequestResponse(BaseModel):
     status: str
     requested_at: datetime
     message: Optional[str] = None
+    rider: UserPublic
+    ride: RidePublic
 
     class Config:
         from_attributes = True
@@ -72,9 +95,10 @@ class RideHistoryResponse(BaseModel):
         from_attributes = True
 
 class RideHistoryUpdateRequest(BaseModel):
-    completed_at: Optional[datetime] = None
-    rating_given: Optional[int] = None
     rating_received: Optional[int] = None
+
+class RiderHistoryUpdateRequest(BaseModel):
+    rating_given: Optional[int] = None
 
 class RideHistoryCreate(BaseModel):
     user_id: int

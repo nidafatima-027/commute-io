@@ -189,7 +189,7 @@ export default function RideHistoryScreen() {
                 </View>
               ) : (
                 driverRides.map((ride) => (
-                  <View key={ride.id} style={styles.rideCard}>
+                  <View key={`driver-${ride.id}`} style={styles.rideCard}>
                     <TouchableOpacity 
                       style={styles.rideContent}
                       onPress={() => handleRidePress(ride)}
@@ -236,7 +236,7 @@ export default function RideHistoryScreen() {
                 </View>
               ) : (
                 riderRides.map((ride) => (
-                  <View key={ride.id} style={styles.rideCard}>
+                  <View key={`rider-${ride.id}`} style={styles.rideCard}>
                     <TouchableOpacity 
                       style={styles.rideContent}
                       onPress={() => handleRidePress(ride)}

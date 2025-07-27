@@ -94,7 +94,7 @@ export default function AboutScreen() {
               'Safe payment processing',
               'Community-driven platform'
             ].map((feature, index) => (
-              <View key={index} style={styles.featureItem}>
+              <View key={`feature-${feature.replace(/\s+/g, '-')}-${index}`} style={styles.featureItem}>
                 <Text style={styles.featureBullet}>•</Text>
                 <Text style={styles.featureText}>{feature}</Text>
               </View>

@@ -188,7 +188,7 @@ export default function HelpScreen() {
             {contactOptions.map((option, index) => {
               const Icon = option.icon;
               return (
-                <TouchableOpacity key={index} style={styles.contactCard} onPress={option.action}>
+                <TouchableOpacity key={`contact-${option.title}-${index}`} style={styles.contactCard} onPress={option.action}>
                   <View style={styles.contactIconContainer}>
                     <Icon size={24} color="#4ECDC4" />
                   </View>
@@ -203,10 +203,10 @@ export default function HelpScreen() {
           <Text style={styles.sectionTitle}>Help Topics</Text>
           
           {filteredTopics.map((topic, index) => (
-            <View key={index} style={styles.topicContainer}>
+            <View key={`topic-${topic.title}-${index}`} style={styles.topicContainer}>
               <Text style={styles.topicTitle}>{topic.title}</Text>
               {topic.articles.map((article, articleIndex) => (
-                <TouchableOpacity key={articleIndex} style={styles.articleItem}>
+                <TouchableOpacity key={`article-${article}-${articleIndex}`} style={styles.articleItem}>
                   <Text style={styles.articleText}>{article}</Text>
                   <ChevronRight size={16} color="#9CA3AF" />
                 </TouchableOpacity>
@@ -218,7 +218,7 @@ export default function HelpScreen() {
           <Text style={styles.sectionTitle}>Frequently Asked Questions</Text>
           
           {faqs.map((faq, index) => (
-            <View key={index} style={styles.faqContainer}>
+            <View key={`faq-${faq.question}-${index}`} style={styles.faqContainer}>
               <TouchableOpacity 
                 style={styles.faqQuestion}
                 onPress={() => toggleFAQ(index)}

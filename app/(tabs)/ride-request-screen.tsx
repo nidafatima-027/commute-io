@@ -14,7 +14,7 @@ export default function RideRequestScreen() {
   const handleBack = () => {
     router.push({
       pathname: '/(tabs)/join-requests',
-      params: { rideId: params.rideId }
+      params: { rideId: params.rideId, refresh: Date.now().toString() }
     })
   };
 
@@ -39,17 +39,9 @@ export default function RideRequestScreen() {
 
       // Navigate to ride in progress page with driver details
       router.push({
-        pathname: '/(tabs)/ride-in-progress',
-        params: {
-          driverName: requestDetails.passenger.name,
-          driverRating: requestDetails.passenger.rating.toString(),
-          driverRides: requestDetails.passenger.rides.toString(),
-          driverImage: requestDetails.passenger.image,
-          route: requestDetails.ride.route,
-          time: requestDetails.ride.time,
-          price: requestDetails.ride.price.toString(),
-        }
-      });
+      pathname: '/(tabs)/join-requests',
+      params: { rideId: params.rideId, refresh: Date.now().toString() }
+    })
     } catch (error) {
       console.error('Error accepting ride request:', error);
       Alert.alert('Error', 'Failed to accept ride request. Please try again.');
@@ -67,7 +59,10 @@ export default function RideRequestScreen() {
       await ridesAPI.updateRideRequest(parseInt(params.requestId as string), 'rejected');
       
       // Navigate back to join requests
-      router.push('/(tabs)/join-requests');
+      router.push({
+      pathname: '/(tabs)/join-requests',
+      params: { rideId: params.rideId, refresh: Date.now().toString() }
+    })
     } catch (error) {
       console.error('Error rejecting ride request:', error);
       Alert.alert('Error', 'Failed to reject ride request. Please try again.');
@@ -77,7 +72,13 @@ export default function RideRequestScreen() {
   };
 
   const handleMessage = () => {
-    router.push('/(tabs)/messages');
+    router.push({
+          pathname: '/(tabs)/message_inbox',
+          params: {
+            name: requestDetails.passenger.name,
+            image: requestDetails.passenger.image,
+          },
+        });
   };
 
   const handleCall = () => {

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Car, Star } from 'lucide-react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { ArrowLeft, Car, Star, MessageCircle } from 'lucide-react-native';
+import { router, useLocalSearchParams, useFocusEffect  } from 'expo-router';
 import {ridesAPI,usersAPI} from '../../services/api'
 
 interface RideRequest {
@@ -31,7 +31,7 @@ export default function JoinRequestsScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [seats, setSeats] = useState(0);
-  const { rideId } = useLocalSearchParams();
+  const { rideId, refresh } = useLocalSearchParams();
 
   const handleBack = () => {
     router.push('/(tabs)/create-recurring-ride');
@@ -61,9 +61,25 @@ export default function JoinRequestsScreen() {
     });
   };
 
+  const handleMessageUser = (request: any) => {
+    if (!rideInfo) return;
+    // Navigate to message inbox with ride context
+    router.push({
+      pathname: '/(tabs)/message_inbox',
+      params: {
+        userId: request.id,
+        name: request.name,
+        image: request.image,
+        rideId: rideInfo.id,
+        rideRoute: `${rideInfo.start_location} to ${rideInfo.end_location}`,
+      }
+    });
+  };
+
   const fetchData = async () => {
     try {
       setLoading(true);
+      setError(null);
       
       // Fetch ride details
       const rideIdNumber = Array.isArray(rideId) ? Number(rideId[0]) : Number(rideId);
@@ -79,26 +95,22 @@ export default function JoinRequestsScreen() {
       setSeats(rideResponse.car.seats);
       
       // Fetch ride requests
-      console.log(rideIdNumber)
       const requestsResponse = await ridesAPI.getRideRequests(rideIdNumber);
-      console.log(requestsResponse)
       const users = await Promise.all(
-  requestsResponse.map(async (req: { id: number, rider_id: number }) => {
-    const user = await usersAPI.getUserProfileById(req.rider_id);
-    return {
-      id: req.id,
-      rider_id: user.id,
-      name: user.name,
-      rating: user.rating || 0.0,
-      rides: user.rides_taken || 0,
-      image: user.photo_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
-      bio: user.bio || 'No bio provided',
-    };
-  })
-);
-
-setPendingRequests(users);
-      
+        requestsResponse.map(async (req: { id: number, rider_id: number }) => {
+          const user = await usersAPI.getUserProfileById(req.rider_id);
+          return {
+            id: req.id,
+            rider_id: user.id,
+            name: user.name,
+            rating: user.rating || 0.0,
+            rides: user.rides_taken || 0,
+            image: user.photo_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
+            bio: user.bio || 'No bio provided',
+          };
+        })
+      );
+      setPendingRequests(users);      
     } catch (err) {
       setError('Failed to load requests. Please try again.');
       console.error('Error fetching ride requests:', err);
@@ -109,7 +121,13 @@ setPendingRequests(users);
 
   useEffect(() => {
     fetchData();
-  }, [rideId]);
+  }, [rideId,refresh]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchData();
+    }, [rideId])
+  );
 
   if (loading) {
     return (
@@ -187,7 +205,15 @@ setPendingRequests(users);
                   <View style={styles.requestInfo}>
                     <Image source={{ uri: request.image }} style={styles.avatar} />
                     <View style={styles.userDetails}>
-                      <Text style={styles.userName}>{request.name}</Text>
+                      <View style={styles.userHeader}>
+                        <Text style={styles.userName}>{request.name}</Text>
+                        <TouchableOpacity 
+                          style={styles.messageButton}
+                          onPress={() => handleMessageUser(request)}
+                        >
+                          <MessageCircle size={20} color="#4ECDC4" />
+                        </TouchableOpacity>
+                      </View>
                       <View style={styles.userStats}>
                         <View style={styles.ratingContainer}>
                           <Star size={14} color="#FFD700" fill="#FFD700" />
@@ -215,6 +241,17 @@ setPendingRequests(users);
             )}
           </View>
         </View>
+         <View style={styles.startRideContainer}>
+    <TouchableOpacity 
+      style={styles.startRideButton}
+      onPress={() => router.push({
+        pathname: '/(tabs)/ride-in-progress',
+        params: { rideId: rideInfo.id }
+      })}
+    >
+      <Text style={styles.startRideButtonText}>View Ride</Text>
+    </TouchableOpacity>
+  </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -333,11 +370,26 @@ const styles = StyleSheet.create({
   userDetails: {
     flex: 1,
   },
+  userHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
   userName: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
     color: '#2d3748',
-    marginBottom: 4,
+    flex: 1,
+  },
+  messageButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F0FDFA',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
   },
   userStats: {
     flexDirection: 'row',
@@ -421,4 +473,25 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: '#718096',
   },
+  startRideContainer: {
+  paddingHorizontal: 24,
+  paddingBottom: 24,
+  marginTop: 16,
+},
+startRideButton: {
+  backgroundColor: '#4ECDC4',
+  borderRadius: 25,
+  padding: 18,
+  alignItems: 'center',
+  shadowColor: '#4ECDC4',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.3,
+  shadowRadius: 8,
+  elevation: 4,
+},
+startRideButtonText: {
+  color: '#ffffff',
+  fontSize: 16,
+  fontFamily: 'Inter-SemiBold',
+},
 });

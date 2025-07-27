@@ -79,7 +79,13 @@ async function apiRequest(endpoint: string, options: RequestInit = {}) {
       const errorData = await response.json().catch(() => ({}));
       const errorMessage = errorData.detail || `HTTP error! status: ${response.status}`;
       console.error('❌ API Error:', errorMessage);
-      throw new Error(errorMessage);
+      throw JSON.stringify({
+        response: {
+          status: response.status,
+          data: errorData
+        },
+        message: errorMessage
+      });
     }
     
     const data = await response.json();
@@ -87,6 +93,14 @@ async function apiRequest(endpoint: string, options: RequestInit = {}) {
     return data;
   } catch (error) {
     console.error('🚨 API Request Failed:', error);
+    if (error instanceof Error) {
+      throw JSON.stringify({
+        response: {
+          status: 500,
+          data: { message: error.message }
+        }
+      });
+    }
     throw error;
   }
 }
@@ -285,20 +299,25 @@ export const ridesAPI = {
   },
 
   async requestRide(rideId: number, message?: string) {
-    return apiRequest('/rides/request', {
-      method: 'POST',
-      headers: {
+  const response = await apiRequest('/rides/request', {
+    method: 'POST',
+    headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ 
       ride_id: rideId, 
       message: message || "I'd like to join your ride" 
     }),
-    });
-  },
+  });
+  return response;
+},
 
   async getRideRequests(rideId: number) {
     return apiRequest(`/rides/${rideId}/requests`);
+  },
+
+  async getAcceptedRideRequests(rideId: number) {
+    return apiRequest(`/rides/${rideId}/acceptedrequests`);
   },
 
   async updateRideRequest(requestId: number, status: 'accepted' | 'rejected') {
@@ -312,6 +331,13 @@ export const ridesAPI = {
     return apiRequest('/rides/my-requests');
   },
 
+  async getDriverRideRequests() {
+    return apiRequest('/rides/driver-requests');
+  },
+  async getRiderRideHistory(user_id: number, ride_id: number) {
+    return apiRequest(`/rides/history/${user_id}/${ride_id}`);
+  },
+
   async getRideHistory() {
     return apiRequest('/rides/history');
   },
@@ -320,6 +346,22 @@ export const ridesAPI = {
     return apiRequest('/rides/history', {
       method: 'POST',
       body: JSON.stringify({ user_id: userId, ride_id: rideId, role }),
+    });
+  },
+  async updateRideHistory(historyId: number, updateData: {
+    rating_received?: number;
+  }) {
+    return apiRequest(`/rides/history/${historyId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
+    });
+  },
+  async updateRideHistoryByUser(historyId: number, updateData: {
+    rating_given?: number;
+  }) {
+    return apiRequest(`/rides/history/rider/${historyId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
     });
   }
 };
@@ -373,13 +415,19 @@ export const carsAPI = {
 // Messages API
 export const messagesAPI = {
   async sendMessage(receiverId: number, content: string, rideId?: number) {
+    const payload: any = {
+      receiver_id: receiverId,
+      content,
+    };
+    
+    // Only include ride_id if it's a valid number
+    if (rideId && !isNaN(rideId)) {
+      payload.ride_id = rideId;
+    }
+    
     return apiRequest('/messages/', {
       method: 'POST',
-      body: JSON.stringify({
-        receiver_id: receiverId,
-        content,
-        ride_id: rideId,
-      }),
+      body: JSON.stringify(payload),
     });
   },
 
