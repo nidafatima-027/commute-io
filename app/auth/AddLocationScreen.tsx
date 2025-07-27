@@ -3,17 +3,33 @@ import { View, Text, TextInput, Image, ScrollView, TouchableOpacity, StyleSheet 
 import { ArrowLeft } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { locationsAPI } from '../../services/api';
 
 const AddLocationScreen = () => {
   const [label, setLabel] = useState('');
   const [address, setAddress] = useState('');
   const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleBack = () => {
     router.back();
   };
-    const handleSave = () => {
-    router.push('/auth/PreferredpickupLocation');
+  const handleSave = async () => {
+    if (!label.trim() || !address.trim()) {
+      setError('Please enter both a label and address.');
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      await locationsAPI.createLocation({ name: label, address });
+      router.push('/auth/PreferredpickupLocation');
+    } catch (err) {
+      setError('Failed to save location. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
   return (
      <SafeAreaView style={styles.container}>
@@ -66,9 +82,11 @@ const AddLocationScreen = () => {
             onChangeText={setAddress}
           />
 
+          {error && <Text style={{ color: 'red', marginBottom: 8 }}>{error}</Text>}
+
           {/* Save Button */}
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-            <Text style={styles.saveButtonText}>Save Location</Text>
+          <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={loading}>
+            <Text style={styles.saveButtonText}>{loading ? 'Saving...' : 'Save Location'}</Text>
           </TouchableOpacity>
         </View>
 

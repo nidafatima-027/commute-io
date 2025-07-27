@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft } from 'lucide-react-native';
 import { router } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { usersAPI } from '../../services/api';
 
 // Days of the week
 const daysOfWeek = [
@@ -47,11 +48,38 @@ const DailySchedule = () => {
     }, {} as Schedule)
   );
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const [picker, setPicker] = useState<{
     day: string;
     field: 'startTime' | 'endTime';
     show: boolean;
   } | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    usersAPI.getSchedule()
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setSchedule((prev) => {
+            const updated = { ...prev };
+            data.forEach((item) => {
+              const day = daysOfWeek[item.day_of_week];
+              if (day) {
+                updated[day] = {
+                  startTime: item.start_time ? item.start_time : '',
+                  endTime: item.end_time ? item.end_time : '',
+                };
+              }
+            });
+            return updated;
+          });
+        }
+      })
+      .catch(() => setError('Failed to load schedule.'))
+      .finally(() => setLoading(false));
+  }, []);
 
   const handleTimeChange = (event: any, selectedDate?: Date) => {
     if (picker && selectedDate) {
@@ -66,10 +94,28 @@ const DailySchedule = () => {
     setPicker(null);
   };
 
-  const handleSave = () => {
-    console.log('Saved schedule:', schedule);
-    // Add backend logic here if needed
-    router.back();
+  const handleSave = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Save each day's schedule
+      for (let i = 0; i < daysOfWeek.length; i++) {
+        const day = daysOfWeek[i];
+        const { startTime, endTime } = schedule[day];
+        if (startTime && endTime) {
+          await usersAPI.createSchedule({
+            day_of_week: i,
+            start_time: startTime,
+            end_time: endTime,
+          });
+        }
+      }
+      router.back();
+    } catch (err) {
+      setError('Failed to save schedule. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -116,8 +162,10 @@ const DailySchedule = () => {
           </View>
         ))}
 
-        <TouchableOpacity style={styles.button} onPress={handleSave}>
-          <Text style={styles.buttonText}>Save Schedule</Text>
+        {error && <Text style={{ color: 'red', marginBottom: 8 }}>{error}</Text>}
+
+        <TouchableOpacity style={styles.button} onPress={handleSave} disabled={loading}>
+          <Text style={styles.buttonText}>{loading ? 'Saving...' : 'Save Schedule'}</Text>
         </TouchableOpacity>
       </ScrollView>
 
