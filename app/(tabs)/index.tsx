@@ -14,15 +14,7 @@ interface Ride {
   end_location: string;
   
 }
-
-export default function HomeScreen() {
-  const [upcomingDriverRides, setUpcomingDriverRides] = useState<Ride[]>([]);
-  const [selectedMode, setSelectedMode] = useState('Driver');
-  const [searchText, setSearchText] = useState('');
-  const [rides, setRides] = useState([]);
-  const [allRiderRequests, setAllRiderRequests] = useState([]); // Add this with your other state declarations
-  const [refreshing, setRefreshing] = useState(false);
-  interface RiderRide {
+interface RiderRide {
     // Define the properties based on what you return in ridesWithDetails
     id: number;
     start_time: string;
@@ -47,13 +39,34 @@ export default function HomeScreen() {
   };
     // Add any other properties returned by getRideDetails if needed
   }
-  
-  const [upcomingRiderRides, setUpcomingRiderRides] = useState<RiderRide[]>([]);
-  type UserProfile = {
+
+interface RideRating{
+  id: number;
+  user_id: number;
+  ride_id: number;
+  role: string;
+  joined_at: string;
+  completed_at: string;
+  rating_given: number;
+  rating_received: number;
+  ride: RiderRide;
+}
+
+type UserProfile = {
     is_driver: boolean;
     is_rider: boolean;
     // add other properties as needed
   };
+  
+export default function HomeScreen() {
+  const [upcomingDriverRides, setUpcomingDriverRides] = useState<Ride[]>([]);
+  const [selectedMode, setSelectedMode] = useState('Driver');
+  const [searchText, setSearchText] = useState('');
+  const [rides, setRides] = useState([]);
+  const [allRiderRequests, setAllRiderRequests] = useState([]); // Add this with your other state declarations
+  const [refreshing, setRefreshing] = useState(false);
+  const [upcomingRiderRides, setUpcomingRiderRides] = useState<RiderRide[]>([]);
+  const [ridesToReview, setRidesToReview] = useState<RideRating[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -72,6 +85,17 @@ export default function HomeScreen() {
 
   const handleEditProfile = () => {
     router.push('/(tabs)/profile');
+  };
+
+const handleReviewRide = (rideRating: RideRating) => {
+    router.push({
+      pathname: '/(tabs)/rider-rating-screen',
+      params: {
+        rideId: rideRating.ride_id,
+        rideRatingId: rideRating.id,
+        driverId: rideRating.ride.driver.id,
+      }
+    });
   };
 
   useEffect(() => {
@@ -141,7 +165,11 @@ useFocusEffect(
         setLoading(true);
         const riderRequests = await ridesAPI.getMyRideRequests();
             setAllRiderRequests(riderRequests); // Store all requests
-
+        const rideHistory = await ridesAPI.getRideHistory();
+        const ridesNeedingReview = rideHistory.filter(
+            (rating: RideRating) => rating.completed_at != null && rating.rating_given === null
+          );
+          setRidesToReview(ridesNeedingReview);
          const now = new Date();
     const sixHoursBefore = new Date(now.getTime() - 6 * 60 * 60 * 1000);
     const sixHoursAfter = new Date(now.getTime() + 6 * 60 * 60 * 1000);
@@ -210,60 +238,35 @@ const handleRefresh = async () => {
     setRefreshing(false);
   }
 };
-  const suggestedRides = [
-    {
-      id: 101, // Changed from 1 to avoid conflict
-      destination: 'To Downtown',
-      time: '10:00 AM',
-      image: 'https://images.pexels.com/photos/466685/pexels-photo-466685.jpeg?auto=compress&cs=tinysrgb&w=400',
-    },
-    {
-      id: 102, // Changed from 2 to avoid conflict
-      destination: 'To Airport',
-      time: '11:30 AM',
-      image: 'https://images.pexels.com/photos/378570/pexels-photo-378570.jpeg?auto=compress&cs=tinysrgb&w=400',
-    },
-    {
-      id: 103, // Changed from 3 to avoid conflict
-      destination: 'To University',
-      time: '1:00 PM',
-      image: 'https://images.pexels.com/photos/1105766/pexels-photo-1105766.jpeg?auto=compress&cs=tinysrgb&w=400',
-    },
-  ];
-
-  const upcomingRides = [
-    {
-      id: 201, // Changed from 1 to avoid conflict
-      destination: 'To Downtown',
-      time: '10:00 AM',
-    },
-    {
-      id: 202, // Changed from 2 to avoid conflict
-      destination: 'To Airport',
-      time: '11:30 AM',
-    },
-  ];
-
-  const driverStats = [
-    {
-      title: 'Rides Given',
-      value: '5',
-    },
-    {
-      title: 'Total Distance',
-      value: '120 km',
-    },
-    {
-      title: 'Avg. Rating',
-      value: '4.8',
-    },
-  ];
 
    const hasRequiredRole = () => {
     if (!userProfile) return false;
     return selectedMode === 'Driver' ? userProfile.is_driver : userProfile.is_rider;
   };
 
+ const renderRideToReviewCard = (rideRating: RideRating) => {
+    const ride = rideRating.ride;
+    return (
+      <TouchableOpacity 
+        key={rideRating.id} 
+        style={styles.upcomingRideCard}
+        onPress={() => handleReviewRide(rideRating)}
+      >
+        <View style={styles.upcomingRideIcon}>
+          <Car size={20} color="#4ECDC4" />
+        </View>
+        <View style={styles.upcomingRideInfo}>
+          <Text style={styles.upcomingRideDestination}>
+            {ride.start_location} → {ride.end_location}
+          </Text>
+          <Text style={[styles.upcomingRideTime, styles.statusCompleted]}>
+            {formatTimeDifference(new Date(ride.start_time))} • Completed • Tap to rate
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+  
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}
@@ -414,22 +417,6 @@ const handleRefresh = async () => {
                   />
                 </TouchableOpacity>
 
-                {/* Suggested Rides */}
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Suggested Rides</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.suggestedRidesScroll}>
-                    {suggestedRides.map((ride) => (
-                      <TouchableOpacity key={ride.id} style={styles.suggestedRideCard}>
-                        <Image source={{ uri: ride.image }} style={styles.suggestedRideImage} />
-                        <View style={styles.suggestedRideInfo}>
-                          <Text style={styles.suggestedRideDestination}>{ride.destination}</Text>
-                          <Text style={styles.suggestedRideTime}>{ride.time}</Text>
-                        </View>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
-
                 {/* Upcoming Rides */}
 <View style={styles.section}>
   <Text style={styles.sectionTitle}>Upcoming Rides</Text>
@@ -498,6 +485,14 @@ const handleRefresh = async () => {
     </View>
   )}
 </View>
+
+{/* Review Section - Only shown if there are rides to review */}
+  {ridesToReview.length > 0 && (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>Rate Your Recent Rides</Text>
+      {ridesToReview.map(rideRating => renderRideToReviewCard(rideRating))}
+    </View>
+  )}
               </>
             )}
           </>
@@ -813,6 +808,9 @@ statusAccepted: {
 statusRejected: {
   color: '#EF4444',
 },
+statusCompleted: {
+    color: '#3B82F6',
+  },
 emptyStateSubtext: {
   fontSize: 14,
   fontFamily: 'Inter-Regular',
