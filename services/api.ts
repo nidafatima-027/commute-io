@@ -356,6 +356,7 @@ export const ridesAPI = {
       body: JSON.stringify(updateData),
     });
   },
+  
   async updateRideHistoryByUser(historyId: number, updateData: {
     rating_given?: number;
   }) {
@@ -363,9 +364,24 @@ export const ridesAPI = {
       method: 'PUT',
       body: JSON.stringify(updateData),
     });
-  }
+  },
+
+  async checkExistingRequest(rideId: number) {
+    const response = await apiRequest(`/rides/${rideId}/check-request`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    return response as CheckRequestResponse;
+  },
 };
 
+export type CheckRequestResponse = {
+  exists: boolean;
+  requested_at?: string; // ISO 8601 format timestamp
+  status?: 'pending' | 'accepted' | 'rejected';
+};
 // Cars API
 export const carsAPI = {
   async getCars() {

@@ -30,7 +30,8 @@ from app.schema.ride import (
     RideRequestUpdate,
     RideHistoryUpdateRequest,
     RideHistoryCreate,
-    RiderHistoryUpdateRequest
+    RiderHistoryUpdateRequest,
+    CheckRequestResponse
 )
 from app.db.crud.ride_history import create_ride_history_entry, get_user_ride_history_by_id, get_rider_ride_history, get_ride_history_by_id, complete_ride_history, update_received_rating
 
@@ -174,6 +175,30 @@ async def request_ride(
                 "code": "server_error",
                 "message": "Internal server error",
                 "error": str(e)
+            }
+        )
+    
+@router.get("/{ride_id}/check-request", response_model=CheckRequestResponse)
+async def check_existing_request(
+    ride_id: int,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    try:
+        exists = user_already_requested(db, ride_id, current_user.id)
+        if exists:
+            existing_request_time = get_existing_request_time(db, ride_id, current_user.id)
+            return {
+                "exists": True,
+                "requested_at": existing_request_time
+            }
+        return {"exists": False}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "code": "server_error",
+                "message": "Error checking request status"
             }
         )
 

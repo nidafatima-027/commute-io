@@ -1,16 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, MapPin, Clock, Car, Users, MessageCircle } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import RideRequestModal from '@/components/RideRequestModal';
 import { ridesAPI } from '@/services/api'; // Adjust the import path as needed
+
+
 export default function RideDetailsScreen() {
   const params = useLocalSearchParams();
   const [showModal, setShowModal] = useState(false);
 const [requestStatus, setRequestStatus] = useState<'idle' | 'loading' | 'success' | 'error' | 'already_requested'>('idle');
 const [errorMessage, setErrorMessage] = useState('');
 const [additionalInfo, setAdditionalInfo] = useState<{ requestedAt?: string } | null>(null);
+  const [hasRequested, setHasRequested] = useState(false);
+
+useEffect(() => {
+    const checkExistingRequest = async () => {
+      try {
+        const rideId = parseInt(params.ride as string);
+        const response = await ridesAPI.checkExistingRequest(rideId);
+        
+        if (response.exists) {
+          setHasRequested(true);
+          setRequestStatus('already_requested');
+          setAdditionalInfo({
+            requestedAt: formatRequestTime(response.requested_at ?? '')
+          });
+        }
+      } catch (error) {
+        console.log('Error checking existing request:', error);
+        // Don't show error to user - just proceed as if no request exists
+      }
+    };
+
+    checkExistingRequest();
+  }, [params.ride]);
 
   const handleBack = () => {
     router.back();
@@ -37,18 +62,19 @@ const formatRequestTime = (timestamp: string): string => {
 
 
   const handleRequestRide = async () => {
-  setRequestStatus('loading');
+  if (hasRequested) return;
+    setRequestStatus('loading');
   setShowModal(true);
 
   try {
     const rideId = parseInt(params.ride as string); 
     const response = await ridesAPI.requestRide(rideId, "Please accept my ride request");
     setRequestStatus('success');
+    setHasRequested(true);
   } catch (error: any) {
     try {
       // Parse the error if it's a stringified JSON
       const errorObj = typeof error === 'string' ? JSON.parse(error) : error;
-      
       console.log('Full error:', errorObj);
       
       // Extract error details with fallbacks
@@ -97,6 +123,8 @@ const formatRequestTime = (timestamp: string): string => {
 
   const handleMessage = () => {
     // Navigate to messages with this driver
+    console.log(rideDetails.driverId)
+    console.log(params.ride as string)
     router.push({
       pathname: '/(tabs)/message_inbox',
       params: {
@@ -232,9 +260,18 @@ const formatRequestTime = (timestamp: string): string => {
 
           {/* Action Buttons */}
           <View style={styles.actionContainer}>
-            <TouchableOpacity style={styles.requestButton} onPress={handleRequestRide}>
-              <Text style={styles.requestButtonText}>Request Ride</Text>
-            </TouchableOpacity>
+            <TouchableOpacity 
+  style={[
+    styles.requestButton,
+    hasRequested && styles.requestButtonDisabled
+  ]} 
+  onPress={handleRequestRide}
+  disabled={hasRequested}
+>
+  <Text style={styles.requestButtonText}>
+    {hasRequested ? 'Already Requested' : 'Request Ride'}
+  </Text>
+</TouchableOpacity>
 
             <TouchableOpacity style={styles.messageButton} onPress={handleMessage}>
               <MessageCircle size={20} color="#4ECDC4" />
@@ -525,5 +562,9 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontFamily: 'Inter-Bold',
     color: '#4ECDC4',
+  },
+  requestButtonDisabled: {
+    backgroundColor: '#cccccc',
+    shadowColor: '#cccccc',
   },
 });

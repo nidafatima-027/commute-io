@@ -104,3 +104,8 @@ class RideHistoryCreate(BaseModel):
     user_id: int
     ride_id: int
     role: str  # "driver" or "rider"
+
+class CheckRequestResponse(BaseModel):
+    exists: bool
+    requested_at: Optional[str] = None  # ISO 8601 format
+    status: Optional[str] = None  # 'pending', 'accepted', 'rejected'
