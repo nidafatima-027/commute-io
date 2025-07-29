@@ -24,7 +24,8 @@ from app.schema.ride import (
     RideCreate,
     RideHistoryResponse, 
     RideUpdate, 
-    RideResponse, 
+    RideResponse,
+    DriverRideResponse,
     RideRequestCreate,
     RideRequestResponse,
     RideRequestUpdate,
@@ -53,7 +54,7 @@ async def search_rides(
             detail=f"Error fetching rides: {str(e)}"
         )
 
-@router.post("/", response_model=RideResponse)
+@router.post("/", response_model=DriverRideResponse)
 async def create_new_ride(
     ride: RideCreate,
     current_user = Depends(get_current_user),
@@ -62,7 +63,7 @@ async def create_new_ride(
     return create_ride(db, ride, current_user.id)
 
 
-@router.get("/my-rides", response_model=List[RideResponse])
+@router.get("/my-rides", response_model=List[DriverRideResponse])
 async def get_my_rides(
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -104,7 +105,7 @@ async def get_ride_details(
     return ride
 
 
-@router.put("/{ride_id}", response_model=RideResponse)
+@router.put("/{ride_id}", response_model=DriverRideResponse)
 async def update_ride_details(
     ride_id: int,
     ride_update: RideUpdate,

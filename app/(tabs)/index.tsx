@@ -28,8 +28,8 @@ interface RiderRide {
     id: number;
     name: string;
     photo_url: string;
-    rating: number;
-    rides_count: number;
+    driver_rating: number;
+    ride_offered: number;
   };
   car: {
     id: number;
@@ -431,8 +431,8 @@ const handleRefresh = async () => {
                 ride: ride.id, // Pass the ride ID to the details screen
                 driverName: ride.driver.name,
                 driverId: ride.driver.id,
-                driverRating: ride.driver?.rating || 0,
-                driverRides: ride.driver.rides_count || 0,
+                driverRating: ride.driver?.driver_rating || 0,
+                driverRides: ride.driver.ride_offered || 0,
                 driverImage: ride.driver.photo_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
                 fromLocation: ride.start_location,
                 fromAddress: ride.start_location + 'Stop',

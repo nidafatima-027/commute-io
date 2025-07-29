@@ -21,8 +21,8 @@ interface Ride {
     id: number;
     name: string;
     photo_url: string;
-    rating: number;
-    rides_count: number;
+    driver_rating: number;
+    ride_offered: number;
   };
   car: {
     id: number;
@@ -152,6 +152,7 @@ const handleChatPress = () => {
   };
 
     const handleRidePress = (ride: Ride) => {
+      console.log(ride.driver.driver_rating)
       router.push({
       pathname: '/(tabs)/ride-details',
       params: {
@@ -159,8 +160,8 @@ const handleChatPress = () => {
          // Pass the ride ID to the details screen
         driverId: ride.driver.id,
          driverName: ride.driver.name,
-        driverRating: ride.driver?.rating || 0,
-        driverRides: ride.driver.rides_count || 0,
+        driverRating: ride.driver?.driver_rating || 0,
+        driverRides: ride.driver.ride_offered || 0,
         driverImage: ride.driver.photo_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
         fromLocation: ride.start_location,
         fromAddress: ride.start_location + 'Stop',
@@ -219,8 +220,8 @@ const handleChatPress = () => {
       details: `${ride.start_location} · $${(ride.total_fare/ride.car.seats).toFixed(2)}/seat . ${Math.abs(durationMinutes)} min`,
       avatar: ride.driver.photo_url,
       driverName: ride.driver.name,
-      rating: ride.driver.rating,
-      ridesCount: ride.driver.rides_count,
+      rating: ride.driver.driver_rating,
+      ridesCount: ride.driver.ride_offered,
       fromLocation: "Campus", // Adjust as needed
       fromAddress: ride.start_location,
       toLocation: "Downtown", // Adjust as needed

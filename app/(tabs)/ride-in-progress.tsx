@@ -52,7 +52,7 @@ const fetchData = async () => {
       const driverProfile = await usersAPI.getUserProfileById(driver.id);
       setDriverDetails({
         name: driver.name,
-        rating: driver.rating || 0.0,
+        rating: driverProfile.driver_rating || 0.0,
         rides: driverProfile.rides_offered || 0,
         image: driver.photo_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg',
       });
@@ -67,7 +67,7 @@ const fetchData = async () => {
             id: req.rider_id,
             rider_id: req.rider_id,
             name: riderProfile.name,
-            rating: riderProfile.rating || 0.0,
+            rating: riderProfile.rider_rating || 0.0,
             rides: riderProfile.rides_taken || 0,
             image: riderProfile.photo_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg',
             pickup: rideResponse.start_location,

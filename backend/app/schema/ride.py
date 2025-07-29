@@ -3,7 +3,7 @@ from typing import Optional
 from datetime import datetime
 
 from app.schema.car import CarResponse
-from app.schema.user import UserResponse
+from app.schema.user import UserRideResponse, UserResponse
 
 class RideBase(BaseModel):
     car_id: int
@@ -25,6 +25,16 @@ class RideUpdate(BaseModel):
 
 
 class RideResponse(RideBase):
+    id: int
+    driver_id: int
+    status: str
+    driver: UserRideResponse
+    car: CarResponse
+    
+    class Config:
+        from_attributes = True
+
+class DriverRideResponse(RideBase):
     id: int
     driver_id: int
     status: str
@@ -89,7 +99,7 @@ class RideHistoryResponse(BaseModel):
     rating_given: Optional[int] = None
     rating_received: Optional[int] = None
     # Add ride details for frontend
-    ride: Optional["RideResponse"] = None
+    ride: Optional["DriverRideResponse"] = None
 
     class Config:
         from_attributes = True
