@@ -20,8 +20,8 @@ const getApiBaseUrl = () => {
     return `http://${debuggerHost}:8000/api`;
   }
 
-  // TEMP fallback to your real IP
-  return 'http://10.210.6.99:8000/api';
+  // Fallback for development
+  return 'http://localhost:8000/api';
 };
 
 
@@ -79,13 +79,7 @@ async function apiRequest(endpoint: string, options: RequestInit = {}) {
       const errorData = await response.json().catch(() => ({}));
       const errorMessage = errorData.detail || `HTTP error! status: ${response.status}`;
       console.error('❌ API Error:', errorMessage);
-      throw JSON.stringify({
-        response: {
-          status: response.status,
-          data: errorData
-        },
-        message: errorMessage
-      });
+      throw new Error(errorMessage);
     }
     
     const data = await response.json();
@@ -94,14 +88,10 @@ async function apiRequest(endpoint: string, options: RequestInit = {}) {
   } catch (error) {
     console.error('🚨 API Request Failed:', error);
     if (error instanceof Error) {
-      throw JSON.stringify({
-        response: {
-          status: 500,
-          data: { message: error.message }
-        }
-      });
+      throw error;
+    } else {
+      throw new Error('Network error occurred');
     }
-    throw error;
   }
 }
 

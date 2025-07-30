@@ -62,6 +62,9 @@ const PhoneNumberScreen = () => {
         {/* Content */}
         <View style={styles.content}>
           <Text style={styles.title}>Enter your phone number</Text>
+          <Text style={styles.subtitle}>
+            We'll send a verification code via WhatsApp
+          </Text>
 
           <TextInput
             style={styles.input}
@@ -72,8 +75,14 @@ const PhoneNumberScreen = () => {
             onChangeText={setPhone}
           />
 
-          <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-            <Text style={styles.nextButtonText}>Next</Text>
+          <TouchableOpacity 
+            style={[styles.nextButton, loading && styles.nextButtonDisabled]} 
+            onPress={handleNext}
+            disabled={loading}
+          >
+            <Text style={styles.nextButtonText}>
+              {loading ? "Sending..." : "Next"}
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -130,6 +139,13 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     color: '#2d3748',
     textAlign: 'center',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#6B7280',
+    textAlign: 'center',
     marginBottom: 24,
   },
   input: {
@@ -159,6 +175,9 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
+  },
+  nextButtonDisabled: {
+    opacity: 0.6,
   },
   footer: {
     paddingHorizontal: 24,

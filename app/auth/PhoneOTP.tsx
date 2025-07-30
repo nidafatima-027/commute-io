@@ -134,7 +134,7 @@ const handleResendOTP = async () => {
         <View style={styles.content}>
           <Text style={styles.title}>Enter the code</Text>
           <Text style={styles.subtitle}>
-            We sent a verification code to {formattedPhone}
+            We sent a verification code via WhatsApp to {formattedPhone}
           </Text>
 
         {/* Code Inputs */}
