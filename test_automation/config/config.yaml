@@ -1,0 +1,29 @@
+appium:
+  server_url: "http://localhost:4723/wd/hub"
+  implicit_wait: 10
+  explicit_wait: 30
+  
+android:
+  platform_name: "Android"
+  automation_name: "UiAutomator2"
+  app_package: "com.anonymous.boltexponativewind"
+  app_activity: ".MainActivity"
+  device_name: "Android Device"  # Will be auto-detected for physical device
+  no_reset: false
+  full_reset: false
+  new_command_timeout: 300
+  
+test_data:
+  valid_phone: "+1234567890"
+  valid_email: "test@example.com"
+  invalid_phone: "invalid"
+  invalid_email: "invalid-email"
+  
+timeouts:
+  short: 5
+  medium: 10
+  long: 30
+  
+screenshots:
+  on_failure: true
+  path: "screenshots/"
