@@ -117,7 +117,8 @@ def run_tests(tags=None, feature=None, format_type="pretty", output_dir="allure-
     
     # Add format
     if format_type == "allure":
-        cmd.extend(["-f", "allure_behave.formatter:AllureFormatter", "-o", output_dir])
+        cmd.extend(["-f", "allure_behave.formatter:AllureFormatter"])
+        cmd.extend(["-o", output_dir])
     else:
         cmd.extend(["-f", format_type])
     
@@ -227,6 +228,9 @@ def main():
     
     if args.smoke:
         tags = "@smoke"
+        # Use pretty format for smoke tests unless specifically requested
+        if not args.report:
+            format_type = "pretty"
     elif args.auth:
         tags = "@authentication"
     elif args.ride:
