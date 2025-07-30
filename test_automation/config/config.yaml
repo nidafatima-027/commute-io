@@ -1,5 +1,5 @@
 appium:
-  server_url: "http://localhost:4723/wd/hub"
+  server_url: "http://localhost:4723"  # Appium v2.x uses root URL, not /wd/hub
   implicit_wait: 10
   explicit_wait: 30
   

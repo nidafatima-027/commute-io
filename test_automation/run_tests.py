@@ -16,11 +16,12 @@ def check_prerequisites():
     # Check if Appium server is running
     try:
         import requests
-        # Try multiple URLs in case of network configuration issues
+        # Try multiple URLs for Appium v2.x compatibility
         urls_to_try = [
-            "http://localhost:4723/wd/hub/status",
-            "http://127.0.0.1:4723/wd/hub/status",
-            "http://0.0.0.0:4723/wd/hub/status"
+            "http://localhost:4723/status",
+            "http://127.0.0.1:4723/status",
+            "http://localhost:4723/wd/hub/status",  # Legacy endpoint for v1.x
+            "http://127.0.0.1:4723/wd/hub/status"   # Legacy endpoint for v1.x
         ]
         
         server_found = False

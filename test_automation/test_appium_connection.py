@@ -11,11 +11,12 @@ def test_appium_connection():
     print("🔍 Testing Appium Server Connection")
     print("=" * 40)
     
-    # URLs to test
+    # URLs to test (Appium v2.x has different endpoints)
     urls_to_test = [
-        "http://localhost:4723/wd/hub/status",
-        "http://127.0.0.1:4723/wd/hub/status",
-        "http://0.0.0.0:4723/wd/hub/status"
+        "http://localhost:4723/status",
+        "http://127.0.0.1:4723/status",
+        "http://localhost:4723/wd/hub/status",  # Legacy endpoint
+        "http://127.0.0.1:4723/wd/hub/status"   # Legacy endpoint
     ]
     
     for url in urls_to_test:
