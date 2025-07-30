@@ -10,30 +10,15 @@ import time
 class EnhancedEmailPage(BasePage):
     """Enhanced page object for email input screen with better locators."""
     
-    # Multiple locator strategies for email input
+    # Optimized locator strategies for email input (most reliable ones)
     EMAIL_INPUT_STRATEGIES = [
-        (AppiumBy.XPATH, "//*[contains(@resource-id, 'email') or contains(@hint, 'email') or contains(@placeholder, 'email')]"),
-        (AppiumBy.XPATH, "//android.widget.EditText[contains(@resource-id, 'email') or contains(@hint, 'email')]"),
         (AppiumBy.XPATH, "//*[@class='android.widget.EditText']"),
-        (AppiumBy.XPATH, "//*[contains(@text, 'email') or contains(@text, 'Email')]"),
-        (AppiumBy.ACCESSIBILITY_ID, "email"),
-        (AppiumBy.ID, "email"),
+        (AppiumBy.XPATH, "//*[contains(@resource-id, 'email') or contains(@hint, 'email')]"),
     ]
     
-    # Multiple locator strategies for continue button
+    # Optimized locator strategy for continue button (strategy 3 is working)
     CONTINUE_BUTTON_STRATEGIES = [
-        (AppiumBy.XPATH, "//*[@text='Next' or @content-desc='Next']"),
-        (AppiumBy.XPATH, "//android.widget.Button[@text='Next' or @content-desc='Next']"),
         (AppiumBy.XPATH, "//*[@class='android.widget.Button' and contains(@text, 'Next')]"),
-        (AppiumBy.XPATH, "//*[contains(@text, 'Next')]"),
-        (AppiumBy.XPATH, "//*[@text='Continue' or @content-desc='Continue']"),
-        (AppiumBy.XPATH, "//android.widget.Button[@text='Continue' or @content-desc='Continue']"),
-        (AppiumBy.XPATH, "//*[@class='android.widget.Button' and contains(@text, 'Continue')]"),
-        (AppiumBy.XPATH, "//*[contains(@text, 'Continue')]"),
-        (AppiumBy.ACCESSIBILITY_ID, "next"),
-        (AppiumBy.ACCESSIBILITY_ID, "continue"),
-        (AppiumBy.ID, "next"),
-        (AppiumBy.ID, "continue"),
     ]
     
     # Screen identification locators
@@ -261,24 +246,15 @@ class EnhancedEmailPage(BasePage):
 class EnhancedOTPVerificationPage(BasePage):
     """Enhanced page object for OTP verification screen."""
     
-    # Multiple locator strategies for OTP input
+    # Optimized locator strategies for OTP input (most reliable ones)
     OTP_INPUT_STRATEGIES = [
-        (AppiumBy.XPATH, "//*[contains(@resource-id, 'otp') or contains(@hint, 'OTP') or contains(@placeholder, 'OTP')]"),
-        (AppiumBy.XPATH, "//android.widget.EditText[contains(@resource-id, 'otp') or contains(@hint, 'OTP')]"),
         (AppiumBy.XPATH, "//*[@class='android.widget.EditText']"),
-        (AppiumBy.XPATH, "//*[contains(@text, 'OTP') or contains(@text, 'otp')]"),
-        (AppiumBy.ACCESSIBILITY_ID, "otp"),
-        (AppiumBy.ID, "otp"),
+        (AppiumBy.XPATH, "//*[contains(@resource-id, 'otp') or contains(@hint, 'OTP')]"),
     ]
     
-    # Multiple locator strategies for verify button
+    # Optimized locator strategy for verify button (most reliable one)
     VERIFY_BUTTON_STRATEGIES = [
-        (AppiumBy.XPATH, "//*[@text='Verify' or @content-desc='Verify']"),
-        (AppiumBy.XPATH, "//android.widget.Button[@text='Verify' or @content-desc='Verify']"),
         (AppiumBy.XPATH, "//*[@class='android.widget.Button' and contains(@text, 'Verify')]"),
-        (AppiumBy.XPATH, "//*[contains(@text, 'Verify')]"),
-        (AppiumBy.ACCESSIBILITY_ID, "verify"),
-        (AppiumBy.ID, "verify"),
     ]
     
     # Screen identification locators
