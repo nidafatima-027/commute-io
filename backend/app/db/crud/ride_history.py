@@ -28,6 +28,10 @@ def get_rider_ride_history(db: Session, user_id: int, ride_id: int) -> List[Ride
     """Get all ride history for a user (both as driver and rider)"""
     return db.query(RideHistory).filter(RideHistory.user_id == user_id, RideHistory.ride_id == ride_id).first()
 
+def get_ride_history_by_ride_id(db: Session, ride_id: int) -> List[RideHistory]:
+    """Get all ride history for a user (both as driver and rider)"""
+    return db.query(RideHistory).filter(RideHistory.ride_id == ride_id).all()
+
 def create_ride_history_entry(db: Session, user_id: int, ride_id: int, role: str) -> RideHistory:
     """Create a new ride history entry"""
     pakistan_tz = pytz.timezone('Asia/Karachi')

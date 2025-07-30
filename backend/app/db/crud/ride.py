@@ -54,6 +54,17 @@ def get_user_rides(db: Session, user_id: int) -> List[Ride]:
         .all()
     )
 
+def get_user_completed_rides(db: Session, user_id: int) -> List[Ride]:
+    today = date.today()
+    return (
+        db.query(Ride)
+        .filter(
+            Ride.driver_id == user_id,
+            Ride.status == 'end',  # adjust to your active flag
+        )
+        .all()
+    )
+
 def create_ride(db: Session, ride: RideCreate, driver_id: int) -> Ride:
     db_ride = Ride(
         driver_id=driver_id,

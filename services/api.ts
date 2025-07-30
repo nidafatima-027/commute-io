@@ -273,6 +273,10 @@ export const ridesAPI = {
     return apiRequest('/rides/my-rides');
   },
 
+  async getMyCompletedRides() {
+    return apiRequest('/rides/my-completed-rides');
+  },
+
   async getRideDetails(rideId: number) {
     return apiRequest(`/rides/${rideId}`);
   },
@@ -330,6 +334,10 @@ export const ridesAPI = {
 
   async getRideHistory() {
     return apiRequest('/rides/history');
+  },
+
+  async getRideHistoryByRideId(ride_id: number) {
+    return apiRequest(`/rides/history-ride/${ride_id}`);
   },
 
   async createRideHistory(userId: number, rideId: number, role: 'driver' | 'rider') {
