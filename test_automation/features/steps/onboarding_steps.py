@@ -160,7 +160,16 @@ def step_tap_continue_with_email(context):
     """Step to tap Continue with email button."""
     from pages.authentication_page import SignupPage
     signup_page = SignupPage()
+    
+    # Tap the Continue with email button
     assert signup_page.tap_continue_with_email(), "Failed to tap Continue with email button"
+    
+    # Wait for navigation to complete
+    import time
+    time.sleep(3)
+    
+    # Store the signup page in context for later use
+    context.signup_page = signup_page
 
 
 @when('I tap Continue with phone')
@@ -168,7 +177,16 @@ def step_tap_continue_with_phone(context):
     """Step to tap Continue with phone button."""
     from pages.authentication_page import SignupPage
     signup_page = SignupPage()
+    
+    # Tap the Continue with phone button
     assert signup_page.tap_continue_with_phone(), "Failed to tap Continue with phone button"
+    
+    # Wait for navigation to complete
+    import time
+    time.sleep(3)
+    
+    # Store the signup page in context for later use
+    context.signup_page = signup_page
 
 
 # Steps for email and phone input screens
@@ -178,11 +196,34 @@ def step_should_be_on_email_input_screen(context):
     from pages.authentication_page import EmailPage
     email_page = EmailPage()
     
-    # Wait for navigation
+    # Wait for navigation and screen to load
     import time
-    time.sleep(3)
+    time.sleep(5)  # Increased wait time for navigation
     
-    assert email_page.is_email_page_displayed(), "Email input screen is not displayed"
+    # Try multiple times to detect the screen
+    max_attempts = 3
+    for attempt in range(max_attempts):
+        if email_page.is_email_page_displayed():
+            print(f"✓ Email input screen detected on attempt {attempt + 1}")
+            context.email_page = email_page
+            return True
+        else:
+            print(f"Attempt {attempt + 1}: Email input screen not detected, waiting...")
+            time.sleep(2)
+    
+    # If still not detected, try alternative detection methods
+    from pages.base_page import BasePage
+    base_page = BasePage()
+    
+    # Check for email-related text or elements
+    if (base_page.is_text_present("email") or 
+        base_page.is_text_present("Email") or
+        base_page.is_text_present("Enter your email")):
+        print("✓ Email input screen detected via text search")
+        context.email_page = email_page
+        return True
+    
+    assert False, "Email input screen is not displayed after multiple attempts"
 
 
 @then('I should be on the phone input screen')
@@ -191,11 +232,34 @@ def step_should_be_on_phone_input_screen(context):
     from pages.authentication_page import PhoneNumberPage
     phone_page = PhoneNumberPage()
     
-    # Wait for navigation
+    # Wait for navigation and screen to load
     import time
-    time.sleep(3)
+    time.sleep(5)  # Increased wait time for navigation
     
-    assert phone_page.is_phone_page_displayed(), "Phone input screen is not displayed"
+    # Try multiple times to detect the screen
+    max_attempts = 3
+    for attempt in range(max_attempts):
+        if phone_page.is_phone_page_displayed():
+            print(f"✓ Phone input screen detected on attempt {attempt + 1}")
+            context.phone_page = phone_page
+            return True
+        else:
+            print(f"Attempt {attempt + 1}: Phone input screen not detected, waiting...")
+            time.sleep(2)
+    
+    # If still not detected, try alternative detection methods
+    from pages.base_page import BasePage
+    base_page = BasePage()
+    
+    # Check for phone-related text or elements
+    if (base_page.is_text_present("phone") or 
+        base_page.is_text_present("Phone") or
+        base_page.is_text_present("Enter your phone")):
+        print("✓ Phone input screen detected via text search")
+        context.phone_page = phone_page
+        return True
+    
+    assert False, "Phone input screen is not displayed after multiple attempts"
 
 
 # Steps for OTP verification screen

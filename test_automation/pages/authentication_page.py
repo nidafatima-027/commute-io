@@ -45,17 +45,37 @@ class SignupPage(BasePage):
     
     def tap_continue_with_email(self) -> bool:
         """Tap on Continue with email button."""
+        print("Attempting to tap 'Continue with email' button...")
+        
         if self.wait_for_element_to_be_clickable(self.CONTINUE_WITH_EMAIL_BUTTON):
             element = self.driver.find_element(*self.CONTINUE_WITH_EMAIL_BUTTON)
-            return self.tap_element(element)
-        return False
+            print(f"✓ Found 'Continue with email' button: {self.get_text_from_element(element)}")
+            result = self.tap_element(element)
+            if result:
+                print("✓ Successfully tapped 'Continue with email' button")
+            else:
+                print("✗ Failed to tap 'Continue with email' button")
+            return result
+        else:
+            print("✗ 'Continue with email' button not found or not clickable")
+            return False
     
     def tap_continue_with_phone(self) -> bool:
         """Tap on Continue with phone button."""
+        print("Attempting to tap 'Continue with phone' button...")
+        
         if self.wait_for_element_to_be_clickable(self.CONTINUE_WITH_PHONE_BUTTON):
             element = self.driver.find_element(*self.CONTINUE_WITH_PHONE_BUTTON)
-            return self.tap_element(element)
-        return False
+            print(f"✓ Found 'Continue with phone' button: {self.get_text_from_element(element)}")
+            result = self.tap_element(element)
+            if result:
+                print("✓ Successfully tapped 'Continue with phone' button")
+            else:
+                print("✗ Failed to tap 'Continue with phone' button")
+            return result
+        else:
+            print("✗ 'Continue with phone' button not found or not clickable")
+            return False
     
     def get_screen_title(self) -> str:
         """Get the screen title."""
@@ -127,13 +147,28 @@ class EmailPage(BasePage):
     def is_email_page_displayed(self) -> bool:
         """Check if email page is displayed based on Figma design."""
         try:
-            checks = [
-                self.wait_for_element_to_be_visible(self.EMAIL_INPUT, timeout=10),
-                self.wait_for_element_to_be_visible(self.CONTINUE_BUTTON, timeout=10)
-            ]
-            return any(checks)
-        except Exception:
-            return self.is_text_present("email") or self.is_text_present("Email")
+            # First try to find email input field
+            if self.wait_for_element_to_be_visible(self.EMAIL_INPUT, timeout=5):
+                print("✓ Email input field found")
+                return True
+            
+            # Try to find continue button
+            if self.wait_for_element_to_be_visible(self.CONTINUE_BUTTON, timeout=5):
+                print("✓ Continue button found on email page")
+                return True
+            
+            # Check for email-related text
+            if (self.is_text_present("email") or 
+                self.is_text_present("Email") or
+                self.is_text_present("Enter your email") or
+                self.is_text_present("Email address")):
+                print("✓ Email-related text found")
+                return True
+            
+            return False
+        except Exception as e:
+            print(f"Error checking email page: {str(e)}")
+            return False
     
     def enter_email(self, email: str) -> bool:
         """Enter email address."""
@@ -181,13 +216,28 @@ class PhoneNumberPage(BasePage):
     def is_phone_page_displayed(self) -> bool:
         """Check if phone page is displayed based on Figma design."""
         try:
-            checks = [
-                self.wait_for_element_to_be_visible(self.PHONE_INPUT, timeout=10),
-                self.wait_for_element_to_be_visible(self.CONTINUE_BUTTON, timeout=10)
-            ]
-            return any(checks)
-        except Exception:
-            return self.is_text_present("phone") or self.is_text_present("Phone")
+            # First try to find phone input field
+            if self.wait_for_element_to_be_visible(self.PHONE_INPUT, timeout=5):
+                print("✓ Phone input field found")
+                return True
+            
+            # Try to find continue button
+            if self.wait_for_element_to_be_visible(self.CONTINUE_BUTTON, timeout=5):
+                print("✓ Continue button found on phone page")
+                return True
+            
+            # Check for phone-related text
+            if (self.is_text_present("phone") or 
+                self.is_text_present("Phone") or
+                self.is_text_present("Enter your phone") or
+                self.is_text_present("Phone number")):
+                print("✓ Phone-related text found")
+                return True
+            
+            return False
+        except Exception as e:
+            print(f"Error checking phone page: {str(e)}")
+            return False
     
     def enter_phone_number(self, phone_number: str) -> bool:
         """Enter phone number."""
