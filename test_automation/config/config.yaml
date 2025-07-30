@@ -22,6 +22,25 @@ android:
   skip_unlock: true
   skip_log_capture: true
   
+# Expo Go URL scheme configuration
+expo:
+  scheme: "exp://"
+  base_url: "exp://192.168.1.100:8081"  # Update with your local IP
+  app_slug: "bolt-expo-nativewind"
+  
+# URL navigation paths for direct screen access
+navigation_urls:
+  onboarding: "/onboarding"
+  signup: "/auth/signup"
+  email_page: "/auth/EmailPage"
+  phone_page: "/auth/PhoneNumberPage"
+  profile_setup: "/auth/profile-setup"
+  home: "/(tabs)"
+  search: "/(tabs)/search"
+  profile: "/(tabs)/profile"
+  messages: "/(tabs)/messages"
+  driver_requests: "/(tabs)/driver-requests"
+  
 test_data:
   valid_phone: "+1234567890"
   valid_email: "test@example.com"

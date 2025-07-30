@@ -6,6 +6,7 @@ import sys
 from behave import fixture
 from utils.driver_factory import DriverFactory
 from utils.screenshot_helper import ScreenshotHelper
+from utils.url_navigator import URLNavigator
 
 # Add the project root to Python path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -27,6 +28,9 @@ def before_all(context):
     # Initialize context variables
     context.config = DriverFactory.load_config()
     context.screenshots_enabled = context.config.get('screenshots', {}).get('on_failure', True)
+    
+    # Initialize URL navigator
+    context.url_navigator = URLNavigator()
 
 
 def before_scenario(context, scenario):
@@ -37,7 +41,7 @@ def before_scenario(context, scenario):
     print(f"\nStarting scenario: {scenario.name}")
     
     try:
-        # Initialize driver for each scenario
+        # Initialize driver for each scenario (but don't quit after)
         context.driver = DriverFactory.create_driver()
         print("Appium driver initialized successfully")
         
@@ -45,12 +49,27 @@ def before_scenario(context, scenario):
         context.current_scenario = scenario.name
         context.current_step = "Scenario Setup"
         
+        # Navigate to onboarding screen for tests that start from there
+        if any(tag in scenario.tags for tag in ['@onboarding', '@get_started']):
+            print("Navigating to onboarding screen...")
+            if not context.url_navigator.navigate_to_onboarding():
+                print("Warning: Could not navigate to onboarding screen")
+            else:
+                # Wait for screen to load
+                import time
+                time.sleep(3)
+                if context.url_navigator.is_screen_loaded("onboarding"):
+                    print("✓ Onboarding screen loaded successfully")
+                else:
+                    print("Warning: Onboarding screen may not be fully loaded")
+        
     except Exception as e:
         print(f"Failed to initialize driver: {str(e)}")
         print("Please ensure:")
         print("1. Appium server is running on localhost:4723")
         print("2. Android device is connected and USB debugging is enabled")
-        print("3. The app package 'com.anonymous.boltexponativewind' is installed")
+        print("3. Expo Go is installed and your app is loaded")
+        print("4. Update the base_url in config.yaml with your local IP address")
         raise
 
 
@@ -86,7 +105,7 @@ def after_step(context, step):
 def after_scenario(context, scenario):
     """
     Executed after each scenario.
-    Clean up WebDriver and capture final screenshot if scenario failed.
+    Capture final screenshot if scenario failed, but keep app running.
     """
     if scenario.status == "failed":
         print(f"Scenario failed: {scenario.name}")
@@ -101,26 +120,23 @@ def after_scenario(context, scenario):
             except Exception as e:
                 print(f"Failed to capture final screenshot: {str(e)}")
     
-    # Quit driver after each scenario
-    try:
-        DriverFactory.quit_driver()
-        print("Driver quit successfully")
-    except Exception as e:
-        print(f"Error quitting driver: {str(e)}")
+    # DON'T quit driver - keep app running for next scenario
+    print("Keeping app running for next scenario...")
 
 
 def after_all(context):
     """
     Executed once after all tests.
-    Final cleanup.
+    Final cleanup - only quit driver at the very end.
     """
     print("\nTest automation completed")
     
-    # Ensure driver is quit
+    # Only quit driver at the very end
     try:
         DriverFactory.quit_driver()
-    except Exception:
-        pass  # Driver might already be quit
+        print("Driver quit successfully")
+    except Exception as e:
+        print(f"Error quitting driver: {str(e)}")
 
 
 # Fixture for handling app permissions
@@ -143,8 +159,8 @@ def grant_permissions(context):
 def reset_app(context):
     """Fixture to reset app to initial state."""
     try:
-        driver = DriverFactory.get_driver()
-        driver.reset()
+        # Instead of resetting, navigate back to onboarding
+        context.url_navigator.navigate_to_onboarding()
     except Exception as e:
         print(f"Could not reset app: {str(e)}")
 
@@ -158,3 +174,14 @@ def set_portrait_orientation(context):
         driver.orientation = "PORTRAIT"
     except Exception as e:
         print(f"Could not set orientation: {str(e)}")
+
+
+# Fixture for URL navigation
+@fixture
+def navigate_to_screen(context, screen_name):
+    """Fixture to navigate to a specific screen."""
+    try:
+        return context.url_navigator.navigate_to_screen(screen_name)
+    except Exception as e:
+        print(f"Could not navigate to {screen_name}: {str(e)}")
+        return False
