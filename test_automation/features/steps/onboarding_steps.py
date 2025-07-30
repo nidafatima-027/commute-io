@@ -105,31 +105,7 @@ def step_verify_screen_reader_support(context):
     assert context.onboarding_page.verify_accessibility_labels(), "Screen reader navigation not properly supported"
 
 
-# New step for URL-based navigation
-@given('I navigate to the onboarding screen via URL')
-def step_navigate_to_onboarding_via_url(context):
-    """Navigate to onboarding screen using URL navigation."""
-    assert context.url_navigator.navigate_to_onboarding(), "Failed to navigate to onboarding screen via URL"
-    
-    # Wait for screen to load
-    assert context.url_navigator.wait_for_screen_to_load("onboarding"), "Onboarding screen failed to load"
-    
-    context.onboarding_page = OnboardingPage()
-    context.onboarding_page.wait_for_screen_to_load()
-
-
-@when('I navigate to the signup screen via URL')
-def step_navigate_to_signup_via_url(context):
-    """Navigate to signup screen using URL navigation."""
-    assert context.url_navigator.navigate_to_signup(), "Failed to navigate to signup screen via URL"
-    
-    # Wait for screen to load
-    assert context.url_navigator.wait_for_screen_to_load("signup"), "Signup screen failed to load"
-    
-    # Import here to avoid circular imports
-    from pages.authentication_page import SignupPage
-    context.signup_page = SignupPage()
-    context.signup_page.wait_for_screen_to_load()
+# URL navigation steps removed as requested
 
 
 # New steps for specific text verification

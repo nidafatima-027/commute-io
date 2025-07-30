@@ -30,12 +30,7 @@ Feature: Signup Flow
     When I tap Continue with phone
     Then I should be on the phone input screen
 
-  @signup @url_navigation
-  Scenario: Navigate directly to signup screen via URL
-    Given I navigate to the signup screen via URL
-    Then I should see the signup screen
-    And I should see Continue with email button
-    And I should see Continue with phone button
+           # URL navigation scenario removed as requested
 
   @signup @accessibility
   Scenario: Signup screen accessibility

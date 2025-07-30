@@ -26,9 +26,4 @@ Feature: Get Started Page
     Then all interactive elements should have accessibility labels
     And the screen should support screen reader navigation
 
-  @get_started @url_navigation
-  Scenario: Navigate to Get Started via URL
-    Given I navigate to the onboarding screen via URL
-    When I am on the onboarding screen
-    Then I should see the Get Started button
-    And I should see the welcome message "Carpooling made easy"
+           # URL navigation scenario removed as requested

@@ -67,7 +67,7 @@ The test framework automatically configures itself using `setup_test_environment
 1. **IP Address**: The setup script automatically detects your local IP and updates the config
 2. **Expo Go**: Tests connect to Expo Go app, not a standalone APK
 3. **App State**: Tests keep the app running between scenarios for faster execution
-4. **URL Navigation**: Tests use Expo Go's URL scheme for direct screen access
+4. **App Navigation**: Tests use normal app navigation flow
 
 ## 🧪 Test Structure
 
@@ -85,7 +85,6 @@ The test framework automatically configures itself using `setup_test_environment
 - `pages/base_page.py` - Common page functionality
 
 ### Utilities
-- `utils/url_navigator.py` - URL-based navigation for Expo Go
 - `utils/driver_factory.py` - Appium driver management
 - `utils/screenshot_helper.py` - Screenshot capture on failures
 

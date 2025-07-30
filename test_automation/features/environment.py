@@ -6,7 +6,7 @@ import sys
 from behave import fixture
 from utils.driver_factory import DriverFactory
 from utils.screenshot_helper import ScreenshotHelper
-from utils.url_navigator import URLNavigator
+# URL navigation removed as requested
 
 # Add the project root to Python path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -29,8 +29,7 @@ def before_all(context):
     context.config = DriverFactory.load_config()
     context.screenshots_enabled = context.config.get('screenshots', {}).get('on_failure', True)
     
-    # Initialize URL navigator
-    context.url_navigator = URLNavigator()
+    # URL navigation removed as requested
 
 
 def before_scenario(context, scenario):
@@ -49,19 +48,7 @@ def before_scenario(context, scenario):
         context.current_scenario = scenario.name
         context.current_step = "Scenario Setup"
         
-        # Navigate to onboarding screen for tests that start from there
-        if any(tag in scenario.tags for tag in ['@onboarding', '@get_started']):
-            print("Navigating to onboarding screen...")
-            if not context.url_navigator.navigate_to_onboarding():
-                print("Warning: Could not navigate to onboarding screen")
-            else:
-                # Wait for screen to load
-                import time
-                time.sleep(3)
-                if context.url_navigator.is_screen_loaded("onboarding"):
-                    print("✓ Onboarding screen loaded successfully")
-                else:
-                    print("Warning: Onboarding screen may not be fully loaded")
+        # App will be launched normally without URL navigation
         
     except Exception as e:
         print(f"Failed to initialize driver: {str(e)}")
