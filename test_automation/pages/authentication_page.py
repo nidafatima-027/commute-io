@@ -274,9 +274,15 @@ class SignupPage(BasePage):
 class EmailPage(BasePage):
     """Page object for email input screen based on Figma design."""
     
-    # Locators based on Figma design
+    # Enhanced locators with multiple strategies
     EMAIL_INPUT = (AppiumBy.XPATH, "//*[contains(@resource-id, 'email') or contains(@hint, 'email') or contains(@placeholder, 'email') or contains(@text, 'email')]")
+    EMAIL_INPUT_ALT = (AppiumBy.XPATH, "//android.widget.EditText[contains(@resource-id, 'email') or contains(@hint, 'email')]")
+    EMAIL_INPUT_CLASS = (AppiumBy.XPATH, "//*[@class='android.widget.EditText']")
+    
     CONTINUE_BUTTON = (AppiumBy.XPATH, "//*[@text='Continue' or @content-desc='Continue' or contains(@text, 'Continue')]")
+    CONTINUE_BUTTON_ALT = (AppiumBy.XPATH, "//android.widget.Button[@text='Continue' or @content-desc='Continue']")
+    CONTINUE_BUTTON_CLASS = (AppiumBy.XPATH, "//*[@class='android.widget.Button' and contains(@text, 'Continue')]")
+    
     BACK_BUTTON = (AppiumBy.XPATH, "//*[@text='Back' or @content-desc='Back' or contains(@text, 'Back')]")
     ERROR_MESSAGE = (AppiumBy.XPATH, "//*[contains(@resource-id, 'error') or contains(@class, 'error') or contains(@text, 'error')]")
     SCREEN_TITLE = (AppiumBy.XPATH, "//*[contains(@text, 'Email') or contains(@content-desc, 'Email')]")
