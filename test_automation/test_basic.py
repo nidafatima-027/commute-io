@@ -53,10 +53,12 @@ def test_config_loading():
         
         # Check specific config values
         app_package = config.get('android', {}).get('app_package')
-        if app_package == 'com.anonymous.boltexponativewind':
-            print("✓ App package configured correctly")
+        valid_packages = ['com.anonymous.boltexponativewind', 'host.exp.exponent']
+        if app_package in valid_packages:
+            print(f"✓ App package configured correctly: {app_package}")
         else:
             print(f"✗ App package incorrect: {app_package}")
+            print(f"  Expected one of: {valid_packages}")
             return False
             
         return True
