@@ -16,14 +16,37 @@ def check_prerequisites():
     # Check if Appium server is running
     try:
         import requests
-        response = requests.get("http://localhost:4723/wd/hub/status", timeout=5)
-        if response.status_code == 200:
-            print("✓ Appium server is running")
-        else:
+        # Try multiple URLs in case of network configuration issues
+        urls_to_try = [
+            "http://localhost:4723/wd/hub/status",
+            "http://127.0.0.1:4723/wd/hub/status",
+            "http://0.0.0.0:4723/wd/hub/status"
+        ]
+        
+        server_found = False
+        for url in urls_to_try:
+            try:
+                response = requests.get(url, timeout=5)
+                if response.status_code == 200:
+                    print(f"✓ Appium server is running on {url}")
+                    server_found = True
+                    break
+            except requests.exceptions.RequestException:
+                continue
+        
+        if not server_found:
             print("✗ Appium server is not responding properly")
+            print("  Server should be running on one of:")
+            for url in urls_to_try:
+                print(f"    {url}")
+            print("  Please ensure Appium server is started with: appium --port 4723")
             return False
-    except Exception:
-        print("✗ Appium server is not running on localhost:4723")
+            
+    except ImportError:
+        print("✗ requests module not available")
+        return False
+    except Exception as e:
+        print(f"✗ Error checking Appium server: {str(e)}")
         print("  Please start Appium server with: appium --port 4723")
         return False
     
