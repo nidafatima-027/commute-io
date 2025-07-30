@@ -86,7 +86,8 @@ def install_dependencies():
 
 def run_tests(tags=None, feature=None, format_type="pretty", output_dir="allure-results"):
     """Run Behave tests with specified parameters."""
-    cmd = ["behave"]
+    # Use python -m behave for better compatibility on Windows
+    cmd = [sys.executable, "-m", "behave"]
     
     # Add format
     if format_type == "allure":
@@ -108,10 +109,11 @@ def run_tests(tags=None, feature=None, format_type="pretty", output_dir="allure-
     print(f"Running command: {' '.join(cmd)}")
     
     try:
-        result = subprocess.run(cmd, cwd="test_automation")
+        # Set working directory to current directory since we're already in test_automation
+        result = subprocess.run(cmd)
         return result.returncode == 0
     except FileNotFoundError:
-        print("✗ Behave not found. Please install with: pip install behave")
+        print("✗ Python not found in PATH")
         return False
     except Exception as e:
         print(f"✗ Error running tests: {str(e)}")
@@ -125,12 +127,12 @@ def generate_allure_report(results_dir="allure-results", report_dir="allure-repo
     try:
         # Generate report
         subprocess.run(["allure", "generate", results_dir, "-o", report_dir, "--clean"], 
-                      check=True, cwd="test_automation")
+                      check=True)
         print(f"✓ Report generated in {report_dir}")
         
         # Serve report
         print("Starting Allure server...")
-        subprocess.run(["allure", "serve", results_dir], cwd="test_automation")
+        subprocess.run(["allure", "serve", results_dir])
         
     except FileNotFoundError:
         print("✗ Allure not found. Please install Allure CLI")
@@ -173,8 +175,10 @@ def main():
     
     args = parser.parse_args()
     
-    # Change to test automation directory
-    os.chdir(Path(__file__).parent)
+    # Ensure we're in the test automation directory
+    script_dir = Path(__file__).parent
+    if not os.getcwd().endswith('test_automation'):
+        os.chdir(script_dir)
     
     # Check prerequisites if requested or if no other action specified
     if args.check or not any([args.install, args.tags, args.feature, 
