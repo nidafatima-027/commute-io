@@ -266,44 +266,46 @@ def step_should_be_on_profile_setup_screen(context):
     assert profile_page.is_profile_setup_screen_displayed(), "Profile setup screen is not displayed"
 
 
-@given('I am on the profile setup screen')
-def step_given_on_profile_setup_screen(context):
-    """Given step for being on profile setup screen."""
-    from pages.authentication_page import ProfileSetupPage
-    profile_page = ProfileSetupPage()
-    assert profile_page.is_profile_setup_screen_displayed(), "Profile setup screen is not displayed"
+# This step is already defined in authentication_steps.py
+# @given('I am on the profile setup screen')
+# def step_given_on_profile_setup_screen(context):
+#     """Given step for being on profile setup screen."""
+#     from pages.authentication_page import ProfileSetupPage
+#     profile_page = ProfileSetupPage()
+#     assert profile_page.is_profile_setup_screen_displayed(), "Profile setup screen is not displayed"
 
 
-@when('I enter first name "{first_name}"')
-def step_enter_first_name(context, first_name):
-    """Step to enter first name."""
-    from pages.authentication_page import ProfileSetupPage
-    profile_page = ProfileSetupPage()
-    assert profile_page.enter_first_name(first_name), f"Failed to enter first name: {first_name}"
+# These steps are already defined in authentication_steps.py
+# @when('I enter first name "{first_name}"')
+# def step_enter_first_name(context, first_name):
+#     """Step to enter first name."""
+#     from pages.authentication_page import ProfileSetupPage
+#     profile_page = ProfileSetupPage()
+#     assert profile_page.enter_first_name(first_name), f"Failed to enter first name: {first_name}"
 
 
-@when('I enter last name "{last_name}"')
-def step_enter_last_name(context, last_name):
-    """Step to enter last name."""
-    from pages.authentication_page import ProfileSetupPage
-    profile_page = ProfileSetupPage()
-    assert profile_page.enter_last_name(last_name), f"Failed to enter last name: {last_name}"
+# @when('I enter last name "{last_name}"')
+# def step_enter_last_name(context, last_name):
+#     """Step to enter last name."""
+#     from pages.authentication_page import ProfileSetupPage
+#     profile_page = ProfileSetupPage()
+#     assert profile_page.enter_last_name(last_name), f"Failed to enter last name: {last_name}"
 
 
-@when('I select date of birth "{dob}"')
-def step_select_date_of_birth(context, dob):
-    """Step to select date of birth."""
-    from pages.authentication_page import ProfileSetupPage
-    profile_page = ProfileSetupPage()
-    assert profile_page.select_date_of_birth(dob), f"Failed to select date of birth: {dob}"
+# @when('I select date of birth "{dob}"')
+# def step_select_date_of_birth(context, dob):
+#     """Step to select date of birth."""
+#     from pages.authentication_page import ProfileSetupPage
+#     profile_page = ProfileSetupPage()
+#     assert profile_page.select_date_of_birth(dob), f"Failed to select date of birth: {dob}"
 
 
-@when('I select gender "{gender}"')
-def step_select_gender(context, gender):
-    """Step to enter last name."""
-    from pages.authentication_page import ProfileSetupPage
-    profile_page = ProfileSetupPage()
-    assert profile_page.select_gender(gender), f"Failed to select gender: {gender}"
+# @when('I select gender "{gender}"')
+# def step_select_gender(context, gender):
+#     """Step to select gender."""
+#     from pages.authentication_page import ProfileSetupPage
+#     profile_page = ProfileSetupPage()
+#     assert profile_page.select_gender(gender), f"Failed to select gender: {gender}"
 
 
 # Steps for main app dashboard
@@ -337,12 +339,13 @@ def step_should_be_on_main_app_dashboard(context):
 
 
 # Steps for error messages
-@then('I should see error message "{error_message}"')
-def step_should_see_error_message(context, error_message):
-    """Step to verify error message is displayed."""
-    from pages.base_page import BasePage
-    base_page = BasePage()
-    assert base_page.is_text_present(error_message), f"Error message '{error_message}' not found"
+# This step is already defined in authentication_steps.py
+# @then('I should see error message "{error_message}"')
+# def step_should_see_error_message(context, error_message):
+#     """Step to verify error message is displayed."""
+#     from pages.base_page import BasePage
+#     base_page = BasePage()
+#     assert base_page.is_text_present(error_message), f"Error message '{error_message}' not found"
 
 
 # Steps for back navigation

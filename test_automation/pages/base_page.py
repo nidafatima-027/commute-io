@@ -8,7 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from appium.webdriver.common.appiumby import AppiumBy
-from appium.webdriver.common.touch_action import TouchAction
+# TouchAction is deprecated in newer Appium versions, using W3C Actions instead
 from utils.driver_factory import DriverFactory
 from utils.screenshot_helper import ScreenshotHelper
 
@@ -96,10 +96,11 @@ class BasePage:
             return False
     
     def tap_by_coordinates(self, x: int, y: int) -> bool:
-        """Tap at specific coordinates."""
+        """Tap at specific coordinates using W3C Actions."""
         try:
-            action = TouchAction(self.driver)
-            action.tap(x=x, y=y).perform()
+            from selenium.webdriver.common.action_chains import ActionChains
+            actions = ActionChains(self.driver)
+            actions.move_by_offset(x, y).click().perform()
             return True
         except Exception as e:
             print(f"Failed to tap coordinates ({x}, {y}): {str(e)}")
