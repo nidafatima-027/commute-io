@@ -1,0 +1,10 @@
+Appium-Python-Client==3.1.1
+behave==1.2.6
+selenium==4.15.2
+allure-behave==2.13.2
+pytest==7.4.3
+faker==20.1.0
+pyyaml==6.0.1
+requests==2.31.0
+jsonschema==4.20.0
+pillow==10.1.0
