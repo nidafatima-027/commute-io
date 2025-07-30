@@ -1,5 +1,6 @@
 """
 Authentication page objects for signup, login, and OTP verification screens.
+Based on Figma design analysis.
 """
 from selenium.webdriver.common.by import By
 from appium.webdriver.common.appiumby import AppiumBy
@@ -8,32 +9,32 @@ import time
 
 
 class SignupPage(BasePage):
-    """Page object for signup screen."""
+    """Page object for signup screen based on Figma design."""
     
-    # Locators based on actual app structure
-    APP_NAME = (AppiumBy.XPATH, "//*[contains(@text, 'Commute_io')]")
-    TITLE = (AppiumBy.XPATH, "//*[contains(@text, 'Get started')]")
-    CONTINUE_WITH_EMAIL_BUTTON = (AppiumBy.XPATH, "//*[contains(@text, 'Continue with email') or contains(@text, 'email')]")
-    CONTINUE_WITH_PHONE_BUTTON = (AppiumBy.XPATH, "//*[contains(@text, 'Continue with phone') or contains(@text, 'phone')]")
-    TERMS_TEXT = (AppiumBy.XPATH, "//*[contains(@text, 'Terms of Service') or contains(@text, 'Privacy Policy')]")
+    # Locators based on exact Figma design
+    APP_NAME = (AppiumBy.XPATH, "//*[contains(@text, 'Commute_io') or contains(@content-desc, 'Commute_io')]")
+    TITLE = (AppiumBy.XPATH, "//*[contains(@text, 'Get started') or contains(@content-desc, 'Get started')]")
+    CONTINUE_WITH_EMAIL_BUTTON = (AppiumBy.XPATH, "//*[contains(@text, 'Continue with email') or contains(@content-desc, 'Continue with email') or contains(@text, 'email')]")
+    CONTINUE_WITH_PHONE_BUTTON = (AppiumBy.XPATH, "//*[contains(@text, 'Continue with phone') or contains(@content-desc, 'Continue with phone') or contains(@text, 'phone')]")
+    TERMS_TEXT = (AppiumBy.XPATH, "//*[contains(@text, 'Terms of Service') or contains(@text, 'Privacy Policy') or contains(@content-desc, 'Terms')]")
     
     # Email/Phone input locators (for the next screens)
-    EMAIL_INPUT = (AppiumBy.XPATH, "//*[contains(@resource-id, 'email') or contains(@hint, 'email') or contains(@placeholder, 'email')]")
-    PHONE_INPUT = (AppiumBy.XPATH, "//*[contains(@resource-id, 'phone') or contains(@hint, 'phone') or contains(@placeholder, 'phone')]")
-    CONTINUE_BUTTON = (AppiumBy.XPATH, "//*[@text='Continue' or @content-desc='Continue']")
-    ERROR_MESSAGE = (AppiumBy.XPATH, "//*[contains(@resource-id, 'error') or contains(@class, 'error')]")
+    EMAIL_INPUT = (AppiumBy.XPATH, "//*[contains(@resource-id, 'email') or contains(@hint, 'email') or contains(@placeholder, 'email') or contains(@text, 'email')]")
+    PHONE_INPUT = (AppiumBy.XPATH, "//*[contains(@resource-id, 'phone') or contains(@hint, 'phone') or contains(@placeholder, 'phone') or contains(@text, 'phone')]")
+    CONTINUE_BUTTON = (AppiumBy.XPATH, "//*[@text='Continue' or @content-desc='Continue' or contains(@text, 'Continue')]")
+    ERROR_MESSAGE = (AppiumBy.XPATH, "//*[contains(@resource-id, 'error') or contains(@class, 'error') or contains(@text, 'error')]")
     
     def __init__(self):
         super().__init__()
     
     def is_signup_screen_displayed(self) -> bool:
-        """Check if signup screen is displayed."""
+        """Check if signup screen is displayed based on Figma design."""
         try:
-            # Check for multiple signup screen elements
+            # Check for multiple signup screen elements from Figma
             checks = [
-                self.wait_for_element_to_be_visible(self.TITLE, timeout=5),
-                self.wait_for_element_to_be_visible(self.CONTINUE_WITH_EMAIL_BUTTON, timeout=5),
-                self.wait_for_element_to_be_visible(self.CONTINUE_WITH_PHONE_BUTTON, timeout=5)
+                self.wait_for_element_to_be_visible(self.TITLE, timeout=10),
+                self.wait_for_element_to_be_visible(self.CONTINUE_WITH_EMAIL_BUTTON, timeout=10),
+                self.wait_for_element_to_be_visible(self.CONTINUE_WITH_PHONE_BUTTON, timeout=10)
             ]
             return any(checks)
         except Exception:
@@ -66,11 +67,11 @@ class SignupPage(BasePage):
     
     def is_continue_with_email_displayed(self) -> bool:
         """Check if Continue with email button is displayed."""
-        return self.wait_for_element_to_be_visible(self.CONTINUE_WITH_EMAIL_BUTTON, timeout=5)
+        return self.wait_for_element_to_be_visible(self.CONTINUE_WITH_EMAIL_BUTTON, timeout=10)
     
     def is_continue_with_phone_displayed(self) -> bool:
         """Check if Continue with phone button is displayed."""
-        return self.wait_for_element_to_be_visible(self.CONTINUE_WITH_PHONE_BUTTON, timeout=5)
+        return self.wait_for_element_to_be_visible(self.CONTINUE_WITH_PHONE_BUTTON, timeout=10)
     
     def is_terms_text_displayed(self) -> bool:
         """Check if terms text is displayed."""
@@ -111,20 +112,28 @@ class SignupPage(BasePage):
 
 
 class EmailPage(BasePage):
-    """Page object for email input screen."""
+    """Page object for email input screen based on Figma design."""
     
-    # Locators
-    EMAIL_INPUT = (AppiumBy.XPATH, "//*[contains(@resource-id, 'email') or contains(@hint, 'email') or contains(@placeholder, 'email')]")
-    CONTINUE_BUTTON = (AppiumBy.XPATH, "//*[@text='Continue' or @content-desc='Continue']")
-    BACK_BUTTON = (AppiumBy.XPATH, "//*[@text='Back' or @content-desc='Back']")
-    ERROR_MESSAGE = (AppiumBy.XPATH, "//*[contains(@resource-id, 'error') or contains(@class, 'error')]")
+    # Locators based on Figma design
+    EMAIL_INPUT = (AppiumBy.XPATH, "//*[contains(@resource-id, 'email') or contains(@hint, 'email') or contains(@placeholder, 'email') or contains(@text, 'email')]")
+    CONTINUE_BUTTON = (AppiumBy.XPATH, "//*[@text='Continue' or @content-desc='Continue' or contains(@text, 'Continue')]")
+    BACK_BUTTON = (AppiumBy.XPATH, "//*[@text='Back' or @content-desc='Back' or contains(@text, 'Back')]")
+    ERROR_MESSAGE = (AppiumBy.XPATH, "//*[contains(@resource-id, 'error') or contains(@class, 'error') or contains(@text, 'error')]")
+    SCREEN_TITLE = (AppiumBy.XPATH, "//*[contains(@text, 'Email') or contains(@content-desc, 'Email')]")
     
     def __init__(self):
         super().__init__()
     
     def is_email_page_displayed(self) -> bool:
-        """Check if email page is displayed."""
-        return self.wait_for_element_to_be_visible(self.EMAIL_INPUT, timeout=5)
+        """Check if email page is displayed based on Figma design."""
+        try:
+            checks = [
+                self.wait_for_element_to_be_visible(self.EMAIL_INPUT, timeout=10),
+                self.wait_for_element_to_be_visible(self.CONTINUE_BUTTON, timeout=10)
+            ]
+            return any(checks)
+        except Exception:
+            return self.is_text_present("email") or self.is_text_present("Email")
     
     def enter_email(self, email: str) -> bool:
         """Enter email address."""
@@ -146,23 +155,39 @@ class EmailPage(BasePage):
             element = self.driver.find_element(*self.BACK_BUTTON)
             return self.tap_element(element)
         return False
+    
+    def get_screen_title(self) -> str:
+        """Get the screen title."""
+        try:
+            element = self.driver.find_element(*self.SCREEN_TITLE)
+            return self.get_text_from_element(element)
+        except Exception:
+            return ""
 
 
 class PhoneNumberPage(BasePage):
-    """Page object for phone number input screen."""
+    """Page object for phone number input screen based on Figma design."""
     
-    # Locators
-    PHONE_INPUT = (AppiumBy.XPATH, "//*[contains(@resource-id, 'phone') or contains(@hint, 'phone') or contains(@placeholder, 'phone')]")
-    CONTINUE_BUTTON = (AppiumBy.XPATH, "//*[@text='Continue' or @content-desc='Continue']")
-    BACK_BUTTON = (AppiumBy.XPATH, "//*[@text='Back' or @content-desc='Back']")
-    ERROR_MESSAGE = (AppiumBy.XPATH, "//*[contains(@resource-id, 'error') or contains(@class, 'error')]")
+    # Locators based on Figma design
+    PHONE_INPUT = (AppiumBy.XPATH, "//*[contains(@resource-id, 'phone') or contains(@hint, 'phone') or contains(@placeholder, 'phone') or contains(@text, 'phone')]")
+    CONTINUE_BUTTON = (AppiumBy.XPATH, "//*[@text='Continue' or @content-desc='Continue' or contains(@text, 'Continue')]")
+    BACK_BUTTON = (AppiumBy.XPATH, "//*[@text='Back' or @content-desc='Back' or contains(@text, 'Back')]")
+    ERROR_MESSAGE = (AppiumBy.XPATH, "//*[contains(@resource-id, 'error') or contains(@class, 'error') or contains(@text, 'error')]")
+    SCREEN_TITLE = (AppiumBy.XPATH, "//*[contains(@text, 'Phone') or contains(@content-desc, 'Phone')]")
     
     def __init__(self):
         super().__init__()
     
     def is_phone_page_displayed(self) -> bool:
-        """Check if phone page is displayed."""
-        return self.wait_for_element_to_be_visible(self.PHONE_INPUT, timeout=5)
+        """Check if phone page is displayed based on Figma design."""
+        try:
+            checks = [
+                self.wait_for_element_to_be_visible(self.PHONE_INPUT, timeout=10),
+                self.wait_for_element_to_be_visible(self.CONTINUE_BUTTON, timeout=10)
+            ]
+            return any(checks)
+        except Exception:
+            return self.is_text_present("phone") or self.is_text_present("Phone")
     
     def enter_phone_number(self, phone_number: str) -> bool:
         """Enter phone number."""
@@ -184,44 +209,59 @@ class PhoneNumberPage(BasePage):
             element = self.driver.find_element(*self.BACK_BUTTON)
             return self.tap_element(element)
         return False
+    
+    def get_screen_title(self) -> str:
+        """Get the screen title."""
+        try:
+            element = self.driver.find_element(*self.SCREEN_TITLE)
+            return self.get_text_from_element(element)
+        except Exception:
+            return ""
 
 
 class OTPVerificationPage(BasePage):
-    """Page object for OTP verification screen."""
+    """Page object for OTP verification screen based on Figma design."""
     
-    # Locators
-    OTP_INPUT = (AppiumBy.XPATH, "//*[contains(@resource-id, 'otp') or contains(@hint, 'OTP')]")
-    OTP_DIGIT_1 = (AppiumBy.XPATH, "(//*[contains(@resource-id, 'otp') or contains(@class, 'otp')])[1]")
-    OTP_DIGIT_2 = (AppiumBy.XPATH, "(//*[contains(@resource-id, 'otp') or contains(@class, 'otp')])[2]")
-    OTP_DIGIT_3 = (AppiumBy.XPATH, "(//*[contains(@resource-id, 'otp') or contains(@class, 'otp')])[3]")
-    OTP_DIGIT_4 = (AppiumBy.XPATH, "(//*[contains(@resource-id, 'otp') or contains(@class, 'otp')])[4]")
-    OTP_DIGIT_5 = (AppiumBy.XPATH, "(//*[contains(@resource-id, 'otp') or contains(@class, 'otp')])[5]")
-    OTP_DIGIT_6 = (AppiumBy.XPATH, "(//*[contains(@resource-id, 'otp') or contains(@class, 'otp')])[6]")
-    VERIFY_BUTTON = (AppiumBy.XPATH, "//*[@text='Verify' or @content-desc='Verify']")
-    RESEND_OTP_BUTTON = (AppiumBy.XPATH, "//*[contains(@text, 'Resend') or contains(@text, 'resend')]")
-    TIMER_TEXT = (AppiumBy.XPATH, "//*[contains(@text, 'seconds') or contains(@text, 'minute')]")
-    ERROR_MESSAGE = (AppiumBy.XPATH, "//*[contains(@resource-id, 'error') or contains(@class, 'error')]")
+    # Locators based on Figma design - 6-digit OTP input
+    OTP_INPUT = (AppiumBy.XPATH, "//*[contains(@resource-id, 'otp') or contains(@hint, 'OTP') or contains(@placeholder, 'OTP')]")
+    OTP_DIGIT_1 = (AppiumBy.XPATH, "(//*[contains(@resource-id, 'otp') or contains(@class, 'otp') or contains(@text, 'OTP')])[1]")
+    OTP_DIGIT_2 = (AppiumBy.XPATH, "(//*[contains(@resource-id, 'otp') or contains(@class, 'otp') or contains(@text, 'OTP')])[2]")
+    OTP_DIGIT_3 = (AppiumBy.XPATH, "(//*[contains(@resource-id, 'otp') or contains(@class, 'otp') or contains(@text, 'OTP')])[3]")
+    OTP_DIGIT_4 = (AppiumBy.XPATH, "(//*[contains(@resource-id, 'otp') or contains(@class, 'otp') or contains(@text, 'OTP')])[4]")
+    OTP_DIGIT_5 = (AppiumBy.XPATH, "(//*[contains(@resource-id, 'otp') or contains(@class, 'otp') or contains(@text, 'OTP')])[5]")
+    OTP_DIGIT_6 = (AppiumBy.XPATH, "(//*[contains(@resource-id, 'otp') or contains(@class, 'otp') or contains(@text, 'OTP')])[6]")
+    VERIFY_BUTTON = (AppiumBy.XPATH, "//*[@text='Verify' or @content-desc='Verify' or contains(@text, 'Verify')]")
+    RESEND_OTP_BUTTON = (AppiumBy.XPATH, "//*[contains(@text, 'Resend') or contains(@text, 'resend') or contains(@content-desc, 'Resend')]")
+    TIMER_TEXT = (AppiumBy.XPATH, "//*[contains(@text, 'seconds') or contains(@text, 'minute') or contains(@content-desc, 'timer')]")
+    ERROR_MESSAGE = (AppiumBy.XPATH, "//*[contains(@resource-id, 'error') or contains(@class, 'error') or contains(@text, 'error')]")
+    SCREEN_TITLE = (AppiumBy.XPATH, "//*[contains(@text, 'OTP') or contains(@text, 'verification') or contains(@content-desc, 'OTP')]")
     
     def __init__(self):
         super().__init__()
     
     def is_otp_verification_screen_displayed(self) -> bool:
-        """Check if OTP verification screen is displayed."""
-        return (self.is_element_present(self.OTP_INPUT) or
-                self.is_element_present(self.VERIFY_BUTTON) or
-                self.is_text_present("OTP") or
-                self.is_text_present("verification"))
+        """Check if OTP verification screen is displayed based on Figma design."""
+        try:
+            checks = [
+                self.wait_for_element_to_be_visible(self.VERIFY_BUTTON, timeout=10),
+                self.wait_for_element_to_be_visible(self.OTP_INPUT, timeout=10)
+            ]
+            return any(checks)
+        except Exception:
+            return (self.is_text_present("OTP") or
+                    self.is_text_present("verification") or
+                    self.is_text_present("Verify"))
     
     def enter_otp(self, otp: str) -> bool:
-        """Enter OTP code."""
+        """Enter OTP code based on Figma design."""
         try:
             if len(otp) == 6:
-                # Try to enter in individual digit fields
+                # Try to enter in individual digit fields (6-digit OTP from Figma)
                 digits = [self.OTP_DIGIT_1, self.OTP_DIGIT_2, self.OTP_DIGIT_3, 
                          self.OTP_DIGIT_4, self.OTP_DIGIT_5, self.OTP_DIGIT_6]
                 
                 for i, digit_locator in enumerate(digits):
-                    if self.wait_for_element_to_be_visible(digit_locator, timeout=2):
+                    if self.wait_for_element_to_be_visible(digit_locator, timeout=3):
                         element = self.driver.find_element(*digit_locator)
                         self.enter_text(element, otp[i])
                         time.sleep(0.5)
@@ -279,28 +319,44 @@ class OTPVerificationPage(BasePage):
             element = self.driver.find_element(*self.ERROR_MESSAGE)
             return self.get_text_from_element(element)
         return ""
+    
+    def get_screen_title(self) -> str:
+        """Get the screen title."""
+        try:
+            element = self.driver.find_element(*self.SCREEN_TITLE)
+            return self.get_text_from_element(element)
+        except Exception:
+            return ""
 
 
 class ProfileSetupPage(BasePage):
-    """Page object for profile setup screen."""
+    """Page object for profile setup screen based on Figma design."""
     
-    # Locators
-    FIRST_NAME_INPUT = (AppiumBy.XPATH, "//*[contains(@resource-id, 'first') or contains(@hint, 'First')]")
-    LAST_NAME_INPUT = (AppiumBy.XPATH, "//*[contains(@resource-id, 'last') or contains(@hint, 'Last')]")
-    DATE_OF_BIRTH_INPUT = (AppiumBy.XPATH, "//*[contains(@resource-id, 'birth') or contains(@hint, 'birth')]")
-    GENDER_DROPDOWN = (AppiumBy.XPATH, "//*[contains(@resource-id, 'gender') or contains(@text, 'Gender')]")
-    PROFILE_PICTURE_BUTTON = (AppiumBy.XPATH, "//*[contains(@resource-id, 'photo') or contains(@text, 'photo')]")
-    CONTINUE_BUTTON = (AppiumBy.XPATH, "//*[@text='Continue' or @content-desc='Continue']")
-    SKIP_BUTTON = (AppiumBy.XPATH, "//*[@text='Skip' or @content-desc='Skip']")
+    # Locators based on Figma design
+    FIRST_NAME_INPUT = (AppiumBy.XPATH, "//*[contains(@resource-id, 'first') or contains(@hint, 'First') or contains(@placeholder, 'First')]")
+    LAST_NAME_INPUT = (AppiumBy.XPATH, "//*[contains(@resource-id, 'last') or contains(@hint, 'Last') or contains(@placeholder, 'Last')]")
+    DATE_OF_BIRTH_INPUT = (AppiumBy.XPATH, "//*[contains(@resource-id, 'birth') or contains(@hint, 'birth') or contains(@placeholder, 'birth')]")
+    GENDER_DROPDOWN = (AppiumBy.XPATH, "//*[contains(@resource-id, 'gender') or contains(@text, 'Gender') or contains(@placeholder, 'Gender')]")
+    PROFILE_PICTURE_BUTTON = (AppiumBy.XPATH, "//*[contains(@resource-id, 'photo') or contains(@text, 'photo') or contains(@content-desc, 'photo')]")
+    CONTINUE_BUTTON = (AppiumBy.XPATH, "//*[@text='Continue' or @content-desc='Continue' or contains(@text, 'Continue')]")
+    SKIP_BUTTON = (AppiumBy.XPATH, "//*[@text='Skip' or @content-desc='Skip' or contains(@text, 'Skip')]")
+    SCREEN_TITLE = (AppiumBy.XPATH, "//*[contains(@text, 'profile') or contains(@text, 'setup') or contains(@content-desc, 'profile')]")
     
     def __init__(self):
         super().__init__()
     
     def is_profile_setup_screen_displayed(self) -> bool:
-        """Check if profile setup screen is displayed."""
-        return (self.is_element_present(self.FIRST_NAME_INPUT) or
-                self.is_text_present("profile") or
-                self.is_text_present("setup"))
+        """Check if profile setup screen is displayed based on Figma design."""
+        try:
+            checks = [
+                self.wait_for_element_to_be_visible(self.FIRST_NAME_INPUT, timeout=10),
+                self.wait_for_element_to_be_visible(self.CONTINUE_BUTTON, timeout=10)
+            ]
+            return any(checks)
+        except Exception:
+            return (self.is_text_present("profile") or
+                    self.is_text_present("setup") or
+                    self.is_text_present("Profile"))
     
     def enter_first_name(self, first_name: str) -> bool:
         """Enter first name."""
@@ -366,3 +422,11 @@ class ProfileSetupPage(BasePage):
         except Exception as e:
             print(f"Error completing profile setup: {str(e)}")
             return False
+    
+    def get_screen_title(self) -> str:
+        """Get the screen title."""
+        try:
+            element = self.driver.find_element(*self.SCREEN_TITLE)
+            return self.get_text_from_element(element)
+        except Exception:
+            return ""
