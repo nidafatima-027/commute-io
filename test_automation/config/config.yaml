@@ -6,12 +6,18 @@ appium:
 android:
   platform_name: "Android"
   automation_name: "UiAutomator2"
-  app_package: "com.anonymous.boltexponativewind"
-  app_activity: ".MainActivity"
+  # For Expo Go development
+  app_package: "host.exp.exponent"  # Expo Go package name
+  app_activity: ".experience.HomeActivity"  # Expo Go main activity
+  # For production build (uncomment when you have the APK)
+  # app_package: "com.anonymous.boltexponativewind"
+  # app_activity: ".MainActivity"
   device_name: "Android Device"  # Will be auto-detected for physical device
   no_reset: false
   full_reset: false
   new_command_timeout: 300
+  # Expo Go specific capabilities
+  auto_launch: false  # Don't auto-launch, we'll navigate to the app manually
   
 test_data:
   valid_phone: "+1234567890"

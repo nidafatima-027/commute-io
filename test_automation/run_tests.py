@@ -73,20 +73,22 @@ def check_prerequisites():
         print(f"✗ Error checking ADB: {str(e)}")
         return False
     
-    # Check if app is installed
+    # Check if Expo Go is installed (for development)
     try:
         result = subprocess.run([
-            "adb", "shell", "pm", "list", "packages", "com.anonymous.boltexponativewind"
+            "adb", "shell", "pm", "list", "packages", "host.exp.exponent"
         ], capture_output=True, text=True)
         
-        if "com.anonymous.boltexponativewind" in result.stdout:
-            print("✓ App is installed on device")
+        if "host.exp.exponent" in result.stdout:
+            print("✓ Expo Go is installed on device")
+            print("  Make sure your Commute.io app is loaded in Expo Go")
         else:
-            print("✗ App 'com.anonymous.boltexponativewind' is not installed")
-            print("  Please install the app on your device first")
+            print("✗ Expo Go 'host.exp.exponent' is not installed")
+            print("  Please install Expo Go from Play Store")
+            print("  Alternative: Install the built APK if available")
             return False
     except Exception as e:
-        print(f"✗ Error checking app installation: {str(e)}")
+        print(f"✗ Error checking Expo Go installation: {str(e)}")
         return False
     
     return True
