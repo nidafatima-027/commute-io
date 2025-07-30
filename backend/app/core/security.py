@@ -53,13 +53,13 @@ otp_storage = {}
 def store_otp(email: str, otp: str):
     otp_storage[email] = {
         "otp": otp,
-        "expires_at": datetime.utcnow() + timedelta(minutes=10)
+        "expires_at": datetime.utcnow() + timedelta(minutes=5)
     }
 
 def store_mobile_otp(phone: str, otp: str):
     otp_storage[phone] = {
         "otp": otp,
-        "expires_at": datetime.utcnow() + timedelta(minutes=10)
+        "expires_at": datetime.utcnow() + timedelta(minutes=5)
     }
 
 

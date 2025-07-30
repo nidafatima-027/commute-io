@@ -163,27 +163,29 @@ async def verify_otp_endpoint(request: OTPVerify, db: Session = Depends(get_db))
 
 @router.post("/send-mobile-otp")
 async def send_mobile_otp(request: OTPMobileRequest, db: Session = Depends(get_db)):
-    #user = get_user_by_email(db, email=request.email)
-    # if not user:
-    #     raise HTTPException(status_code=404, detail="User not found")
-    print(f"Attempting to send OTP to: {request.phone}")  # Debug log
+    print(f"📱 Received OTP request for phone: {request.phone}")
     try:
         otp = generate_otp()
+        print(f"🔢 Generated OTP: {otp}")
         store_mobile_otp(request.phone, otp)
         
-        # Wrap email sending in try-except
+        # Send WhatsApp OTP
         try:
             send_otp_mobile(request.phone, otp)
+            print(f"✅ WhatsApp OTP sent successfully to {request.phone}")
         except Exception as e:
-            print(f"Mobile sending failed: {str(e)}")
-            # Don't raise HTTPException here - return a success response but log the error
-            # (In production, you might want to use a fallback SMS service here)
+            print(f"❌ WhatsApp sending failed: {str(e)}")
+            # Still return success but log the error
+            print(f"🔐 Fallback OTP for {request.phone}: {otp}")
         
-        return {"message": "OTP processed successfully"}  # Always return success
+        return {"message": "OTP processed successfully"}
     
     except Exception as e:
-        print(f"OTP generation failed: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        print(f"❌ OTP generation failed: {str(e)}")
+        # Return success even if there's an error, but log the OTP
+        if 'otp' in locals():
+            print(f"🔐 Emergency OTP for {request.phone}: {otp}")
+        return {"message": "OTP processed successfully"}
 
 
 
