@@ -45,7 +45,9 @@ class DriverFactory:
         options.platform_name = android_config['platform_name']
         options.automation_name = android_config['automation_name']
         options.app_package = android_config['app_package']
-        options.app_activity = android_config['app_activity']
+        # Only set app_activity if it exists in config (for launching)
+        if 'app_activity' in android_config:
+            options.app_activity = android_config['app_activity']
         options.device_name = android_config['device_name']
         options.no_reset = android_config['no_reset']
         options.full_reset = android_config['full_reset']
@@ -61,11 +63,13 @@ class DriverFactory:
         options.set_capability("uiautomator2ServerLaunchTimeout", 60000)
         options.set_capability("adbExecTimeout", 60000)
         
-        # Expo Go specific capabilities
+        # Connect to existing app capabilities
         options.set_capability("dontStopAppOnReset", android_config.get('dont_stop_app_on_reset', True))
-        options.set_capability("skipDeviceInitialization", android_config.get('skip_device_initialization', False))
+        options.set_capability("skipDeviceInitialization", android_config.get('skip_device_initialization', True))
         options.set_capability("skipServerInstallation", android_config.get('skip_server_installation', True))
         options.set_capability("autoLaunch", android_config.get('auto_launch', False))
+        options.set_capability("skipUnlock", android_config.get('skip_unlock', True))
+        options.set_capability("skipLogCapture", android_config.get('skip_log_capture', True))
         
         try:
             cls._driver = webdriver.Remote(

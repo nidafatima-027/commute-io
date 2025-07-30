@@ -6,21 +6,21 @@ appium:
 android:
   platform_name: "Android"
   automation_name: "UiAutomator2"
-  # For Expo Go development - connect to existing session
+  # Connect to already running Expo Go app - NO launching
   app_package: "host.exp.exponent"  # Expo Go package name
-  app_activity: ".experience.HomeActivity"  # Expo Go main activity
-  # For production build (uncomment when you have the APK)
-  # app_package: "com.anonymous.boltexponativewind"
-  # app_activity: ".MainActivity"
+  # Remove app_activity to avoid launching
   device_name: "Android Device"  # Will be auto-detected for physical device
-  no_reset: true  # Don't reset the app - keep existing session
+  no_reset: true  # Don't reset the app
   full_reset: false
   new_command_timeout: 300
-  # Expo Go specific capabilities
-  auto_launch: false  # Don't auto-launch, connect to existing instance
+  # Connect to existing app capabilities
+  auto_launch: false  # NEVER launch - only connect
   dont_stop_app_on_reset: true  # Keep app running
-  skip_device_initialization: false
+  skip_device_initialization: true  # Skip initialization 
   skip_server_installation: true
+  # Additional no-launch settings
+  skip_unlock: true
+  skip_log_capture: true
   
 test_data:
   valid_phone: "+1234567890"
