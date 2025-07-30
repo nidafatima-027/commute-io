@@ -75,10 +75,18 @@ def step_tap_skip_button_if_available(context):
 @then('I should be navigated to the signup screen')
 def step_should_be_navigated_to_signup_screen(context):
     """Step to verify navigation to signup screen."""
+    # Wait for navigation to complete
     context.onboarding_page.wait_for_screen_to_load()
+    
     # Import here to avoid circular imports
     from pages.authentication_page import SignupPage
     signup_page = SignupPage()
+    
+    # Wait a bit more for the signup screen to fully load
+    import time
+    time.sleep(3)
+    
+    # Check if signup screen is displayed
     assert signup_page.is_signup_screen_displayed(), "Not navigated to signup screen"
 
 
@@ -101,6 +109,10 @@ def step_verify_screen_reader_support(context):
 def step_navigate_to_onboarding_via_url(context):
     """Navigate to onboarding screen using URL navigation."""
     assert context.url_navigator.navigate_to_onboarding(), "Failed to navigate to onboarding screen via URL"
+    
+    # Wait for screen to load
+    assert context.url_navigator.wait_for_screen_to_load("onboarding"), "Onboarding screen failed to load"
+    
     context.onboarding_page = OnboardingPage()
     context.onboarding_page.wait_for_screen_to_load()
 
@@ -109,6 +121,10 @@ def step_navigate_to_onboarding_via_url(context):
 def step_navigate_to_signup_via_url(context):
     """Navigate to signup screen using URL navigation."""
     assert context.url_navigator.navigate_to_signup(), "Failed to navigate to signup screen via URL"
+    
+    # Wait for screen to load
+    assert context.url_navigator.wait_for_screen_to_load("signup"), "Signup screen failed to load"
+    
     # Import here to avoid circular imports
     from pages.authentication_page import SignupPage
     context.signup_page = SignupPage()
@@ -135,3 +151,104 @@ def step_should_see_subtitle_about_community(context):
     """Step to verify subtitle about community is displayed."""
     subtitle = context.onboarding_page.get_subtitle_message()
     assert "community" in subtitle.lower(), f"Subtitle about community not found. Actual: '{subtitle}'"
+
+
+# New steps for signup screen verification
+@then('I should see the signup screen')
+def step_should_see_signup_screen(context):
+    """Step to verify signup screen is displayed."""
+    from pages.authentication_page import SignupPage
+    signup_page = SignupPage()
+    assert signup_page.is_signup_screen_displayed(), "Signup screen is not displayed"
+
+
+@then('I should see Continue with email button')
+def step_should_see_continue_with_email_button(context):
+    """Step to verify Continue with email button is displayed."""
+    from pages.authentication_page import SignupPage
+    signup_page = SignupPage()
+    assert signup_page.is_continue_with_email_displayed(), "Continue with email button is not displayed"
+
+
+@then('I should see Continue with phone button')
+def step_should_see_continue_with_phone_button(context):
+    """Step to verify Continue with phone button is displayed."""
+    from pages.authentication_page import SignupPage
+    signup_page = SignupPage()
+    assert signup_page.is_continue_with_phone_displayed(), "Continue with phone button is not displayed"
+
+
+@when('I tap Continue with email')
+def step_tap_continue_with_email(context):
+    """Step to tap Continue with email button."""
+    from pages.authentication_page import SignupPage
+    signup_page = SignupPage()
+    assert signup_page.tap_continue_with_email(), "Failed to tap Continue with email button"
+
+
+@when('I tap Continue with phone')
+def step_tap_continue_with_phone(context):
+    """Step to tap Continue with phone button."""
+    from pages.authentication_page import SignupPage
+    signup_page = SignupPage()
+    assert signup_page.tap_continue_with_phone(), "Failed to tap Continue with phone button"
+
+
+# Steps for email and phone input screens
+@then('I should be on the email input screen')
+def step_should_be_on_email_input_screen(context):
+    """Step to verify email input screen is displayed."""
+    from pages.authentication_page import EmailPage
+    email_page = EmailPage()
+    
+    # Wait for navigation
+    import time
+    time.sleep(3)
+    
+    assert email_page.is_email_page_displayed(), "Email input screen is not displayed"
+
+
+@then('I should be on the phone input screen')
+def step_should_be_on_phone_input_screen(context):
+    """Step to verify phone input screen is displayed."""
+    from pages.authentication_page import PhoneNumberPage
+    phone_page = PhoneNumberPage()
+    
+    # Wait for navigation
+    import time
+    time.sleep(3)
+    
+    assert phone_page.is_phone_page_displayed(), "Phone input screen is not displayed"
+
+
+@when('I enter email "{email}"')
+def step_enter_email(context, email):
+    """Step to enter email address."""
+    from pages.authentication_page import EmailPage
+    email_page = EmailPage()
+    assert email_page.enter_email(email), f"Failed to enter email: {email}"
+
+
+@when('I enter phone number "{phone}"')
+def step_enter_phone_number(context, phone):
+    """Step to enter phone number."""
+    from pages.authentication_page import PhoneNumberPage
+    phone_page = PhoneNumberPage()
+    assert phone_page.enter_phone_number(phone), f"Failed to enter phone number: {phone}"
+
+
+@when('I tap Continue button')
+def step_tap_continue_button(context):
+    """Step to tap Continue button."""
+    # Try both email and phone pages
+    from pages.authentication_page import EmailPage, PhoneNumberPage
+    
+    email_page = EmailPage()
+    phone_page = PhoneNumberPage()
+    
+    if email_page.is_email_page_displayed():
+        assert email_page.tap_continue_button(), "Failed to tap Continue button on email page"
+    elif phone_page.is_phone_page_displayed():
+        assert phone_page.tap_continue_button(), "Failed to tap Continue button on phone page"
+    else:
+        assert False, "Neither email nor phone page is displayed"

@@ -22,11 +22,22 @@ npm start
 appium --port 4723
 ```
 
-### 3. Run Tests
-```bash
-# Run the Get Started page test (recommended first test)
-python run_tests.py --feature get_started.feature
+### 3. Run Tests (Progressive Approach)
 
+#### Step 1: Test Get Started Page
+```bash
+# Test the Get Started page (recommended first test)
+python run_get_started_test.py
+```
+
+#### Step 2: Test Signup Flow
+```bash
+# Test navigation to signup screen and email/phone options
+python run_signup_test.py
+```
+
+#### Step 3: Run All Tests
+```bash
 # Run smoke tests
 python run_tests.py --smoke
 
@@ -62,6 +73,7 @@ The test framework automatically configures itself using `setup_test_environment
 
 ### Features
 - `get_started.feature` - Get Started page tests (start here!)
+- `signup_flow.feature` - Signup screen and email/phone options
 - `onboarding.feature` - Onboarding flow tests
 - `authentication.feature` - Signup and authentication tests
 - `ride_booking.feature` - Ride booking functionality
@@ -69,7 +81,7 @@ The test framework automatically configures itself using `setup_test_environment
 
 ### Page Objects
 - `pages/onboarding_page.py` - Get Started page interactions
-- `pages/authentication_page.py` - Signup and auth page interactions
+- `pages/authentication_page.py` - Signup, email, phone, and OTP page interactions
 - `pages/base_page.py` - Common page functionality
 
 ### Utilities
@@ -78,6 +90,33 @@ The test framework automatically configures itself using `setup_test_environment
 - `utils/screenshot_helper.py` - Screenshot capture on failures
 
 ## 🎯 Test Execution
+
+### Progressive Testing (Recommended)
+
+1. **Get Started Page** - Basic UI elements
+   ```bash
+   python run_get_started_test.py
+   ```
+
+2. **Signup Flow** - Navigation and options
+   ```bash
+   python run_signup_test.py
+   ```
+
+3. **Email Authentication** - Email input and OTP
+   ```bash
+   python run_tests.py --feature email_auth.feature
+   ```
+
+4. **Phone Authentication** - Phone input and OTP
+   ```bash
+   python run_tests.py --feature phone_auth.feature
+   ```
+
+5. **Profile Setup** - User profile creation
+   ```bash
+   python run_tests.py --feature profile_setup.feature
+   ```
 
 ### Basic Commands
 ```bash
@@ -124,10 +163,12 @@ python run_tests.py --regression
 5. **Main App** (`/(tabs)`) - Home, Search, Requests, Messages, Profile
 
 ### Key Screens Tested
-- ✅ Get Started page with app title and welcome message
-- ✅ Navigation to signup screen
-- ✅ Accessibility features
-- ✅ URL-based navigation
+- ✅ **Get Started page** - App title, welcome message, Get Started button
+- ✅ **Signup screen** - Continue with email/phone options
+- ✅ **Email input screen** - Email address input
+- ✅ **Phone input screen** - Phone number input
+- ✅ **Navigation flows** - Screen transitions
+- ✅ **Accessibility features** - Screen reader support
 
 ## 🔍 Troubleshooting
 
@@ -152,6 +193,11 @@ python run_tests.py --regression
 5. **"App not loading in Expo Go"**
    - Start Expo server: `npm start`
    - Scan QR code with Expo Go app
+
+6. **"Navigation test failed"**
+   - Check screenshots in `screenshots/` directory
+   - Verify app is on correct screen
+   - Check element locators in page objects
 
 ### Debug Mode
 ```bash
@@ -204,9 +250,11 @@ context.url_navigator.navigate_to_signup()
 ### Progressive Testing
 Start with simple tests and build up:
 1. **Get Started page** (basic UI elements)
-2. **Navigation flows** (screen transitions)
-3. **Authentication** (user registration)
-4. **Core features** (ride booking, messaging)
+2. **Signup flow** (navigation and options)
+3. **Authentication** (email/phone input)
+4. **OTP verification** (code entry)
+5. **Profile setup** (user information)
+6. **Core features** (ride booking, messaging)
 
 ## 📝 Test Development
 
@@ -222,6 +270,22 @@ Start with simple tests and build up:
 - Include accessibility tests
 - Add screenshots for failures
 - Keep tests independent
+
+## 🎯 Next Steps After Current Tests
+
+### Immediate Actions
+1. **Test Get Started page** - `python run_get_started_test.py`
+2. **Test Signup flow** - `python run_signup_test.py`
+3. **Create email authentication test** - Email input and OTP flow
+4. **Create phone authentication test** - Phone input and OTP flow
+5. **Create profile setup test** - User profile creation
+
+### Future Enhancements
+1. **OTP Verification Tests** - Complete OTP entry and verification
+2. **Profile Setup Tests** - Complete user profile creation
+3. **Main App Tests** - Home screen and core functionality
+4. **Ride Booking Tests** - Complete ride booking flow
+5. **Messaging Tests** - In-app messaging functionality
 
 ## 🤝 Contributing
 

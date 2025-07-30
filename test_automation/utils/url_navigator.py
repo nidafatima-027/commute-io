@@ -57,8 +57,8 @@ class URLNavigator:
             
             if result.returncode == 0:
                 print(f"✓ Successfully navigated to {screen_name}")
-                # Wait for screen to load
-                time.sleep(3)
+                # Wait longer for screen to load
+                time.sleep(5)
                 return True
             else:
                 print(f"✗ Failed to navigate to {screen_name}: {result.stderr}")
@@ -110,7 +110,7 @@ class URLNavigator:
             return None
     
     @staticmethod
-    def is_screen_loaded(screen_name: str, timeout: int = 10) -> bool:
+    def is_screen_loaded(screen_name: str, timeout: int = 15) -> bool:
         """
         Check if a specific screen is loaded.
         
@@ -125,7 +125,7 @@ class URLNavigator:
             driver = DriverFactory.get_driver()
             
             # Wait for screen to be ready
-            time.sleep(2)
+            time.sleep(3)
             
             # Check for screen-specific elements
             if screen_name == "onboarding":
@@ -163,3 +163,25 @@ class URLNavigator:
         except Exception as e:
             print(f"Error checking if screen {screen_name} is loaded: {str(e)}")
             return False
+    
+    @staticmethod
+    def wait_for_screen_to_load(screen_name: str, timeout: int = 30) -> bool:
+        """
+        Wait for a specific screen to load.
+        
+        Args:
+            screen_name: Name of the screen to wait for
+            timeout: Timeout in seconds
+            
+        Returns:
+            bool: True if screen loaded within timeout, False otherwise
+        """
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            if URLNavigator.is_screen_loaded(screen_name):
+                print(f"✓ Screen {screen_name} loaded successfully")
+                return True
+            time.sleep(2)
+        
+        print(f"✗ Screen {screen_name} failed to load within {timeout} seconds")
+        return False
