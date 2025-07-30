@@ -13,7 +13,7 @@ class MockEmailPage:
         self.mock_elements = [
             "android.widget.TextView: 'Enter your Email' (id: email_title)",
             "android.widget.EditText: '' (id: email_input_field)",
-            "android.widget.Button: 'Continue' (id: continue_button)",
+            "android.widget.Button: 'Next' (id: next_button)",
             "android.widget.Button: 'Back' (id: back_button)",
             "android.widget.TextView: 'Please enter a valid email address' (id: email_hint)",
             "android.widget.TextView: 'Commute_io' (id: app_title)",
@@ -47,12 +47,12 @@ class MockEmailPage:
     
     def tap_continue_button(self) -> bool:
         """Mock method to tap continue button."""
-        print("➡️ Tapping Continue button...")
-        print("Trying continue button strategy 1: //*[@text='Continue']")
-        print("✓ Found Continue button: 'Continue'")
-        print("✓ Continue button is enabled")
+        print("➡️ Tapping Next button...")
+        print("Trying continue button strategy 1: //*[@text='Next']")
+        print("✓ Found Next button: 'Next'")
+        print("✓ Next button is enabled")
         print("Button enabled before tap: True")
-        print("✓ Successfully tapped Continue button")
+        print("✓ Successfully tapped Next button")
         print("Button enabled after tap: False")
         return True
 
@@ -136,23 +136,23 @@ class TestMockEmailDebug:
         print("✅ Successfully entered email")
         
         # Step 4: Check continue button state
-        print("\n➡️ Step 4: Checking continue button state...")
+        print("\n➡️ Step 4: Checking Next button state...")
         is_enabled = mock_email_page.is_continue_button_enabled()
-        print(f"Continue button enabled: {is_enabled}")
+        print(f"Next button enabled: {is_enabled}")
         
         if is_enabled:
-            print("✅ Continue button is ready for interaction")
+            print("✅ Next button is ready for interaction")
         else:
-            print("⚠️ Continue button is disabled - waiting for validation...")
+            print("⚠️ Next button is disabled - waiting for validation...")
             time.sleep(2)
             is_enabled = mock_email_page.is_continue_button_enabled()
-            print(f"Continue button enabled after wait: {is_enabled}")
+            print(f"Next button enabled after wait: {is_enabled}")
         
         # Step 5: Tap continue button with debugging
-        print("\n➡️ Step 5: Tapping continue button with debugging...")
+        print("\n➡️ Step 5: Tapping Next button with debugging...")
         success = mock_email_page.tap_continue_button()
-        assert success, "Failed to tap continue button"
-        print("✅ Successfully tapped continue button")
+        assert success, "Failed to tap Next button"
+        print("✅ Successfully tapped Next button")
         
         # Step 6: Verify OTP verification screen
         print("\n🔐 Step 6: Verifying OTP verification screen...")

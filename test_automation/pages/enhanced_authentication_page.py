@@ -22,11 +22,17 @@ class EnhancedEmailPage(BasePage):
     
     # Multiple locator strategies for continue button
     CONTINUE_BUTTON_STRATEGIES = [
+        (AppiumBy.XPATH, "//*[@text='Next' or @content-desc='Next']"),
+        (AppiumBy.XPATH, "//android.widget.Button[@text='Next' or @content-desc='Next']"),
+        (AppiumBy.XPATH, "//*[@class='android.widget.Button' and contains(@text, 'Next')]"),
+        (AppiumBy.XPATH, "//*[contains(@text, 'Next')]"),
         (AppiumBy.XPATH, "//*[@text='Continue' or @content-desc='Continue']"),
         (AppiumBy.XPATH, "//android.widget.Button[@text='Continue' or @content-desc='Continue']"),
         (AppiumBy.XPATH, "//*[@class='android.widget.Button' and contains(@text, 'Continue')]"),
         (AppiumBy.XPATH, "//*[contains(@text, 'Continue')]"),
+        (AppiumBy.ACCESSIBILITY_ID, "next"),
         (AppiumBy.ACCESSIBILITY_ID, "continue"),
+        (AppiumBy.ID, "next"),
         (AppiumBy.ID, "continue"),
     ]
     
