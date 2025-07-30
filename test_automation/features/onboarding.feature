@@ -11,19 +11,19 @@ Feature: App Onboarding
     When I am on the onboarding screen
     Then I should see the welcome message
     And I should see onboarding slides
-    And I should see the "Get Started" button
+    And I should see the Get Started button
 
   @onboarding
   Scenario: Complete onboarding flow
     Given I am on the onboarding screen
     When I swipe through all onboarding slides
-    And I tap on "Get Started" button
+    And I tap on Get Started button
     Then I should be navigated to the signup screen
 
   @onboarding
   Scenario: Skip onboarding
     Given I am on the onboarding screen
-    When I tap on "Skip" button if available
+    When I tap on Skip button if available
     Then I should be navigated to the signup screen
 
   @onboarding @accessibility

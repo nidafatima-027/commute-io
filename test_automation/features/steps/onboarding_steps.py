@@ -38,7 +38,7 @@ def step_should_see_onboarding_slides(context):
     assert context.onboarding_page.are_onboarding_slides_displayed(), "Onboarding slides are not displayed"
 
 
-@then('I should see the "Get Started" button')
+@then('I should see the Get Started button')
 def step_should_see_get_started_button(context):
     """Step to verify Get Started button is displayed."""
     # First swipe through slides to reach the last slide
@@ -52,13 +52,13 @@ def step_swipe_through_all_slides(context):
     assert context.onboarding_page.swipe_through_all_slides(), "Failed to swipe through all slides"
 
 
-@when('I tap on "Get Started" button')
+@when('I tap on Get Started button')
 def step_tap_get_started_button(context):
     """Step to tap Get Started button."""
     assert context.onboarding_page.tap_get_started_button(), "Failed to tap Get Started button"
 
 
-@when('I tap on "Skip" button if available')
+@when('I tap on Skip button if available')
 def step_tap_skip_button_if_available(context):
     """Step to tap Skip button if it's available."""
     if context.onboarding_page.is_skip_button_displayed():

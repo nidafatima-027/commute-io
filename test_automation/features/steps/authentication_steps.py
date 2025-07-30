@@ -55,7 +55,7 @@ def step_enter_phone_number(context, phone_number):
     context.entered_phone = phone_number
 
 
-@when('I tap on "Continue" button')
+@when('I tap on Continue button')
 def step_tap_continue_button(context):
     """Step to tap Continue button."""
     assert context.signup_page.tap_continue_button(), "Failed to tap Continue button"
@@ -70,7 +70,7 @@ def step_navigated_to_phone_otp_screen(context):
     assert context.otp_page.is_otp_verification_screen_displayed(), "Not navigated to OTP verification screen"
 
 
-@when('I tap on "Use Email Instead" option')
+@when('I tap on Use Email Instead option')
 def step_tap_use_email_option(context):
     """Step to tap use email option."""
     assert context.signup_page.tap_use_email_option(), "Failed to tap use email option"
@@ -115,7 +115,7 @@ def step_enter_invalid_otp(context, otp):
     context.otp_page.enter_otp(otp)
 
 
-@when('I tap on "Verify" button')
+@when('I tap on Verify button')
 def step_tap_verify_button(context):
     """Step to tap Verify button."""
     assert context.otp_page.tap_verify_button(), "Failed to tap Verify button"
@@ -195,7 +195,7 @@ def step_wait_for_seconds(context, seconds):
     time.sleep(seconds)
 
 
-@when('I tap on "Resend OTP" button')
+@when('I tap on Resend OTP button')
 def step_tap_resend_otp_button(context):
     """Step to tap Resend OTP button."""
     assert context.otp_page.tap_resend_otp_button(), "Failed to tap Resend OTP button"
@@ -328,7 +328,7 @@ def step_enter_my_phone_number(context, phone):
     assert context.signup_page.enter_phone_number(phone), f"Failed to enter phone number: {phone}"
 
 
-@when('I tap on "Send OTP" button')
+@when('I tap on Send OTP button')
 def step_tap_send_otp_button(context):
     """Step to tap Send OTP button."""
     # This might be the same as Continue button
