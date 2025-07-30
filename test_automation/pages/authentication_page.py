@@ -11,11 +11,20 @@ import time
 class SignupPage(BasePage):
     """Page object for signup screen based on Figma design."""
     
-    # Locators based on exact Figma design
+    # Locators based on exact Figma design - More specific and flexible
     APP_NAME = (AppiumBy.XPATH, "//*[contains(@text, 'Commute_io') or contains(@content-desc, 'Commute_io')]")
     TITLE = (AppiumBy.XPATH, "//*[contains(@text, 'Get started') or contains(@content-desc, 'Get started')]")
-    CONTINUE_WITH_EMAIL_BUTTON = (AppiumBy.XPATH, "//*[contains(@text, 'Continue with email') or contains(@content-desc, 'Continue with email') or contains(@text, 'email')]")
-    CONTINUE_WITH_PHONE_BUTTON = (AppiumBy.XPATH, "//*[contains(@text, 'Continue with phone') or contains(@content-desc, 'Continue with phone') or contains(@text, 'phone')]")
+    
+    # Multiple locator strategies for email button
+    CONTINUE_WITH_EMAIL_BUTTON = (AppiumBy.XPATH, "//*[contains(@text, 'Continue with email') or contains(@content-desc, 'Continue with email') or contains(@text, 'email') or contains(@text, 'Email')]")
+    CONTINUE_WITH_EMAIL_BUTTON_ALT = (AppiumBy.XPATH, "//*[@text='Continue with email' or @content-desc='Continue with email']")
+    CONTINUE_WITH_EMAIL_BUTTON_CLASS = (AppiumBy.XPATH, "//android.widget.Button[contains(@text, 'email') or contains(@text, 'Email')]")
+    
+    # Multiple locator strategies for phone button
+    CONTINUE_WITH_PHONE_BUTTON = (AppiumBy.XPATH, "//*[contains(@text, 'Continue with phone') or contains(@content-desc, 'Continue with phone') or contains(@text, 'phone') or contains(@text, 'Phone')]")
+    CONTINUE_WITH_PHONE_BUTTON_ALT = (AppiumBy.XPATH, "//*[@text='Continue with phone' or @content-desc='Continue with phone']")
+    CONTINUE_WITH_PHONE_BUTTON_CLASS = (AppiumBy.XPATH, "//android.widget.Button[contains(@text, 'phone') or contains(@text, 'Phone')]")
+    
     TERMS_TEXT = (AppiumBy.XPATH, "//*[contains(@text, 'Terms of Service') or contains(@text, 'Privacy Policy') or contains(@content-desc, 'Terms')]")
     
     # Email/Phone input locators (for the next screens)
@@ -44,38 +53,110 @@ class SignupPage(BasePage):
                     self.is_text_present("Continue with phone"))
     
     def tap_continue_with_email(self) -> bool:
-        """Tap on Continue with email button."""
+        """Tap on Continue with email button using multiple locator strategies."""
         print("Attempting to tap 'Continue with email' button...")
         
-        if self.wait_for_element_to_be_clickable(self.CONTINUE_WITH_EMAIL_BUTTON):
-            element = self.driver.find_element(*self.CONTINUE_WITH_EMAIL_BUTTON)
-            print(f"✓ Found 'Continue with email' button: {self.get_text_from_element(element)}")
-            result = self.tap_element(element)
-            if result:
-                print("✓ Successfully tapped 'Continue with email' button")
-            else:
-                print("✗ Failed to tap 'Continue with email' button")
-            return result
-        else:
-            print("✗ 'Continue with email' button not found or not clickable")
-            return False
+        # Try multiple locator strategies
+        locators = [
+            self.CONTINUE_WITH_EMAIL_BUTTON,
+            self.CONTINUE_WITH_EMAIL_BUTTON_ALT,
+            self.CONTINUE_WITH_EMAIL_BUTTON_CLASS
+        ]
+        
+        for i, locator in enumerate(locators):
+            try:
+                print(f"Trying locator strategy {i+1}: {locator[1]}")
+                
+                if self.wait_for_element_to_be_clickable(locator, timeout=3):
+                    element = self.driver.find_element(*locator)
+                    button_text = self.get_text_from_element(element)
+                    print(f"✓ Found 'Continue with email' button: '{button_text}'")
+                    
+                    # Try to tap the element
+                    result = self.tap_element(element)
+                    if result:
+                        print("✓ Successfully tapped 'Continue with email' button")
+                        return True
+                    else:
+                        print("✗ Failed to tap 'Continue with email' button")
+                        continue
+                else:
+                    print(f"✗ Locator strategy {i+1}: Button not found or not clickable")
+                    continue
+                    
+            except Exception as e:
+                print(f"✗ Locator strategy {i+1} failed: {str(e)}")
+                continue
+        
+        # If all strategies failed, try to find any clickable element with email text
+        print("Trying fallback: Find any element with email text...")
+        try:
+            email_elements = self.driver.find_elements(AppiumBy.XPATH, "//*[contains(@text, 'email') or contains(@text, 'Email')]")
+            for element in email_elements:
+                if element.is_displayed() and element.is_enabled():
+                    print(f"Found fallback element: {self.get_text_from_element(element)}")
+                    result = self.tap_element(element)
+                    if result:
+                        print("✓ Successfully tapped fallback email element")
+                        return True
+        except Exception as e:
+            print(f"Fallback strategy failed: {str(e)}")
+        
+        print("✗ All strategies failed to tap 'Continue with email' button")
+        return False
     
     def tap_continue_with_phone(self) -> bool:
-        """Tap on Continue with phone button."""
+        """Tap on Continue with phone button using multiple locator strategies."""
         print("Attempting to tap 'Continue with phone' button...")
         
-        if self.wait_for_element_to_be_clickable(self.CONTINUE_WITH_PHONE_BUTTON):
-            element = self.driver.find_element(*self.CONTINUE_WITH_PHONE_BUTTON)
-            print(f"✓ Found 'Continue with phone' button: {self.get_text_from_element(element)}")
-            result = self.tap_element(element)
-            if result:
-                print("✓ Successfully tapped 'Continue with phone' button")
-            else:
-                print("✗ Failed to tap 'Continue with phone' button")
-            return result
-        else:
-            print("✗ 'Continue with phone' button not found or not clickable")
-            return False
+        # Try multiple locator strategies
+        locators = [
+            self.CONTINUE_WITH_PHONE_BUTTON,
+            self.CONTINUE_WITH_PHONE_BUTTON_ALT,
+            self.CONTINUE_WITH_PHONE_BUTTON_CLASS
+        ]
+        
+        for i, locator in enumerate(locators):
+            try:
+                print(f"Trying locator strategy {i+1}: {locator[1]}")
+                
+                if self.wait_for_element_to_be_clickable(locator, timeout=3):
+                    element = self.driver.find_element(*locator)
+                    button_text = self.get_text_from_element(element)
+                    print(f"✓ Found 'Continue with phone' button: '{button_text}'")
+                    
+                    # Try to tap the element
+                    result = self.tap_element(element)
+                    if result:
+                        print("✓ Successfully tapped 'Continue with phone' button")
+                        return True
+                    else:
+                        print("✗ Failed to tap 'Continue with phone' button")
+                        continue
+                else:
+                    print(f"✗ Locator strategy {i+1}: Button not found or not clickable")
+                    continue
+                    
+            except Exception as e:
+                print(f"✗ Locator strategy {i+1} failed: {str(e)}")
+                continue
+        
+        # If all strategies failed, try to find any clickable element with phone text
+        print("Trying fallback: Find any element with phone text...")
+        try:
+            phone_elements = self.driver.find_elements(AppiumBy.XPATH, "//*[contains(@text, 'phone') or contains(@text, 'Phone')]")
+            for element in phone_elements:
+                if element.is_displayed() and element.is_enabled():
+                    print(f"Found fallback element: {self.get_text_from_element(element)}")
+                    result = self.tap_element(element)
+                    if result:
+                        print("✓ Successfully tapped fallback phone element")
+                        return True
+        except Exception as e:
+            print(f"Fallback strategy failed: {str(e)}")
+        
+        print("✗ All strategies failed to tap 'Continue with phone' button")
+        return False
     
     def get_screen_title(self) -> str:
         """Get the screen title."""
@@ -129,6 +210,40 @@ class SignupPage(BasePage):
     def is_error_message_displayed(self, expected_message: str) -> bool:
         """Check if specific error message is displayed."""
         return self.is_text_present(expected_message)
+    
+    def list_all_visible_elements(self) -> list:
+        """List all visible elements on the current screen for debugging."""
+        try:
+            # Find all clickable elements
+            clickable_elements = self.driver.find_elements(AppiumBy.XPATH, "//*[@clickable='true' or @enabled='true']")
+            
+            # Find all text elements
+            text_elements = self.driver.find_elements(AppiumBy.XPATH, "//*[@text and string-length(@text) > 0]")
+            
+            elements_info = []
+            
+            # Add clickable elements
+            for element in clickable_elements:
+                try:
+                    text = self.get_text_from_element(element)
+                    if text:
+                        elements_info.append(f"Clickable: '{text}'")
+                except:
+                    pass
+            
+            # Add text elements
+            for element in text_elements:
+                try:
+                    text = self.get_text_from_element(element)
+                    if text and text not in [e.split(": '")[1].rstrip("'") for e in elements_info]:
+                        elements_info.append(f"Text: '{text}'")
+                except:
+                    pass
+            
+            return elements_info
+        except Exception as e:
+            print(f"Error listing elements: {str(e)}")
+            return []
 
 
 class EmailPage(BasePage):

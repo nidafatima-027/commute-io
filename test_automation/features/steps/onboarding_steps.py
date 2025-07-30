@@ -161,8 +161,23 @@ def step_tap_continue_with_email(context):
     from pages.authentication_page import SignupPage
     signup_page = SignupPage()
     
+    # Debug: List all visible elements before tapping
+    print("=== DEBUG: All visible elements before tapping Continue with email ===")
+    visible_elements = signup_page.list_all_visible_elements()
+    for element in visible_elements:
+        print(f"  {element}")
+    print("=== END DEBUG ===")
+    
     # Tap the Continue with email button
-    assert signup_page.tap_continue_with_email(), "Failed to tap Continue with email button"
+    result = signup_page.tap_continue_with_email()
+    if not result:
+        print("=== DEBUG: Button tap failed, listing elements again ===")
+        visible_elements = signup_page.list_all_visible_elements()
+        for element in visible_elements:
+            print(f"  {element}")
+        print("=== END DEBUG ===")
+    
+    assert result, "Failed to tap Continue with email button"
     
     # Wait for navigation to complete
     import time
@@ -178,8 +193,23 @@ def step_tap_continue_with_phone(context):
     from pages.authentication_page import SignupPage
     signup_page = SignupPage()
     
+    # Debug: List all visible elements before tapping
+    print("=== DEBUG: All visible elements before tapping Continue with phone ===")
+    visible_elements = signup_page.list_all_visible_elements()
+    for element in visible_elements:
+        print(f"  {element}")
+    print("=== END DEBUG ===")
+    
     # Tap the Continue with phone button
-    assert signup_page.tap_continue_with_phone(), "Failed to tap Continue with phone button"
+    result = signup_page.tap_continue_with_phone()
+    if not result:
+        print("=== DEBUG: Button tap failed, listing elements again ===")
+        visible_elements = signup_page.list_all_visible_elements()
+        for element in visible_elements:
+            print(f"  {element}")
+        print("=== END DEBUG ===")
+    
+    assert result, "Failed to tap Continue with phone button"
     
     # Wait for navigation to complete
     import time
