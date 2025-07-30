@@ -219,36 +219,3 @@ def step_should_be_on_phone_input_screen(context):
     time.sleep(3)
     
     assert phone_page.is_phone_page_displayed(), "Phone input screen is not displayed"
-
-
-@when('I enter email "{email}"')
-def step_enter_email(context, email):
-    """Step to enter email address."""
-    from pages.authentication_page import EmailPage
-    email_page = EmailPage()
-    assert email_page.enter_email(email), f"Failed to enter email: {email}"
-
-
-@when('I enter phone number "{phone}"')
-def step_enter_phone_number(context, phone):
-    """Step to enter phone number."""
-    from pages.authentication_page import PhoneNumberPage
-    phone_page = PhoneNumberPage()
-    assert phone_page.enter_phone_number(phone), f"Failed to enter phone number: {phone}"
-
-
-@when('I tap Continue button')
-def step_tap_continue_button(context):
-    """Step to tap Continue button."""
-    # Try both email and phone pages
-    from pages.authentication_page import EmailPage, PhoneNumberPage
-    
-    email_page = EmailPage()
-    phone_page = PhoneNumberPage()
-    
-    if email_page.is_email_page_displayed():
-        assert email_page.tap_continue_button(), "Failed to tap Continue button on email page"
-    elif phone_page.is_phone_page_displayed():
-        assert phone_page.tap_continue_button(), "Failed to tap Continue button on phone page"
-    else:
-        assert False, "Neither email nor phone page is displayed"
