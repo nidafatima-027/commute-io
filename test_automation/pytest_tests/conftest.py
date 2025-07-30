@@ -12,21 +12,31 @@ from pages.authentication_page import SignupPage, EmailPage, OTPVerificationPage
 def appium_driver():
     """Session-scoped Appium driver fixture."""
     print("\n🚀 Setting up Appium driver for test session...")
-    driver = DriverFactory.get_driver()
+    driver = DriverFactory.create_driver()
     yield driver
     print("\n🧹 Cleaning up Appium driver...")
-    driver.quit()
+    DriverFactory.quit_driver()
 
 
 @pytest.fixture(scope="function")
 def driver(appium_driver):
     """Function-scoped driver fixture that resets app state."""
     print("\n🔄 Resetting app state...")
-    # Reset app to initial state (you can customize this)
-    appium_driver.terminate_app("host.exp.exponent")
-    time.sleep(2)
-    appium_driver.activate_app("host.exp.exponent")
-    time.sleep(3)
+    try:
+        # Reset app to initial state (you can customize this)
+        appium_driver.terminate_app("host.exp.exponent")
+        time.sleep(2)
+        appium_driver.activate_app("host.exp.exponent")
+        time.sleep(3)
+    except Exception as e:
+        print(f"⚠️ App reset failed (this is normal if app isn't running): {str(e)}")
+        # Try to launch the app if it's not running
+        try:
+            appium_driver.activate_app("host.exp.exponent")
+            time.sleep(3)
+        except Exception as e2:
+            print(f"⚠️ App activation failed: {str(e2)}")
+    
     yield appium_driver
 
 
