@@ -1,9 +1,57 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator } from 'react-native';
-import { ArrowLeft, X, Clock } from 'lucide-react-native';
+import { ArrowLeft } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { ridesAPI } from '../../../services/api';
+
+interface User {
+  id: number;
+  name: string;
+  photo_url: string;
+  auth_methods: string[];
+  bio: string;
+  created_at: string;
+  email: string;
+  gender: string;
+  is_driver: boolean;
+  is_rider: boolean;
+  phone: string;
+  preferences: {
+    conversation_preference: string;
+    gender_preference: string;
+    music_preference: string;
+    smoking_preference: string;
+  };
+  trust_score: number;
+}
+
+interface Car {
+  id: number;
+  ac_available: boolean;
+  color: string;
+  license_plate: string;
+  make: string;
+  model: string;
+  photo_url: string | null;
+  seats: number;
+  user_id: number;
+  year: number;
+}
+
+interface Ride {
+  id: number;
+  driver_id: number;
+  car_id: number;
+  start_time: string;
+  status: string;
+  start_location: string;
+  end_location: string;
+  seats_available: number;
+  total_fare: number;
+  driver: User;
+  car: Car;
+}
 
 interface RideHistoryItem {
   id: number;
@@ -14,49 +62,80 @@ interface RideHistoryItem {
   completed_at: string | null;
   rating_given: number | null;
   rating_received: number | null;
-  ride?: {
-    id: number;
-    driver_id: number;
-    start_time: string;
-    status: string;
-    start_location: string;
-    end_location: string;
-    total_fare?: number;
-    driver: {
-      id: number;
-      name: string;
-      photo_url: string;
-    };
-    car: {
-      id: number;
-      make: string;
-      model: string;
-      photo_url: string;
-    };
-  };
+  ride?: Ride;
 }
 
 export default function RideHistoryScreen() {
-  const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('past');
   const [rideHistory, setRideHistory] = useState<RideHistoryItem[]>([]);
+  const [driverRides, setDriverRides] = useState<RideHistoryItem[]>([]);
+  const [passengerCounts, setPassengerCounts] = useState<{[key: number]: number}>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
-    fetchRideHistory();
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch driver rides
+        const driverResponse = await ridesAPI.getMyCompletedRides();
+        const formattedDriverRides = driverResponse.map((ride: any) => ({
+          id: ride.id,
+          user_id: ride.driver_id,
+          ride_id: ride.id,
+          role: 'driver' as const,
+          joined_at: ride.start_time,
+          completed_at: ride.status === 'end' ? ride.start_time : null,
+          rating_given: null,
+          rating_received: null,
+          ride: {
+            id: ride.id,
+            driver_id: ride.driver_id,
+            car_id: ride.car_id,
+            start_time: ride.start_time,
+            status: ride.status,
+            start_location: ride.start_location,
+            end_location: ride.end_location,
+            seats_available: ride.seats_available,
+            total_fare: ride.total_fare,
+            driver: ride.driver,
+            car: ride.car
+          }
+        }));
+        setDriverRides(formattedDriverRides);
+        
+        // Fetch passenger counts for each ride
+        const counts: {[key: number]: number} = {};
+        for (const ride of formattedDriverRides) {
+          console.log('ride id : ',ride.ride_id)
+          const passengers = await fetchPassengerDetails(ride.ride_id);
+          counts[ride.ride_id] = passengers.length;
+        }
+        setPassengerCounts(counts);
+        
+        // Fetch rider history
+        const riderResponse = await ridesAPI.getRideHistory();
+        setRideHistory(riderResponse);
+        
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching ride history:', err);
+        setError('Failed to load ride history');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
   }, []);
 
-  const fetchRideHistory = async () => {
+  const fetchPassengerDetails = async (rideId: number) => {
     try {
-      setLoading(true);
-      const response = await ridesAPI.getRideHistory();
-      setRideHistory(response);
-      setError(null);
-    } catch (err) {
-      console.error('Error fetching ride history:', err);
-      setError('Failed to load ride history');
-    } finally {
-      setLoading(false);
+      const response = await ridesAPI.getRideHistoryByRideId(rideId);
+      return response.filter((item: RideHistoryItem) => item.role === 'rider');
+    } catch (error) {
+      console.error('Error fetching passenger details:', error);
+      return [];
     }
   };
   
@@ -64,40 +143,41 @@ export default function RideHistoryScreen() {
     router.push('/(tabs)/profile');
   };
 
-  const handleReschedule = () => {
-    router.push('/(tabs)/create-recurring-ride');
-  };
-
   const handleRidePress = (ride: RideHistoryItem) => {
     // Navigate to ride summary screen with ride details
     if (ride.ride) {
       router.push({
-        pathname: '/(tabs)/ride-summary',
-        params: {
-          driverName: ride.ride.driver.name || 'Driver',
-          distance: '12.5 mi',
-          duration: '25 min',
-          cost: '$15.00',
-        }
-      });
+      pathname: '/(tabs)/rider-summary-details',
+      params: {
+        rideId: ride.ride_id.toString(),
+        userId: ride.user_id.toString()
+      }
+    });
+    }
+  };
+  const handleDriverRidePress = (ride: RideHistoryItem) => {
+    console.log('driver', ride.ride_id)
+    // Navigate to ride summary screen with ride details
+    if (ride.ride) {
+      router.push({
+      pathname: '/(tabs)/driver-summary-details',
+      params: {
+        rideId: ride.ride_id.toString(),
+        userId: ride.user_id.toString()
+      }
+    });
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatRideTime = (dateString: string) => {
     const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = now.getTime() - date.getTime();
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) {
-      return `Today, ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
-    } else if (diffDays === 1) {
-      return `Yesterday, ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
-    } else if (diffDays < 7) {
-      return `${diffDays} days ago`;
-    } else {
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    }
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
   };
 
   const formatRoute = (ride: RideHistoryItem) => {
@@ -108,12 +188,14 @@ export default function RideHistoryScreen() {
     return `${startLocation} to ${endLocation}`;
   };
 
-  const getDriverDetails = (ride: RideHistoryItem) => {
+  const getPassengerInfo = (rideId: number) => {
+    const count = passengerCounts[rideId] || 0;
+    return `${count} passenger${count !== 1 ? 's' : ''}`;
+  };
+
+  const getDriverName = (ride: RideHistoryItem) => {
     if (!ride.ride) return 'Unknown Driver';
-    if (ride.role === 'driver') {
-      return 'You were driving';
-    }
-    return `Driver: ${ride.ride.driver.name}`;
+    return ride.ride.driver.name;
   };
 
   const getRideImage = (ride: RideHistoryItem) => {
@@ -124,12 +206,7 @@ export default function RideHistoryScreen() {
   };
 
   // Filter rides based on completion status
-  const completedRides = rideHistory.filter(ride => ride.completed_at !== null);
-  const upcomingRides = rideHistory.filter(ride => ride.completed_at === null);
-
-  // Separate by role
-  const driverRides = (activeTab === 'past' ? completedRides : upcomingRides).filter(ride => ride.role === 'driver');
-  const riderRides = (activeTab === 'past' ? completedRides : upcomingRides).filter(ride => ride.role === 'rider');
+  const riderRides = rideHistory.filter(ride => ride.role === 'rider');
 
   return (
     <SafeAreaView style={styles.container}>
@@ -143,26 +220,6 @@ export default function RideHistoryScreen() {
           <View style={styles.placeholder} />
         </View>
 
-        {/* Tabs */}
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'upcoming' && styles.activeTab]}
-            onPress={() => setActiveTab('upcoming')}
-          >
-            <Text style={[styles.tabText, activeTab === 'upcoming' && styles.activeTabText]}>
-              Upcoming
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'past' && styles.activeTab]}
-            onPress={() => setActiveTab('past')}
-          >
-            <Text style={[styles.tabText, activeTab === 'past' && styles.activeTabText]}>
-              Past
-            </Text>
-          </TouchableOpacity>
-        </View>
-
         {/* Content */}
         <View style={styles.content}>
           {loading ? (
@@ -173,37 +230,49 @@ export default function RideHistoryScreen() {
           ) : error ? (
             <View style={styles.errorContainer}>
               <Text style={styles.errorText}>{error}</Text>
-              <TouchableOpacity style={styles.retryButton} onPress={fetchRideHistory}>
+              <TouchableOpacity style={styles.retryButton} onPress={() => {
+                setLoading(true);
+                setError(null);
+                useEffect(() => {}, []);
+              }}>
                 <Text style={styles.retryText}>Retry</Text>
               </TouchableOpacity>
             </View>
           ) : (
             <>
               {/* Driver Section */}
-              <Text style={styles.sectionTitle}>As a Driver</Text>
+                <Text style={styles.sectionTitle}>As a Driver</Text>
               {driverRides.length === 0 ? (
                 <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>
-                    {activeTab === 'past' ? 'No past rides as a driver' : 'No upcoming rides as a driver'}
-                  </Text>
+                  <Text style={styles.emptyText}>No past rides as a driver</Text>
                 </View>
               ) : (
                 driverRides.map((ride) => (
-                  <View key={`driver-${ride.id}`} style={styles.rideCard}>
-                    <TouchableOpacity 
-                      style={styles.rideContent}
-                      onPress={() => handleRidePress(ride)}
-                      activeOpacity={0.7}
-                    >
+                  <TouchableOpacity 
+                    key={`driver-${ride.id}`} 
+                    style={styles.rideCard}
+                    onPress={() => handleDriverRidePress(ride)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.rideContent}>
                       <View style={styles.rideDetails}>
                         <Text style={styles.rideDate}>
-                          {activeTab === 'past' 
-                            ? formatDate(ride.completed_at || ride.joined_at)
-                            : formatDate(ride.ride?.start_time || ride.joined_at)
-                          }
+                          {formatRideTime(ride.ride?.start_time || ride.joined_at)}
                         </Text>
                         <Text style={styles.rideRoute}>{formatRoute(ride)}</Text>
-                        <Text style={styles.rideInfo}>{getDriverDetails(ride)}</Text>
+                        <View style={styles.rideInfoContainer}>
+                          <Text style={styles.rideInfo}>
+                            {getPassengerInfo(ride.ride_id)}
+                          </Text>
+                          {ride.ride?.total_fare && (
+                            <Text style={styles.fareText}>${ride.ride.total_fare.toFixed(2)}</Text>
+                          )}
+                        </View>
+                        <View style={styles.carInfoContainer}>
+                          <Text style={styles.carInfo}>
+                            {ride.ride?.car.make} {ride.ride?.car.model}
+                          </Text>
+                        </View>
                         {ride.rating_received && (
                           <Text style={styles.ratingText}>
                             Rating received: {ride.rating_received}/5 ⭐
@@ -211,46 +280,39 @@ export default function RideHistoryScreen() {
                         )}
                       </View>
                       <Image source={{ uri: getRideImage(ride) }} style={styles.rideImage} />
-                    </TouchableOpacity>
-                    {activeTab === 'upcoming' && (
-                      <View style={styles.actionContainer}>
-                        <TouchableOpacity style={styles.cancelButton}>
-                          <Text style={styles.cancelText}>Cancel</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.rescheduleButton} onPress={handleReschedule}>
-                          <Text style={styles.rescheduleText}>Reschedule</Text>
-                        </TouchableOpacity>
-                      </View>
-                    )}
-                  </View>
+                    </View>
+                  </TouchableOpacity>
                 ))
               )}
 
               {/* Rider Section */}
-              <Text style={[styles.sectionTitle, { marginTop: 32 }]}>As a Rider</Text>
+               <Text style={[styles.sectionTitle, { marginTop: 32 }]}>As a Rider</Text>
               {riderRides.length === 0 ? (
                 <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>
-                    {activeTab === 'past' ? 'No past rides as a rider' : 'No upcoming rides as a rider'}
-                  </Text>
+                  <Text style={styles.emptyText}>No past rides as a rider</Text>
                 </View>
               ) : (
                 riderRides.map((ride) => (
-                  <View key={`rider-${ride.id}`} style={styles.rideCard}>
-                    <TouchableOpacity 
-                      style={styles.rideContent}
-                      onPress={() => handleRidePress(ride)}
-                      activeOpacity={0.7}
-                    >
+                  <TouchableOpacity 
+                    key={`rider-${ride.id}`} 
+                    style={styles.rideCard}
+                    onPress={() => handleRidePress(ride)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.rideContent}>
                       <View style={styles.rideDetails}>
                         <Text style={styles.rideDate}>
-                          {activeTab === 'past' 
-                            ? formatDate(ride.completed_at || ride.joined_at)
-                            : formatDate(ride.ride?.start_time || ride.joined_at)
-                          }
+                          {formatRideTime(ride.completed_at || ride.joined_at)}
                         </Text>
                         <Text style={styles.rideRoute}>{formatRoute(ride)}</Text>
-                        <Text style={styles.rideInfo}>{getDriverDetails(ride)}</Text>
+                        <View style={styles.rideInfoContainer}>
+                          <Text style={styles.rideInfo}>
+                            Driver: {getDriverName(ride)}
+                          </Text>
+                          {ride.ride?.total_fare && (
+                            <Text style={styles.fareText}>${ride.ride.total_fare.toFixed(2)}</Text>
+                          )}
+                        </View>
                         {ride.rating_received && (
                           <Text style={styles.ratingText}>
                             Rating received: {ride.rating_received}/5 ⭐
@@ -258,18 +320,8 @@ export default function RideHistoryScreen() {
                         )}
                       </View>
                       <Image source={{ uri: getRideImage(ride) }} style={styles.rideImage} />
-                    </TouchableOpacity>
-                    {activeTab === 'upcoming' && (
-                      <View style={styles.actionContainer}>
-                        <TouchableOpacity style={styles.cancelButton}>
-                          <Text style={styles.cancelText}>Cancel</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.rescheduleButton} onPress={handleReschedule}>
-                          <Text style={styles.rescheduleText}>Reschedule</Text>
-                        </TouchableOpacity>
-                      </View>
-                    )}
-                  </View>
+                    </View>
+                  </TouchableOpacity>
                 ))
               )}
             </>
@@ -305,30 +357,6 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     width: 40,
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 24,
-    marginBottom: 24,
-  },
-  tab: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginRight: 24,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  activeTab: {
-    borderBottomColor: '#4ECDC4',
-  },
-  tabText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#9CA3AF',
-  },
-  activeTabText: {
-    color: '#2d3748',
-    fontFamily: 'Inter-SemiBold',
   },
   content: {
     paddingHorizontal: 24,
@@ -383,37 +411,24 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: '#4ECDC4',
   },
-  actionContainer: {
+  rideInfoContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    gap: 12,
-  },
-  cancelButton: {
-    backgroundColor: '#F3F4F6',
-    borderRadius: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    flex: 1,
+    justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 4,
   },
-  cancelText: {
-    fontSize: 14,
+  fareText: {
+    fontSize: 16,
     fontFamily: 'Inter-SemiBold',
-    color: '#6B7280',
+    color: '#2d3748',
   },
-  rescheduleButton: {
-    backgroundColor: '#4ECDC4',
-    borderRadius: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    flex: 1,
-    alignItems: 'center',
+  carInfoContainer: {
+    marginTop: 4,
   },
-  rescheduleText: {
+  carInfo: {
     fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    color: '#ffffff',
+    fontFamily: 'Inter-Regular',
+    color: '#718096',
   },
   loadingContainer: {
     flex: 1,
