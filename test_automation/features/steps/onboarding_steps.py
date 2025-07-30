@@ -144,6 +144,14 @@ def step_should_see_continue_with_email_button(context):
     """Step to verify Continue with email button is displayed."""
     from pages.authentication_page import SignupPage
     signup_page = SignupPage()
+    
+    # Debug: List all visible elements
+    print("=== DEBUG: All visible elements on signup screen ===")
+    visible_elements = signup_page.list_all_visible_elements()
+    for element in visible_elements:
+        print(f"  {element}")
+    print("=== END DEBUG ===")
+    
     assert signup_page.is_continue_with_email_displayed(), "Continue with email button is not displayed"
 
 
