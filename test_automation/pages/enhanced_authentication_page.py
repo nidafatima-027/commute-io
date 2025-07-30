@@ -222,7 +222,34 @@ class EnhancedEmailPage(BasePage):
     def list_all_visible_elements(self) -> list:
         """List all visible elements on the email page for debugging."""
         print("🔍 Listing all visible elements on email page...")
-        return super().list_all_visible_elements()
+        try:
+            # Get all visible elements
+            all_elements = self.driver.find_elements(AppiumBy.XPATH, "//*")
+            elements_info = []
+            
+            for element in all_elements:
+                try:
+                    # Check if element is visible
+                    if element.is_displayed():
+                        # Get element text
+                        text = element.text or element.get_attribute('content-desc') or element.get_attribute('text') or ''
+                        # Get element type
+                        element_type = element.tag_name or element.get_attribute('class') or 'Unknown'
+                        # Get resource ID
+                        resource_id = element.get_attribute('resource-id') or ''
+                        
+                        if text.strip() or resource_id:
+                            element_info = f"{element_type}: '{text}'"
+                            if resource_id:
+                                element_info += f" (id: {resource_id})"
+                            elements_info.append(element_info)
+                except:
+                    continue
+            
+            return elements_info
+        except Exception as e:
+            print(f"Error listing elements: {str(e)}")
+            return []
 
 
 class EnhancedOTPVerificationPage(BasePage):
@@ -380,4 +407,31 @@ class EnhancedOTPVerificationPage(BasePage):
     def list_all_visible_elements(self) -> list:
         """List all visible elements on the OTP verification page for debugging."""
         print("🔍 Listing all visible elements on OTP verification page...")
-        return super().list_all_visible_elements()
+        try:
+            # Get all visible elements
+            all_elements = self.driver.find_elements(AppiumBy.XPATH, "//*")
+            elements_info = []
+            
+            for element in all_elements:
+                try:
+                    # Check if element is visible
+                    if element.is_displayed():
+                        # Get element text
+                        text = element.text or element.get_attribute('content-desc') or element.get_attribute('text') or ''
+                        # Get element type
+                        element_type = element.tag_name or element.get_attribute('class') or 'Unknown'
+                        # Get resource ID
+                        resource_id = element.get_attribute('resource-id') or ''
+                        
+                        if text.strip() or resource_id:
+                            element_info = f"{element_type}: '{text}'"
+                            if resource_id:
+                                element_info += f" (id: {resource_id})"
+                            elements_info.append(element_info)
+                except:
+                    continue
+            
+            return elements_info
+        except Exception as e:
+            print(f"Error listing elements: {str(e)}")
+            return []

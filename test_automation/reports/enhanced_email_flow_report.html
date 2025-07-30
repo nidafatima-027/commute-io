@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title id="head-title">enhanced_email_flow_report.html</title>
+      <style type="text/css">body {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  /* do not increase min-width as some may use split screens */
+  min-width: 800px;
+  color: #999;
+}
+
+h1 {
+  font-size: 24px;
+  color: black;
+}
+
+h2 {
+  font-size: 16px;
+  color: black;
+}
+
+p {
+  color: black;
+}
+
+a {
+  color: #999;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+/******************************
+ * SUMMARY INFORMATION
+ ******************************/
+#environment td {
+  padding: 5px;
+  border: 1px solid #e6e6e6;
+  vertical-align: top;
+}
+#environment tr:nth-child(odd) {
+  background-color: #f6f6f6;
+}
+#environment ul {
+  margin: 0;
+  padding: 0 20px;
+}
+
+/******************************
+ * TEST RESULT COLORS
+ ******************************/
+span.passed,
+.passed .col-result {
+  color: green;
+}
+
+span.skipped,
+span.xfailed,
+span.rerun,
+.skipped .col-result,
+.xfailed .col-result,
+.rerun .col-result {
+  color: orange;
+}
+
+span.error,
+span.failed,
+span.xpassed,
+.error .col-result,
+.failed .col-result,
+.xpassed .col-result {
+  color: red;
+}
+
+.col-links__extra {
+  margin-right: 3px;
+}
+
+/******************************
+ * RESULTS TABLE
+ *
+ * 1. Table Layout
+ * 2. Extra
+ * 3. Sorting items
+ *
+ ******************************/
+/*------------------
+ * 1. Table Layout
+ *------------------*/
+#results-table {
+  border: 1px solid #e6e6e6;
+  color: #999;
+  font-size: 12px;
+  width: 100%;
+}
+#results-table th,
+#results-table td {
+  padding: 5px;
+  border: 1px solid #e6e6e6;
+  text-align: left;
+}
+#results-table th {
+  font-weight: bold;
+}
+
+/*------------------
+ * 2. Extra
+ *------------------*/
+.logwrapper {
+  max-height: 230px;
+  overflow-y: scroll;
+  background-color: #e6e6e6;
+}
+.logwrapper.expanded {
+  max-height: none;
+}
+.logwrapper.expanded .logexpander:after {
+  content: "collapse [-]";
+}
+.logwrapper .logexpander {
+  z-index: 1;
+  position: sticky;
+  top: 10px;
+  width: max-content;
+  border: 1px solid;
+  border-radius: 3px;
+  padding: 5px 7px;
+  margin: 10px 0 10px calc(100% - 80px);
+  cursor: pointer;
+  background-color: #e6e6e6;
+}
+.logwrapper .logexpander:after {
+  content: "expand [+]";
+}
+.logwrapper .logexpander:hover {
+  color: #000;
+  border-color: #000;
+}
+.logwrapper .log {
+  min-height: 40px;
+  position: relative;
+  top: -50px;
+  height: calc(100% + 50px);
+  border: 1px solid #e6e6e6;
+  color: black;
+  display: block;
+  font-family: "Courier New", Courier, monospace;
+  padding: 5px;
+  padding-right: 80px;
+  white-space: pre-wrap;
+}
+
+div.media {
+  border: 1px solid #e6e6e6;
+  float: right;
+  height: 240px;
+  margin: 0 5px;
+  overflow: hidden;
+  width: 320px;
+}
+
+.media-container {
+  display: grid;
+  grid-template-columns: 25px auto 25px;
+  align-items: center;
+  flex: 1 1;
+  overflow: hidden;
+  height: 200px;
+}
+
+.media-container--fullscreen {
+  grid-template-columns: 0px auto 0px;
+}
+
+.media-container__nav--right,
+.media-container__nav--left {
+  text-align: center;
+  cursor: pointer;
+}
+
+.media-container__viewport {
+  cursor: pointer;
+  text-align: center;
+  height: inherit;
+}
+.media-container__viewport img,
+.media-container__viewport video {
+  object-fit: cover;
+  width: 100%;
+  max-height: 100%;
+}
+
+.media__name,
+.media__counter {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  flex: 0 0 25px;
+  align-items: center;
+}
+
+.collapsible td:not(.col-links) {
+  cursor: pointer;
+}
+.collapsible td:not(.col-links):hover::after {
+  color: #bbb;
+  font-style: italic;
+  cursor: pointer;
+}
+
+.col-result {
+  width: 130px;
+}
+.col-result:hover::after {
+  content: " (hide details)";
+}
+
+.col-result.collapsed:hover::after {
+  content: " (show details)";
+}
+
+#environment-header h2:hover::after {
+  content: " (hide details)";
+  color: #bbb;
+  font-style: italic;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+#environment-header.collapsed h2:hover::after {
+  content: " (show details)";
+  color: #bbb;
+  font-style: italic;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+/*------------------
+ * 3. Sorting items
+ *------------------*/
+.sortable {
+  cursor: pointer;
+}
+.sortable.desc:after {
+  content: " ";
+  position: relative;
+  left: 5px;
+  bottom: -12.5px;
+  border: 10px solid #4caf50;
+  border-bottom: 0;
+  border-left-color: transparent;
+  border-right-color: transparent;
+}
+.sortable.asc:after {
+  content: " ";
+  position: relative;
+  left: 5px;
+  bottom: 12.5px;
+  border: 10px solid #4caf50;
+  border-top: 0;
+  border-left-color: transparent;
+  border-right-color: transparent;
+}
+
+.hidden, .summary__reload__button.hidden {
+  display: none;
+}
+
+.summary__data {
+  flex: 0 0 550px;
+}
+.summary__reload {
+  flex: 1 1;
+  display: flex;
+  justify-content: center;
+}
+.summary__reload__button {
+  flex: 0 0 300px;
+  display: flex;
+  color: white;
+  font-weight: bold;
+  background-color: #4caf50;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.summary__reload__button:hover {
+  background-color: #46a049;
+}
+.summary__spacer {
+  flex: 0 0 550px;
+}
+
+.controls {
+  display: flex;
+  justify-content: space-between;
+}
+
+.filters,
+.collapse {
+  display: flex;
+  align-items: center;
+}
+.filters button,
+.collapse button {
+  color: #999;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.filters button:hover,
+.collapse button:hover {
+  color: #ccc;
+}
+
+.filter__label {
+  margin-right: 10px;
+}
+
+      </style>
+    
+  </head>
+  <body>
+    <h1 id="title">enhanced_email_flow_report.html</h1>
+    <p>Report generated on 30-Jul-2025 at 22:17:04 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a>
+        v4.1.1</p>
+    <div id="environment-header">
+      <h2>Environment</h2>
+    </div>
+    <table id="environment"></table>
+    <!-- TEMPLATES -->
+      <template id="template_environment_row">
+      <tr>
+        <td></td>
+        <td></td>
+      </tr>
+    </template>
+    <template id="template_results-table__body--empty">
+      <tbody class="results-table-row">
+        <tr id="not-found-message">
+          <td colspan="4">No results found. Check the filters.</th>
+        </tr>
+    </template>
+    <template id="template_results-table__tbody">
+      <tbody class="results-table-row">
+        <tr class="collapsible">
+        </tr>
+        <tr class="extras-row">
+          <td class="extra" colspan="4">
+            <div class="extraHTML"></div>
+            <div class="media">
+              <div class="media-container">
+                  <div class="media-container__nav--left"><</div>
+                  <div class="media-container__viewport">
+                    <img src="" />
+                    <video controls>
+                      <source src="" type="video/mp4">
+                    </video>
+                  </div>
+                  <div class="media-container__nav--right">></div>
+                </div>
+                <div class="media__name"></div>
+                <div class="media__counter"></div>
+            </div>
+            <div class="logwrapper">
+              <div class="logexpander"></div>
+              <div class="log"></div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </template>
+    <!-- END TEMPLATES -->
+    <div class="summary">
+      <div class="summary__data">
+        <h2>Summary</h2>
+        <div class="additional-summary prefix">
+        </div>
+        <p class="run-count">0 test took 5 ms.</p>
+        <p class="filter">(Un)check the boxes to filter the results.</p>
+        <div class="summary__reload">
+          <div class="summary__reload__button hidden" onclick="location.reload()">
+            <div>There are still tests running. <br />Reload this page to get the latest results!</div>
+          </div>
+        </div>
+        <div class="summary__spacer"></div>
+        <div class="controls">
+          <div class="filters">
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="failed" disabled/>
+            <span class="failed">0 Failed,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="passed" disabled/>
+            <span class="passed">0 Passed,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="skipped" disabled/>
+            <span class="skipped">0 Skipped,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="xfailed" disabled/>
+            <span class="xfailed">0 Expected failures,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="xpassed" disabled/>
+            <span class="xpassed">0 Unexpected passes,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="error" />
+            <span class="error">1 Errors,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="rerun" disabled/>
+            <span class="rerun">0 Reruns</span>
+          </div>
+          <div class="collapse">
+            <button id="show_all_details">Show all details</button>&nbsp;/&nbsp;<button id="hide_all_details">Hide all details</button>
+          </div>
+        </div>
+      </div>
+      <div class="additional-summary summary">
+      </div>
+      <div class="additional-summary postfix">
+      </div>
+    </div>
+    <table id="results-table">
+      <thead id="results-table-head">
+        <tr>
+          <th class="sortable" data-column-type="result">Result</th>
+          <th class="sortable" data-column-type="testId">Test</th>
+          <th class="sortable" data-column-type="duration">Duration</th>
+          <th>Links</th>
+        </tr>
+      </thead>
+    </table>
+  </body>
+  <footer>
+    <div id="data-container" data-jsonblob="{&#34;environment&#34;: {&#34;Python&#34;: &#34;3.13.3&#34;, &#34;Platform&#34;: &#34;Linux-6.12.8+-x86_64-with-glibc2.41&#34;, &#34;Packages&#34;: {&#34;pytest&#34;: &#34;8.4.1&#34;, &#34;pluggy&#34;: &#34;1.6.0&#34;}, &#34;Plugins&#34;: {&#34;rerunfailures&#34;: &#34;15.1&#34;, &#34;metadata&#34;: &#34;3.1.1&#34;, &#34;timeout&#34;: &#34;2.4.0&#34;, &#34;cov&#34;: &#34;6.2.1&#34;, &#34;xdist&#34;: &#34;3.8.0&#34;, &#34;mock&#34;: &#34;3.14.1&#34;, &#34;html&#34;: &#34;4.1.1&#34;, &#34;allure-pytest&#34;: &#34;2.15.0&#34;}}, &#34;tests&#34;: {&#34;pytest_tests/test_enhanced_email_flow.py::TestEnhancedEmailFlow::test_enhanced_email_authentication_flow&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Error&#34;, &#34;testId&#34;: &#34;pytest_tests/test_enhanced_email_flow.py::TestEnhancedEmailFlow::test_enhanced_email_authentication_flow::setup&#34;, &#34;duration&#34;: &#34;5 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Error&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;pytest_tests/test_enhanced_email_flow.py::TestEnhancedEmailFlow::test_enhanced_email_authentication_flow::setup&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;5 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;self = &amp;lt;urllib3.connection.HTTPConnection object at 0x7f1d6ff7d350&amp;gt;\n\n    def _new_conn(self) -&amp;gt; socket.socket:\n        &amp;quot;&amp;quot;&amp;quot;Establish a socket connection and set nodelay settings on it.\n    \n        :return: New socket connection.\n        &amp;quot;&amp;quot;&amp;quot;\n        try:\n&amp;gt;           sock = connection.create_connection(\n                (self._dns_host, self.port),\n                self.timeout,\n                source_address=self.source_address,\n                socket_options=self.socket_options,\n            )\n\nvenv/lib/python3.13/site-packages/urllib3/connection.py:198: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\naddress = (&amp;#x27;localhost&amp;#x27;, 4723), timeout = None, source_address = None\nsocket_options = [(6, 1, 1)]\n\n    def create_connection(\n        address: tuple[str, int],\n        timeout: _TYPE_TIMEOUT = _DEFAULT_TIMEOUT,\n        source_address: tuple[str, int] | None = None,\n        socket_options: _TYPE_SOCKET_OPTIONS | None = None,\n    ) -&amp;gt; socket.socket:\n        &amp;quot;&amp;quot;&amp;quot;Connect to *address* and return the socket object.\n    \n        Convenience function.  Connect to *address* (a 2-tuple ``(host,\n        port)``) and return the socket object.  Passing the optional\n        *timeout* parameter will set the timeout on the socket instance\n        before attempting to connect.  If no *timeout* is supplied, the\n        global default timeout setting returned by :func:`socket.getdefaulttimeout`\n        is used.  If *source_address* is set it must be a tuple of (host, port)\n        for the socket to bind as a source address before making the connection.\n        An host of &amp;#x27;&amp;#x27; or port 0 tells the OS to use the default.\n        &amp;quot;&amp;quot;&amp;quot;\n    \n        host, port = address\n        if host.startswith(&amp;quot;[&amp;quot;):\n            host = host.strip(&amp;quot;[]&amp;quot;)\n        err = None\n    \n        # Using the value from allowed_gai_family() in the context of getaddrinfo lets\n        # us select whether to work with IPv4 DNS records, IPv6 records, or both.\n        # The original create_connection function always returns all records.\n        family = allowed_gai_family()\n    \n        try:\n            host.encode(&amp;quot;idna&amp;quot;)\n        except UnicodeError:\n            raise LocationParseError(f&amp;quot;&amp;#x27;{host}&amp;#x27;, label empty or too long&amp;quot;) from None\n    \n        for res in socket.getaddrinfo(host, port, family, socket.SOCK_STREAM):\n            af, socktype, proto, canonname, sa = res\n            sock = None\n            try:\n                sock = socket.socket(af, socktype, proto)\n    \n                # If provided, set socket level options before connecting.\n                _set_socket_options(sock, socket_options)\n    \n                if timeout is not _DEFAULT_TIMEOUT:\n                    sock.settimeout(timeout)\n                if source_address:\n                    sock.bind(source_address)\n                sock.connect(sa)\n                # Break explicitly a reference cycle\n                err = None\n                return sock\n    \n            except OSError as _:\n                err = _\n                if sock is not None:\n                    sock.close()\n    \n        if err is not None:\n            try:\n&amp;gt;               raise err\n\nvenv/lib/python3.13/site-packages/urllib3/util/connection.py:85: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\naddress = (&amp;#x27;localhost&amp;#x27;, 4723), timeout = None, source_address = None\nsocket_options = [(6, 1, 1)]\n\n    def create_connection(\n        address: tuple[str, int],\n        timeout: _TYPE_TIMEOUT = _DEFAULT_TIMEOUT,\n        source_address: tuple[str, int] | None = None,\n        socket_options: _TYPE_SOCKET_OPTIONS | None = None,\n    ) -&amp;gt; socket.socket:\n        &amp;quot;&amp;quot;&amp;quot;Connect to *address* and return the socket object.\n    \n        Convenience function.  Connect to *address* (a 2-tuple ``(host,\n        port)``) and return the socket object.  Passing the optional\n        *timeout* parameter will set the timeout on the socket instance\n        before attempting to connect.  If no *timeout* is supplied, the\n        global default timeout setting returned by :func:`socket.getdefaulttimeout`\n        is used.  If *source_address* is set it must be a tuple of (host, port)\n        for the socket to bind as a source address before making the connection.\n        An host of &amp;#x27;&amp;#x27; or port 0 tells the OS to use the default.\n        &amp;quot;&amp;quot;&amp;quot;\n    \n        host, port = address\n        if host.startswith(&amp;quot;[&amp;quot;):\n            host = host.strip(&amp;quot;[]&amp;quot;)\n        err = None\n    \n        # Using the value from allowed_gai_family() in the context of getaddrinfo lets\n        # us select whether to work with IPv4 DNS records, IPv6 records, or both.\n        # The original create_connection function always returns all records.\n        family = allowed_gai_family()\n    \n        try:\n            host.encode(&amp;quot;idna&amp;quot;)\n        except UnicodeError:\n            raise LocationParseError(f&amp;quot;&amp;#x27;{host}&amp;#x27;, label empty or too long&amp;quot;) from None\n    \n        for res in socket.getaddrinfo(host, port, family, socket.SOCK_STREAM):\n            af, socktype, proto, canonname, sa = res\n            sock = None\n            try:\n                sock = socket.socket(af, socktype, proto)\n    \n                # If provided, set socket level options before connecting.\n                _set_socket_options(sock, socket_options)\n    \n                if timeout is not _DEFAULT_TIMEOUT:\n                    sock.settimeout(timeout)\n                if source_address:\n                    sock.bind(source_address)\n&amp;gt;               sock.connect(sa)\nE               ConnectionRefusedError: [Errno 111] Connection refused\n\nvenv/lib/python3.13/site-packages/urllib3/util/connection.py:73: ConnectionRefusedError\n\nThe above exception was the direct cause of the following exception:\n\nself = &amp;lt;urllib3.connectionpool.HTTPConnectionPool object at 0x7f1d708a2f90&amp;gt;\nmethod = &amp;#x27;POST&amp;#x27;, url = &amp;#x27;/session&amp;#x27;\nbody = &amp;#x27;{&amp;quot;capabilities&amp;quot;: {&amp;quot;firstMatch&amp;quot;: [{}], &amp;quot;alwaysMatch&amp;quot;: {&amp;quot;appium:automationName&amp;quot;: &amp;quot;UiAutomator2&amp;quot;, &amp;quot;platformName&amp;quot;: &amp;quot;Andro...skipServerInstallation&amp;quot;: true, &amp;quot;appium:autoLaunch&amp;quot;: false, &amp;quot;appium:skipUnlock&amp;quot;: true, &amp;quot;appium:skipLogCapture&amp;quot;: true}}}&amp;#x27;\nheaders = HTTPHeaderDict({&amp;#x27;Accept&amp;#x27;: &amp;#x27;application/json&amp;#x27;, &amp;#x27;Content-Type&amp;#x27;: &amp;#x27;application/json;charset=UTF-8&amp;#x27;, &amp;#x27;User-Agent&amp;#x27;: &amp;#x27;appium/...nium/4.34.2 (python linux))&amp;#x27;, &amp;#x27;Connection&amp;#x27;: &amp;#x27;keep-alive&amp;#x27;, &amp;#x27;X-Idempotency-Key&amp;#x27;: &amp;#x27;329b0d27-7561-4196-bf94-afead7cac451&amp;#x27;})\nretries = Retry(total=0, connect=None, read=None, redirect=None, status=None)\nredirect = False, assert_same_host = False, timeout = None, pool_timeout = None\nrelease_conn = True, chunked = False, body_pos = None, preload_content = True\ndecode_content = True, response_kw = {}\nparsed_url = Url(scheme=None, auth=None, host=None, port=None, path=&amp;#x27;/session&amp;#x27;, query=None, fragment=None)\ndestination_scheme = None, conn = None, release_this_conn = True\nhttp_tunnel_required = False, err = None, clean_exit = False\n\n    def urlopen(  # type: ignore[override]\n        self,\n        method: str,\n        url: str,\n        body: _TYPE_BODY | None = None,\n        headers: typing.Mapping[str, str] | None = None,\n        retries: Retry | bool | int | None = None,\n        redirect: bool = True,\n        assert_same_host: bool = True,\n        timeout: _TYPE_TIMEOUT = _DEFAULT_TIMEOUT,\n        pool_timeout: int | None = None,\n        release_conn: bool | None = None,\n        chunked: bool = False,\n        body_pos: _TYPE_BODY_POSITION | None = None,\n        preload_content: bool = True,\n        decode_content: bool = True,\n        **response_kw: typing.Any,\n    ) -&amp;gt; BaseHTTPResponse:\n        &amp;quot;&amp;quot;&amp;quot;\n        Get a connection from the pool and perform an HTTP request. This is the\n        lowest level call for making a request, so you&amp;#x27;ll need to specify all\n        the raw details.\n    \n        .. note::\n    \n           More commonly, it&amp;#x27;s appropriate to use a convenience method\n           such as :meth:`request`.\n    \n        .. note::\n    \n           `release_conn` will only behave as expected if\n           `preload_content=False` because we want to make\n           `preload_content=False` the default behaviour someday soon without\n           breaking backwards compatibility.\n    \n        :param method:\n            HTTP request method (such as GET, POST, PUT, etc.)\n    \n        :param url:\n            The URL to perform the request on.\n    \n        :param body:\n            Data to send in the request body, either :class:`str`, :class:`bytes`,\n            an iterable of :class:`str`/:class:`bytes`, or a file-like object.\n    \n        :param headers:\n            Dictionary of custom headers to send, such as User-Agent,\n            If-None-Match, etc. If None, pool headers are used. If provided,\n            these headers completely replace any pool-specific headers.\n    \n        :param retries:\n            Configure the number of retries to allow before raising a\n            :class:`~urllib3.exceptions.MaxRetryError` exception.\n    \n            If ``None`` (default) will retry 3 times, see ``Retry.DEFAULT``. Pass a\n            :class:`~urllib3.util.retry.Retry` object for fine-grained control\n            over different types of retries.\n            Pass an integer number to retry connection errors that many times,\n            but no other types of errors. Pass zero to never retry.\n    \n            If ``False``, then retries are disabled and any exception is raised\n            immediately. Also, instead of raising a MaxRetryError on redirects,\n            the redirect response will be returned.\n    \n        :type retries: :class:`~urllib3.util.retry.Retry`, False, or an int.\n    \n        :param redirect:\n            If True, automatically handle redirects (status codes 301, 302,\n            303, 307, 308). Each redirect counts as a retry. Disabling retries\n            will disable redirect, too.\n    \n        :param assert_same_host:\n            If ``True``, will make sure that the host of the pool requests is\n            consistent else will raise HostChangedError. When ``False``, you can\n            use the pool on an HTTP proxy and request foreign hosts.\n    \n        :param timeout:\n            If specified, overrides the default timeout for this one\n            request. It may be a float (in seconds) or an instance of\n            :class:`urllib3.util.Timeout`.\n    \n        :param pool_timeout:\n            If set and the pool is set to block=True, then this method will\n            block for ``pool_timeout`` seconds and raise EmptyPoolError if no\n            connection is available within the time period.\n    \n        :param bool preload_content:\n            If True, the response&amp;#x27;s body will be preloaded into memory.\n    \n        :param bool decode_content:\n            If True, will attempt to decode the body based on the\n            &amp;#x27;content-encoding&amp;#x27; header.\n    \n        :param release_conn:\n            If False, then the urlopen call will not release the connection\n            back into the pool once a response is received (but will release if\n            you read the entire contents of the response such as when\n            `preload_content=True`). This is useful if you&amp;#x27;re not preloading\n            the response&amp;#x27;s content immediately. You will need to call\n            ``r.release_conn()`` on the response ``r`` to return the connection\n            back into the pool. If None, it takes the value of ``preload_content``\n            which defaults to ``True``.\n    \n        :param bool chunked:\n            If True, urllib3 will send the body using chunked transfer\n            encoding. Otherwise, urllib3 will send the body using the standard\n            content-length form. Defaults to False.\n    \n        :param int body_pos:\n            Position to seek to in file-like body in the event of a retry or\n            redirect. Typically this won&amp;#x27;t need to be set because urllib3 will\n            auto-populate the value when needed.\n        &amp;quot;&amp;quot;&amp;quot;\n        parsed_url = parse_url(url)\n        destination_scheme = parsed_url.scheme\n    \n        if headers is None:\n            headers = self.headers\n    \n        if not isinstance(retries, Retry):\n            retries = Retry.from_int(retries, redirect=redirect, default=self.retries)\n    \n        if release_conn is None:\n            release_conn = preload_content\n    \n        # Check host\n        if assert_same_host and not self.is_same_host(url):\n            raise HostChangedError(self, url, retries)\n    \n        # Ensure that the URL we&amp;#x27;re connecting to is properly encoded\n        if url.startswith(&amp;quot;/&amp;quot;):\n            url = to_str(_encode_target(url))\n        else:\n            url = to_str(parsed_url.url)\n    \n        conn = None\n    \n        # Track whether `conn` needs to be released before\n        # returning/raising/recursing. Update this variable if necessary, and\n        # leave `release_conn` constant throughout the function. That way, if\n        # the function recurses, the original value of `release_conn` will be\n        # passed down into the recursive call, and its value will be respected.\n        #\n        # See issue #651 [1] for details.\n        #\n        # [1] &amp;lt;https://github.com/urllib3/urllib3/issues/651&amp;gt;\n        release_this_conn = release_conn\n    \n        http_tunnel_required = connection_requires_http_tunnel(\n            self.proxy, self.proxy_config, destination_scheme\n        )\n    \n        # Merge the proxy headers. Only done when not using HTTP CONNECT. We\n        # have to copy the headers dict so we can safely change it without those\n        # changes being reflected in anyone else&amp;#x27;s copy.\n        if not http_tunnel_required:\n            headers = headers.copy()  # type: ignore[attr-defined]\n            headers.update(self.proxy_headers)  # type: ignore[union-attr]\n    \n        # Must keep the exception bound to a separate variable or else Python 3\n        # complains about UnboundLocalError.\n        err = None\n    \n        # Keep track of whether we cleanly exited the except block. This\n        # ensures we do proper cleanup in finally.\n        clean_exit = False\n    \n        # Rewind body position, if needed. Record current position\n        # for future rewinds in the event of a redirect/retry.\n        body_pos = set_file_position(body, body_pos)\n    \n        try:\n            # Request a connection from the queue.\n            timeout_obj = self._get_timeout(timeout)\n            conn = self._get_conn(timeout=pool_timeout)\n    \n            conn.timeout = timeout_obj.connect_timeout  # type: ignore[assignment]\n    \n            # Is this a closed/new connection that requires CONNECT tunnelling?\n            if self.proxy is not None and http_tunnel_required and conn.is_closed:\n                try:\n                    self._prepare_proxy(conn)\n                except (BaseSSLError, OSError, SocketTimeout) as e:\n                    self._raise_timeout(\n                        err=e, url=self.proxy.url, timeout_value=conn.timeout\n                    )\n                    raise\n    \n            # If we&amp;#x27;re going to release the connection in ``finally:``, then\n            # the response doesn&amp;#x27;t need to know about the connection. Otherwise\n            # it will also try to release it and we&amp;#x27;ll have a double-release\n            # mess.\n            response_conn = conn if not release_conn else None\n    \n            # Make the request on the HTTPConnection object\n&amp;gt;           response = self._make_request(\n                conn,\n                method,\n                url,\n                timeout=timeout_obj,\n                body=body,\n                headers=headers,\n                chunked=chunked,\n                retries=retries,\n                response_conn=response_conn,\n                preload_content=preload_content,\n                decode_content=decode_content,\n                **response_kw,\n            )\n\nvenv/lib/python3.13/site-packages/urllib3/connectionpool.py:787: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = &amp;lt;urllib3.connectionpool.HTTPConnectionPool object at 0x7f1d708a2f90&amp;gt;\nconn = &amp;lt;urllib3.connection.HTTPConnection object at 0x7f1d6ff7d350&amp;gt;\nmethod = &amp;#x27;POST&amp;#x27;, url = &amp;#x27;/session&amp;#x27;\nbody = &amp;#x27;{&amp;quot;capabilities&amp;quot;: {&amp;quot;firstMatch&amp;quot;: [{}], &amp;quot;alwaysMatch&amp;quot;: {&amp;quot;appium:automationName&amp;quot;: &amp;quot;UiAutomator2&amp;quot;, &amp;quot;platformName&amp;quot;: &amp;quot;Andro...skipServerInstallation&amp;quot;: true, &amp;quot;appium:autoLaunch&amp;quot;: false, &amp;quot;appium:skipUnlock&amp;quot;: true, &amp;quot;appium:skipLogCapture&amp;quot;: true}}}&amp;#x27;\nheaders = HTTPHeaderDict({&amp;#x27;Accept&amp;#x27;: &amp;#x27;application/json&amp;#x27;, &amp;#x27;Content-Type&amp;#x27;: &amp;#x27;application/json;charset=UTF-8&amp;#x27;, &amp;#x27;User-Agent&amp;#x27;: &amp;#x27;appium/...nium/4.34.2 (python linux))&amp;#x27;, &amp;#x27;Connection&amp;#x27;: &amp;#x27;keep-alive&amp;#x27;, &amp;#x27;X-Idempotency-Key&amp;#x27;: &amp;#x27;329b0d27-7561-4196-bf94-afead7cac451&amp;#x27;})\nretries = Retry(total=0, connect=None, read=None, redirect=None, status=None)\ntimeout = Timeout(connect=None, read=None, total=None), chunked = False\nresponse_conn = None, preload_content = True, decode_content = True\nenforce_content_length = True\n\n    def _make_request(\n        self,\n        conn: BaseHTTPConnection,\n        method: str,\n        url: str,\n        body: _TYPE_BODY | None = None,\n        headers: typing.Mapping[str, str] | None = None,\n        retries: Retry | None = None,\n        timeout: _TYPE_TIMEOUT = _DEFAULT_TIMEOUT,\n        chunked: bool = False,\n        response_conn: BaseHTTPConnection | None = None,\n        preload_content: bool = True,\n        decode_content: bool = True,\n        enforce_content_length: bool = True,\n    ) -&amp;gt; BaseHTTPResponse:\n        &amp;quot;&amp;quot;&amp;quot;\n        Perform a request on a given urllib connection object taken from our\n        pool.\n    \n        :param conn:\n            a connection from one of our connection pools\n    \n        :param method:\n            HTTP request method (such as GET, POST, PUT, etc.)\n    \n        :param url:\n            The URL to perform the request on.\n    \n        :param body:\n            Data to send in the request body, either :class:`str`, :class:`bytes`,\n            an iterable of :class:`str`/:class:`bytes`, or a file-like object.\n    \n        :param headers:\n            Dictionary of custom headers to send, such as User-Agent,\n            If-None-Match, etc. If None, pool headers are used. If provided,\n            these headers completely replace any pool-specific headers.\n    \n        :param retries:\n            Configure the number of retries to allow before raising a\n            :class:`~urllib3.exceptions.MaxRetryError` exception.\n    \n            Pass ``None`` to retry until you receive a response. Pass a\n            :class:`~urllib3.util.retry.Retry` object for fine-grained control\n            over different types of retries.\n            Pass an integer number to retry connection errors that many times,\n            but no other types of errors. Pass zero to never retry.\n    \n            If ``False``, then retries are disabled and any exception is raised\n            immediately. Also, instead of raising a MaxRetryError on redirects,\n            the redirect response will be returned.\n    \n        :type retries: :class:`~urllib3.util.retry.Retry`, False, or an int.\n    \n        :param timeout:\n            If specified, overrides the default timeout for this one\n            request. It may be a float (in seconds) or an instance of\n            :class:`urllib3.util.Timeout`.\n    \n        :param chunked:\n            If True, urllib3 will send the body using chunked transfer\n            encoding. Otherwise, urllib3 will send the body using the standard\n            content-length form. Defaults to False.\n    \n        :param response_conn:\n            Set this to ``None`` if you will handle releasing the connection or\n            set the connection to have the response release it.\n    \n        :param preload_content:\n          If True, the response&amp;#x27;s body will be preloaded during construction.\n    \n        :param decode_content:\n            If True, will attempt to decode the body based on the\n            &amp;#x27;content-encoding&amp;#x27; header.\n    \n        :param enforce_content_length:\n            Enforce content length checking. Body returned by server must match\n            value of Content-Length header, if present. Otherwise, raise error.\n        &amp;quot;&amp;quot;&amp;quot;\n        self.num_requests += 1\n    \n        timeout_obj = self._get_timeout(timeout)\n        timeout_obj.start_connect()\n        conn.timeout = Timeout.resolve_default_timeout(timeout_obj.connect_timeout)\n    \n        try:\n            # Trigger any extra validation we need to do.\n            try:\n                self._validate_conn(conn)\n            except (SocketTimeout, BaseSSLError) as e:\n                self._raise_timeout(err=e, url=url, timeout_value=conn.timeout)\n                raise\n    \n        # _validate_conn() starts the connection to an HTTPS proxy\n        # so we need to wrap errors with &amp;#x27;ProxyError&amp;#x27; here too.\n        except (\n            OSError,\n            NewConnectionError,\n            TimeoutError,\n            BaseSSLError,\n            CertificateError,\n            SSLError,\n        ) as e:\n            new_e: Exception = e\n            if isinstance(e, (BaseSSLError, CertificateError)):\n                new_e = SSLError(e)\n            # If the connection didn&amp;#x27;t successfully connect to it&amp;#x27;s proxy\n            # then there\n            if isinstance(\n                new_e, (OSError, NewConnectionError, TimeoutError, SSLError)\n            ) and (conn and conn.proxy and not conn.has_connected_to_proxy):\n                new_e = _wrap_proxy_error(new_e, conn.proxy.scheme)\n            raise new_e\n    \n        # conn.request() calls http.client.*.request, not the method in\n        # urllib3.request. It also calls makefile (recv) on the socket.\n        try:\n&amp;gt;           conn.request(\n                method,\n                url,\n                body=body,\n                headers=headers,\n                chunked=chunked,\n                preload_content=preload_content,\n                decode_content=decode_content,\n                enforce_content_length=enforce_content_length,\n            )\n\nvenv/lib/python3.13/site-packages/urllib3/connectionpool.py:493: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = &amp;lt;urllib3.connection.HTTPConnection object at 0x7f1d6ff7d350&amp;gt;\nmethod = &amp;#x27;POST&amp;#x27;, url = &amp;#x27;/session&amp;#x27;\nbody = &amp;#x27;{&amp;quot;capabilities&amp;quot;: {&amp;quot;firstMatch&amp;quot;: [{}], &amp;quot;alwaysMatch&amp;quot;: {&amp;quot;appium:automationName&amp;quot;: &amp;quot;UiAutomator2&amp;quot;, &amp;quot;platformName&amp;quot;: &amp;quot;Andro...skipServerInstallation&amp;quot;: true, &amp;quot;appium:autoLaunch&amp;quot;: false, &amp;quot;appium:skipUnlock&amp;quot;: true, &amp;quot;appium:skipLogCapture&amp;quot;: true}}}&amp;#x27;\nheaders = HTTPHeaderDict({&amp;#x27;Accept&amp;#x27;: &amp;#x27;application/json&amp;#x27;, &amp;#x27;Content-Type&amp;#x27;: &amp;#x27;application/json;charset=UTF-8&amp;#x27;, &amp;#x27;User-Agent&amp;#x27;: &amp;#x27;appium/...nium/4.34.2 (python linux))&amp;#x27;, &amp;#x27;Connection&amp;#x27;: &amp;#x27;keep-alive&amp;#x27;, &amp;#x27;X-Idempotency-Key&amp;#x27;: &amp;#x27;329b0d27-7561-4196-bf94-afead7cac451&amp;#x27;})\n\n    def request(  # type: ignore[override]\n        self,\n        method: str,\n        url: str,\n        body: _TYPE_BODY | None = None,\n        headers: typing.Mapping[str, str] | None = None,\n        *,\n        chunked: bool = False,\n        preload_content: bool = True,\n        decode_content: bool = True,\n        enforce_content_length: bool = True,\n    ) -&amp;gt; None:\n        # Update the inner socket&amp;#x27;s timeout value to send the request.\n        # This only triggers if the connection is re-used.\n        if self.sock is not None:\n            self.sock.settimeout(self.timeout)\n    \n        # Store these values to be fed into the HTTPResponse\n        # object later. TODO: Remove this in favor of a real\n        # HTTP lifecycle mechanism.\n    \n        # We have to store these before we call .request()\n        # because sometimes we can still salvage a response\n        # off the wire even if we aren&amp;#x27;t able to completely\n        # send the request body.\n        self._response_options = _ResponseOptions(\n            request_method=method,\n            request_url=url,\n            preload_content=preload_content,\n            decode_content=decode_content,\n            enforce_content_length=enforce_content_length,\n        )\n    \n        if headers is None:\n            headers = {}\n        header_keys = frozenset(to_str(k.lower()) for k in headers)\n        skip_accept_encoding = &amp;quot;accept-encoding&amp;quot; in header_keys\n        skip_host = &amp;quot;host&amp;quot; in header_keys\n        self.putrequest(\n            method, url, skip_accept_encoding=skip_accept_encoding, skip_host=skip_host\n        )\n    \n        # Transform the body into an iterable of sendall()-able chunks\n        # and detect if an explicit Content-Length is doable.\n        chunks_and_cl = body_to_chunks(body, method=method, blocksize=self.blocksize)\n        chunks = chunks_and_cl.chunks\n        content_length = chunks_and_cl.content_length\n    \n        # When chunked is explicit set to &amp;#x27;True&amp;#x27; we respect that.\n        if chunked:\n            if &amp;quot;transfer-encoding&amp;quot; not in header_keys:\n                self.putheader(&amp;quot;Transfer-Encoding&amp;quot;, &amp;quot;chunked&amp;quot;)\n        else:\n            # Detect whether a framing mechanism is already in use. If so\n            # we respect that value, otherwise we pick chunked vs content-length\n            # depending on the type of &amp;#x27;body&amp;#x27;.\n            if &amp;quot;content-length&amp;quot; in header_keys:\n                chunked = False\n            elif &amp;quot;transfer-encoding&amp;quot; in header_keys:\n                chunked = True\n    \n            # Otherwise we go off the recommendation of &amp;#x27;body_to_chunks()&amp;#x27;.\n            else:\n                chunked = False\n                if content_length is None:\n                    if chunks is not None:\n                        chunked = True\n                        self.putheader(&amp;quot;Transfer-Encoding&amp;quot;, &amp;quot;chunked&amp;quot;)\n                else:\n                    self.putheader(&amp;quot;Content-Length&amp;quot;, str(content_length))\n    \n        # Now that framing headers are out of the way we send all the other headers.\n        if &amp;quot;user-agent&amp;quot; not in header_keys:\n            self.putheader(&amp;quot;User-Agent&amp;quot;, _get_default_user_agent())\n        for header, value in headers.items():\n            self.putheader(header, value)\n&amp;gt;       self.endheaders()\n\nvenv/lib/python3.13/site-packages/urllib3/connection.py:494: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = &amp;lt;urllib3.connection.HTTPConnection object at 0x7f1d6ff7d350&amp;gt;\nmessage_body = None\n\n    def endheaders(self, message_body=None, *, encode_chunked=False):\n        &amp;quot;&amp;quot;&amp;quot;Indicate that the last header line has been sent to the server.\n    \n        This method sends the request to the server.  The optional message_body\n        argument can be used to pass a message body associated with the\n        request.\n        &amp;quot;&amp;quot;&amp;quot;\n        if self.__state == _CS_REQ_STARTED:\n            self.__state = _CS_REQ_SENT\n        else:\n            raise CannotSendHeader()\n&amp;gt;       self._send_output(message_body, encode_chunked=encode_chunked)\n\n/usr/lib/python3.13/http/client.py:1333: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = &amp;lt;urllib3.connection.HTTPConnection object at 0x7f1d6ff7d350&amp;gt;\nmessage_body = None, encode_chunked = False\n\n    def _send_output(self, message_body=None, encode_chunked=False):\n        &amp;quot;&amp;quot;&amp;quot;Send the currently buffered request and clear the buffer.\n    \n        Appends an extra \\\\r\\\\n to the buffer.\n        A message_body may be specified, to be appended to the request.\n        &amp;quot;&amp;quot;&amp;quot;\n        self._buffer.extend((b&amp;quot;&amp;quot;, b&amp;quot;&amp;quot;))\n        msg = b&amp;quot;\\r\\n&amp;quot;.join(self._buffer)\n        del self._buffer[:]\n&amp;gt;       self.send(msg)\n\n/usr/lib/python3.13/http/client.py:1093: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = &amp;lt;urllib3.connection.HTTPConnection object at 0x7f1d6ff7d350&amp;gt;\ndata = b&amp;#x27;POST /session HTTP/1.1\\r\\nHost: localhost:4723\\r\\nAccept-Encoding: identity\\r\\nContent-Length: 607\\r\\nAccept: applic...um/4.34.2 (python linux))\\r\\nConnection: keep-alive\\r\\nX-Idempotency-Key: 329b0d27-7561-4196-bf94-afead7cac451\\r\\n\\r\\n&amp;#x27;\n\n    def send(self, data):\n        &amp;quot;&amp;quot;&amp;quot;Send `data&amp;#x27; to the server.\n        ``data`` can be a string object, a bytes object, an array object, a\n        file-like object that supports a .read() method, or an iterable object.\n        &amp;quot;&amp;quot;&amp;quot;\n    \n        if self.sock is None:\n            if self.auto_open:\n&amp;gt;               self.connect()\n\n/usr/lib/python3.13/http/client.py:1037: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = &amp;lt;urllib3.connection.HTTPConnection object at 0x7f1d6ff7d350&amp;gt;\n\n    def connect(self) -&amp;gt; None:\n&amp;gt;       self.sock = self._new_conn()\n                    ^^^^^^^^^^^^^^^^\n\nvenv/lib/python3.13/site-packages/urllib3/connection.py:325: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = &amp;lt;urllib3.connection.HTTPConnection object at 0x7f1d6ff7d350&amp;gt;\n\n    def _new_conn(self) -&amp;gt; socket.socket:\n        &amp;quot;&amp;quot;&amp;quot;Establish a socket connection and set nodelay settings on it.\n    \n        :return: New socket connection.\n        &amp;quot;&amp;quot;&amp;quot;\n        try:\n            sock = connection.create_connection(\n                (self._dns_host, self.port),\n                self.timeout,\n                source_address=self.source_address,\n                socket_options=self.socket_options,\n            )\n        except socket.gaierror as e:\n            raise NameResolutionError(self.host, self, e) from e\n        except SocketTimeout as e:\n            raise ConnectTimeoutError(\n                self,\n                f&amp;quot;Connection to {self.host} timed out. (connect timeout={self.timeout})&amp;quot;,\n            ) from e\n    \n        except OSError as e:\n&amp;gt;           raise NewConnectionError(\n                self, f&amp;quot;Failed to establish a new connection: {e}&amp;quot;\n            ) from e\nE           urllib3.exceptions.NewConnectionError: &amp;lt;urllib3.connection.HTTPConnection object at 0x7f1d6ff7d350&amp;gt;: Failed to establish a new connection: [Errno 111] Connection refused\n\nvenv/lib/python3.13/site-packages/urllib3/connection.py:213: NewConnectionError\n\nThe above exception was the direct cause of the following exception:\n\nself = &amp;lt;test_enhanced_email_flow.TestEnhancedEmailFlow object at 0x7f1d708a2120&amp;gt;\n\n    @pytest.fixture(scope=&amp;quot;class&amp;quot;)\n    def driver(self):\n        &amp;quot;&amp;quot;&amp;quot;Setup and teardown Appium driver.&amp;quot;&amp;quot;&amp;quot;\n        print(&amp;quot;\\n\ud83d\ude80 Setting up Appium driver for enhanced email flow tests...&amp;quot;)\n&amp;gt;       driver = DriverFactory.create_driver()\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\npytest_tests/test_enhanced_email_flow.py:20: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\ncls = &amp;lt;class &amp;#x27;utils.driver_factory.DriverFactory&amp;#x27;&amp;gt;, device_udid = None\n\n    @classmethod\n    def create_driver(cls, device_udid: Optional[str] = None) -&amp;gt; webdriver.Remote:\n        &amp;quot;&amp;quot;&amp;quot;\n        Create and return an Appium WebDriver instance.\n    \n        Args:\n            device_udid: Optional device UDID for specific device targeting\n    \n        Returns:\n            webdriver.Remote: Configured Appium driver\n        &amp;quot;&amp;quot;&amp;quot;\n        config = cls.load_config()\n        android_config = config[&amp;#x27;android&amp;#x27;]\n        appium_config = config[&amp;#x27;appium&amp;#x27;]\n    \n        # Create UiAutomator2 options\n        options = UiAutomator2Options()\n        options.platform_name = android_config[&amp;#x27;platform_name&amp;#x27;]\n        options.automation_name = android_config[&amp;#x27;automation_name&amp;#x27;]\n        options.app_package = android_config[&amp;#x27;app_package&amp;#x27;]\n        # Only set app_activity if it exists in config (for launching)\n        if &amp;#x27;app_activity&amp;#x27; in android_config:\n            options.app_activity = android_config[&amp;#x27;app_activity&amp;#x27;]\n        options.device_name = android_config[&amp;#x27;device_name&amp;#x27;]\n        options.no_reset = android_config[&amp;#x27;no_reset&amp;#x27;]\n        options.full_reset = android_config[&amp;#x27;full_reset&amp;#x27;]\n        options.new_command_timeout = android_config[&amp;#x27;new_command_timeout&amp;#x27;]\n    \n        # Add device UDID if provided\n        if device_udid:\n            options.udid = device_udid\n    \n        # Additional capabilities for better performance and Expo Go compatibility\n        options.set_capability(&amp;quot;autoGrantPermissions&amp;quot;, True)\n        options.set_capability(&amp;quot;automationName&amp;quot;, &amp;quot;UiAutomator2&amp;quot;)\n        options.set_capability(&amp;quot;uiautomator2ServerLaunchTimeout&amp;quot;, 60000)\n        options.set_capability(&amp;quot;adbExecTimeout&amp;quot;, 60000)\n    \n        # Connect to existing app capabilities\n        options.set_capability(&amp;quot;dontStopAppOnReset&amp;quot;, android_config.get(&amp;#x27;dont_stop_app_on_reset&amp;#x27;, True))\n        options.set_capability(&amp;quot;skipDeviceInitialization&amp;quot;, android_config.get(&amp;#x27;skip_device_initialization&amp;#x27;, True))\n        options.set_capability(&amp;quot;skipServerInstallation&amp;quot;, android_config.get(&amp;#x27;skip_server_installation&amp;#x27;, True))\n        options.set_capability(&amp;quot;autoLaunch&amp;quot;, android_config.get(&amp;#x27;auto_launch&amp;#x27;, False))\n        options.set_capability(&amp;quot;skipUnlock&amp;quot;, android_config.get(&amp;#x27;skip_unlock&amp;#x27;, True))\n        options.set_capability(&amp;quot;skipLogCapture&amp;quot;, android_config.get(&amp;#x27;skip_log_capture&amp;#x27;, True))\n    \n        try:\n&amp;gt;           cls._driver = webdriver.Remote(\n                command_executor=appium_config[&amp;#x27;server_url&amp;#x27;],\n                options=options\n            )\n\nutils/driver_factory.py:75: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = &amp;lt;appium.webdriver.webdriver.WebDriver (session=&amp;quot;None&amp;quot;)&amp;gt;\ncommand_executor = &amp;lt;appium.webdriver.appium_connection.AppiumConnection object at 0x7f1d708a2660&amp;gt;\nextensions = None\noptions = &amp;lt;appium.options.android.uiautomator2.base.UiAutomator2Options object at 0x7f1d708a1fd0&amp;gt;\nclient_config = &amp;lt;appium.webdriver.client_config.AppiumClientConfig object at 0x7f1d708a27b0&amp;gt;\n\n    def __init__(\n        self,\n        command_executor: Union[str, AppiumConnection] = &amp;#x27;http://127.0.0.1:4723&amp;#x27;,\n        extensions: Optional[List[&amp;#x27;WebDriver&amp;#x27;]] = None,\n        options: Union[AppiumOptions, List[AppiumOptions], None] = None,\n        client_config: Optional[AppiumClientConfig] = None,\n    ):\n        command_executor, client_config = _get_remote_connection_and_client_config(\n            command_executor=command_executor, client_config=client_config\n        )\n&amp;gt;       super().__init__(\n            command_executor=command_executor,\n            options=options,\n            locator_converter=AppiumLocatorConverter(),\n            web_element_cls=MobileWebElement,\n            client_config=client_config,\n        )\n\nvenv/lib/python3.13/site-packages/appium/webdriver/webdriver.py:253: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = &amp;lt;appium.webdriver.webdriver.WebDriver (session=&amp;quot;None&amp;quot;)&amp;gt;\ncommand_executor = &amp;lt;appium.webdriver.appium_connection.AppiumConnection object at 0x7f1d708a2660&amp;gt;\nkeep_alive = True, file_detector = None\noptions = &amp;lt;appium.options.android.uiautomator2.base.UiAutomator2Options object at 0x7f1d708a1fd0&amp;gt;\nlocator_converter = &amp;lt;appium.webdriver.locator_converter.AppiumLocatorConverter object at 0x7f1d708a2ba0&amp;gt;\nweb_element_cls = &amp;lt;class &amp;#x27;appium.webdriver.webelement.WebElement&amp;#x27;&amp;gt;\nclient_config = &amp;lt;appium.webdriver.client_config.AppiumClientConfig object at 0x7f1d708a27b0&amp;gt;\n\n    def __init__(\n        self,\n        command_executor: Union[str, RemoteConnection] = &amp;quot;http://127.0.0.1:4444&amp;quot;,\n        keep_alive: bool = True,\n        file_detector: Optional[FileDetector] = None,\n        options: Optional[Union[BaseOptions, list[BaseOptions]]] = None,\n        locator_converter: Optional[LocatorConverter] = None,\n        web_element_cls: Optional[type[WebElement]] = None,\n        client_config: Optional[ClientConfig] = None,\n    ) -&amp;gt; None:\n        &amp;quot;&amp;quot;&amp;quot;Create a new driver that will issue commands using the wire\n        protocol.\n    \n        Parameters:\n        -----------\n        command_executor : str or remote_connection.RemoteConnection\n            - Either a string representing the URL of the remote server or a custom\n            remote_connection.RemoteConnection object. Defaults to &amp;#x27;http://127.0.0.1:4444/wd/hub&amp;#x27;.\n        keep_alive : bool (Deprecated)\n            - Whether to configure remote_connection.RemoteConnection to use HTTP keep-alive. Defaults to True.\n        file_detector : object or None\n            - Pass a custom file detector object during instantiation. If None, the default\n                LocalFileDetector() will be used.\n        options : options.Options\n            - Instance of a driver options.Options class.\n        locator_converter : object or None\n            - Custom locator converter to use. Defaults to None.\n        web_element_cls : class\n            - Custom class to use for web elements. Defaults to WebElement.\n        client_config : object or None\n            - Custom client configuration to use. Defaults to None.\n        &amp;quot;&amp;quot;&amp;quot;\n    \n        if options is None:\n            raise TypeError(\n                &amp;quot;missing 1 required keyword-only argument: &amp;#x27;options&amp;#x27; (instance of driver `options.Options` class)&amp;quot;\n            )\n        elif isinstance(options, list):\n            capabilities = create_matches(options)\n            _ignore_local_proxy = False\n        else:\n            capabilities = options.to_capabilities()\n            _ignore_local_proxy = options._ignore_local_proxy\n        self.command_executor = command_executor\n        if isinstance(self.command_executor, (str, bytes)):\n            self.command_executor = get_remote_connection(\n                capabilities,\n                command_executor=command_executor,\n                keep_alive=keep_alive,\n                ignore_local_proxy=_ignore_local_proxy,\n                client_config=client_config,\n            )\n        self._is_remote = True\n        self.session_id: Optional[str] = None\n        self.caps: dict[str, Any] = {}\n        self.pinned_scripts: dict[str, Any] = {}\n        self.error_handler = ErrorHandler()\n        self._switch_to = SwitchTo(self)\n        self._mobile = Mobile(self)\n        self.file_detector = file_detector or LocalFileDetector()\n        self.locator_converter = locator_converter or LocatorConverter()\n        self._web_element_cls = web_element_cls or self._web_element_cls\n        self._authenticator_id = None\n        self.start_client()\n&amp;gt;       self.start_session(capabilities)\n\nvenv/lib/python3.13/site-packages/selenium/webdriver/remote/webdriver.py:261: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = &amp;lt;appium.webdriver.webdriver.WebDriver (session=&amp;quot;None&amp;quot;)&amp;gt;\ncapabilities = {&amp;#x27;appium:adbExecTimeout&amp;#x27;: 60000, &amp;#x27;appium:appPackage&amp;#x27;: &amp;#x27;host.exp.exponent&amp;#x27;, &amp;#x27;appium:autoGrantPermissions&amp;#x27;: True, &amp;#x27;appium:autoLaunch&amp;#x27;: False, ...}\nbrowser_profile = None\n\n    def start_session(self, capabilities: Union[Dict, AppiumOptions], browser_profile: Optional[str] = None) -&amp;gt; None:\n        &amp;quot;&amp;quot;&amp;quot;Creates a new session with the desired capabilities.\n    \n        Override for Appium\n    \n        Args:\n            capabilities: Read https://github.com/appium/appium/blob/master/docs/en/writing-running-appium/caps.md\n             for more details.\n            browser_profile: Browser profile\n        &amp;quot;&amp;quot;&amp;quot;\n        if not isinstance(capabilities, (dict, AppiumOptions)):\n            raise InvalidArgumentException(&amp;#x27;Capabilities must be a dictionary or AppiumOptions instance&amp;#x27;)\n    \n        w3c_caps = AppiumOptions.as_w3c(capabilities) if isinstance(capabilities, dict) else capabilities.to_w3c()\n&amp;gt;       response = self.execute(RemoteCommand.NEW_SESSION, w3c_caps)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nvenv/lib/python3.13/site-packages/appium/webdriver/webdriver.py:344: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = &amp;lt;appium.webdriver.webdriver.WebDriver (session=&amp;quot;None&amp;quot;)&amp;gt;\ndriver_command = &amp;#x27;newSession&amp;#x27;\nparams = {&amp;#x27;capabilities&amp;#x27;: {&amp;#x27;alwaysMatch&amp;#x27;: {&amp;#x27;appium:adbExecTimeout&amp;#x27;: 60000, &amp;#x27;appium:appPackage&amp;#x27;: &amp;#x27;host.exp.exponent&amp;#x27;, &amp;#x27;appium:autoGrantPermissions&amp;#x27;: True, &amp;#x27;appium:autoLaunch&amp;#x27;: False, ...}, &amp;#x27;firstMatch&amp;#x27;: [{}]}}\n\n    def execute(self, driver_command: str, params: Optional[dict[str, Any]] = None) -&amp;gt; dict[str, Any]:\n        &amp;quot;&amp;quot;&amp;quot;Sends a command to be executed by a command.CommandExecutor.\n    \n        Parameters:\n        -----------\n        driver_command : str\n            - The name of the command to execute as a string.\n    \n        params : dict\n            - A dictionary of named Parameters to send with the command.\n    \n        Returns:\n        --------\n          dict - The command&amp;#x27;s JSON response loaded into a dictionary object.\n        &amp;quot;&amp;quot;&amp;quot;\n        params = self._wrap_value(params)\n    \n        if self.session_id:\n            if not params:\n                params = {&amp;quot;sessionId&amp;quot;: self.session_id}\n            elif &amp;quot;sessionId&amp;quot; not in params:\n                params[&amp;quot;sessionId&amp;quot;] = self.session_id\n    \n&amp;gt;       response = cast(RemoteConnection, self.command_executor).execute(driver_command, params)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nvenv/lib/python3.13/site-packages/selenium/webdriver/remote/webdriver.py:451: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = &amp;lt;appium.webdriver.appium_connection.AppiumConnection object at 0x7f1d708a2660&amp;gt;\ncommand = &amp;#x27;newSession&amp;#x27;\nparams = {&amp;#x27;capabilities&amp;#x27;: {&amp;#x27;alwaysMatch&amp;#x27;: {&amp;#x27;appium:adbExecTimeout&amp;#x27;: 60000, &amp;#x27;appium:appPackage&amp;#x27;: &amp;#x27;host.exp.exponent&amp;#x27;, &amp;#x27;appium:autoGrantPermissions&amp;#x27;: True, &amp;#x27;appium:autoLaunch&amp;#x27;: False, ...}, &amp;#x27;firstMatch&amp;#x27;: [{}]}}\n\n    def execute(self, command, params):\n        &amp;quot;&amp;quot;&amp;quot;Send a command to the remote server.\n    \n        Any path substitutions required for the URL mapped to the command should be\n        included in the command parameters.\n    \n        :Args:\n         - command - A string specifying the command to execute.\n         - params - A dictionary of named parameters to send with the command as\n           its JSON payload.\n        &amp;quot;&amp;quot;&amp;quot;\n        command_info = self._commands.get(command) or self.extra_commands.get(command)\n        assert command_info is not None, f&amp;quot;Unrecognised command {command}&amp;quot;\n        path_string = command_info[1]\n        path = string.Template(path_string).substitute(params)\n        substitute_params = {word[1:] for word in path_string.split(&amp;quot;/&amp;quot;) if word.startswith(&amp;quot;$&amp;quot;)}  # remove dollar sign\n        if isinstance(params, dict) and substitute_params:\n            for word in substitute_params:\n                del params[word]\n        data = utils.dump_json(params)\n        url = f&amp;quot;{self._client_config.remote_server_addr}{path}&amp;quot;\n        trimmed = self._trim_large_entries(params)\n        LOGGER.debug(&amp;quot;%s %s %s&amp;quot;, command_info[0], url, str(trimmed))\n&amp;gt;       return self._request(command_info[0], url, body=data)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nvenv/lib/python3.13/site-packages/selenium/webdriver/remote/remote_connection.py:404: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = &amp;lt;appium.webdriver.appium_connection.AppiumConnection object at 0x7f1d708a2660&amp;gt;\nmethod = &amp;#x27;POST&amp;#x27;, url = &amp;#x27;http://localhost:4723/session&amp;#x27;\nbody = &amp;#x27;{&amp;quot;capabilities&amp;quot;: {&amp;quot;firstMatch&amp;quot;: [{}], &amp;quot;alwaysMatch&amp;quot;: {&amp;quot;appium:automationName&amp;quot;: &amp;quot;UiAutomator2&amp;quot;, &amp;quot;platformName&amp;quot;: &amp;quot;Andro...skipServerInstallation&amp;quot;: true, &amp;quot;appium:autoLaunch&amp;quot;: false, &amp;quot;appium:skipUnlock&amp;quot;: true, &amp;quot;appium:skipLogCapture&amp;quot;: true}}}&amp;#x27;\n\n    def _request(self, method, url, body=None):\n        &amp;quot;&amp;quot;&amp;quot;Send an HTTP request to the remote server.\n    \n        :Args:\n         - method - A string for the HTTP method to send the request with.\n         - url - A string for the URL to send the request to.\n         - body - A string for request body. Ignored unless method is POST or PUT.\n    \n        :Returns:\n          A dictionary with the server&amp;#x27;s parsed JSON response.\n        &amp;quot;&amp;quot;&amp;quot;\n        parsed_url = parse.urlparse(url)\n        headers = self.get_remote_connection_headers(parsed_url, self._client_config.keep_alive)\n        auth_header = self._client_config.get_auth_header()\n    \n        if auth_header:\n            headers.update(auth_header)\n    \n        if body and method not in (&amp;quot;POST&amp;quot;, &amp;quot;PUT&amp;quot;):\n            body = None\n    \n        if self._client_config.keep_alive:\n&amp;gt;           response = self._conn.request(method, url, body=body, headers=headers, timeout=self._client_config.timeout)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nvenv/lib/python3.13/site-packages/selenium/webdriver/remote/remote_connection.py:428: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = &amp;lt;urllib3.poolmanager.PoolManager object at 0x7f1d7088a710&amp;gt;\nmethod = &amp;#x27;POST&amp;#x27;, url = &amp;#x27;http://localhost:4723/session&amp;#x27;\nbody = &amp;#x27;{&amp;quot;capabilities&amp;quot;: {&amp;quot;firstMatch&amp;quot;: [{}], &amp;quot;alwaysMatch&amp;quot;: {&amp;quot;appium:automationName&amp;quot;: &amp;quot;UiAutomator2&amp;quot;, &amp;quot;platformName&amp;quot;: &amp;quot;Andro...skipServerInstallation&amp;quot;: true, &amp;quot;appium:autoLaunch&amp;quot;: false, &amp;quot;appium:skipUnlock&amp;quot;: true, &amp;quot;appium:skipLogCapture&amp;quot;: true}}}&amp;#x27;\nfields = None\nheaders = {&amp;#x27;Accept&amp;#x27;: &amp;#x27;application/json&amp;#x27;, &amp;#x27;Connection&amp;#x27;: &amp;#x27;keep-alive&amp;#x27;, &amp;#x27;Content-Type&amp;#x27;: &amp;#x27;application/json;charset=UTF-8&amp;#x27;, &amp;#x27;User-Agent&amp;#x27;: &amp;#x27;appium/5.1.2 (selenium/4.34.2 (python linux))&amp;#x27;, ...}\njson = None\nurlopen_kw = {&amp;#x27;body&amp;#x27;: &amp;#x27;{&amp;quot;capabilities&amp;quot;: {&amp;quot;firstMatch&amp;quot;: [{}], &amp;quot;alwaysMatch&amp;quot;: {&amp;quot;appium:automationName&amp;quot;: &amp;quot;UiAutomator2&amp;quot;, &amp;quot;platformName...tion&amp;quot;: true, &amp;quot;appium:autoLaunch&amp;quot;: false, &amp;quot;appium:skipUnlock&amp;quot;: true, &amp;quot;appium:skipLogCapture&amp;quot;: true}}}&amp;#x27;, &amp;#x27;timeout&amp;#x27;: None}\n\n    def request(\n        self,\n        method: str,\n        url: str,\n        body: _TYPE_BODY | None = None,\n        fields: _TYPE_FIELDS | None = None,\n        headers: typing.Mapping[str, str] | None = None,\n        json: typing.Any | None = None,\n        **urlopen_kw: typing.Any,\n    ) -&amp;gt; BaseHTTPResponse:\n        &amp;quot;&amp;quot;&amp;quot;\n        Make a request using :meth:`urlopen` with the appropriate encoding of\n        ``fields`` based on the ``method`` used.\n    \n        This is a convenience method that requires the least amount of manual\n        effort. It can be used in most situations, while still having the\n        option to drop down to more specific methods when necessary, such as\n        :meth:`request_encode_url`, :meth:`request_encode_body`,\n        or even the lowest level :meth:`urlopen`.\n    \n        :param method:\n            HTTP request method (such as GET, POST, PUT, etc.)\n    \n        :param url:\n            The URL to perform the request on.\n    \n        :param body:\n            Data to send in the request body, either :class:`str`, :class:`bytes`,\n            an iterable of :class:`str`/:class:`bytes`, or a file-like object.\n    \n        :param fields:\n            Data to encode and send in the URL or request body, depending on ``method``.\n    \n        :param headers:\n            Dictionary of custom headers to send, such as User-Agent,\n            If-None-Match, etc. If None, pool headers are used. If provided,\n            these headers completely replace any pool-specific headers.\n    \n        :param json:\n            Data to encode and send as JSON with UTF-encoded in the request body.\n            The ``&amp;quot;Content-Type&amp;quot;`` header will be set to ``&amp;quot;application/json&amp;quot;``\n            unless specified otherwise.\n        &amp;quot;&amp;quot;&amp;quot;\n        method = method.upper()\n    \n        if json is not None and body is not None:\n            raise TypeError(\n                &amp;quot;request got values for both &amp;#x27;body&amp;#x27; and &amp;#x27;json&amp;#x27; parameters which are mutually exclusive&amp;quot;\n            )\n    \n        if json is not None:\n            if headers is None:\n                headers = self.headers\n    \n            if not (&amp;quot;content-type&amp;quot; in map(str.lower, headers.keys())):\n                headers = HTTPHeaderDict(headers)\n                headers[&amp;quot;Content-Type&amp;quot;] = &amp;quot;application/json&amp;quot;\n    \n            body = _json.dumps(json, separators=(&amp;quot;,&amp;quot;, &amp;quot;:&amp;quot;), ensure_ascii=False).encode(\n                &amp;quot;utf-8&amp;quot;\n            )\n    \n        if body is not None:\n            urlopen_kw[&amp;quot;body&amp;quot;] = body\n    \n        if method in self._encode_url_methods:\n            return self.request_encode_url(\n                method,\n                url,\n                fields=fields,  # type: ignore[arg-type]\n                headers=headers,\n                **urlopen_kw,\n            )\n        else:\n&amp;gt;           return self.request_encode_body(\n                method, url, fields=fields, headers=headers, **urlopen_kw\n            )\n\nvenv/lib/python3.13/site-packages/urllib3/_request_methods.py:143: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = &amp;lt;urllib3.poolmanager.PoolManager object at 0x7f1d7088a710&amp;gt;\nmethod = &amp;#x27;POST&amp;#x27;, url = &amp;#x27;http://localhost:4723/session&amp;#x27;, fields = None\nheaders = {&amp;#x27;Accept&amp;#x27;: &amp;#x27;application/json&amp;#x27;, &amp;#x27;Connection&amp;#x27;: &amp;#x27;keep-alive&amp;#x27;, &amp;#x27;Content-Type&amp;#x27;: &amp;#x27;application/json;charset=UTF-8&amp;#x27;, &amp;#x27;User-Agent&amp;#x27;: &amp;#x27;appium/5.1.2 (selenium/4.34.2 (python linux))&amp;#x27;, ...}\nencode_multipart = True, multipart_boundary = None\nurlopen_kw = {&amp;#x27;body&amp;#x27;: &amp;#x27;{&amp;quot;capabilities&amp;quot;: {&amp;quot;firstMatch&amp;quot;: [{}], &amp;quot;alwaysMatch&amp;quot;: {&amp;quot;appium:automationName&amp;quot;: &amp;quot;UiAutomator2&amp;quot;, &amp;quot;platformName...tion&amp;quot;: true, &amp;quot;appium:autoLaunch&amp;quot;: false, &amp;quot;appium:skipUnlock&amp;quot;: true, &amp;quot;appium:skipLogCapture&amp;quot;: true}}}&amp;#x27;, &amp;#x27;timeout&amp;#x27;: None}\nextra_kw = {&amp;#x27;body&amp;#x27;: &amp;#x27;{&amp;quot;capabilities&amp;quot;: {&amp;quot;firstMatch&amp;quot;: [{}], &amp;quot;alwaysMatch&amp;quot;: {&amp;quot;appium:automationName&amp;quot;: &amp;quot;UiAutomator2&amp;quot;, &amp;quot;platformName...n linux))&amp;#x27;, &amp;#x27;Connection&amp;#x27;: &amp;#x27;keep-alive&amp;#x27;, &amp;#x27;X-Idempotency-Key&amp;#x27;: &amp;#x27;329b0d27-7561-4196-bf94-afead7cac451&amp;#x27;}), &amp;#x27;timeout&amp;#x27;: None}\n\n    def request_encode_body(\n        self,\n        method: str,\n        url: str,\n        fields: _TYPE_FIELDS | None = None,\n        headers: typing.Mapping[str, str] | None = None,\n        encode_multipart: bool = True,\n        multipart_boundary: str | None = None,\n        **urlopen_kw: str,\n    ) -&amp;gt; BaseHTTPResponse:\n        &amp;quot;&amp;quot;&amp;quot;\n        Make a request using :meth:`urlopen` with the ``fields`` encoded in\n        the body. This is useful for request methods like POST, PUT, PATCH, etc.\n    \n        When ``encode_multipart=True`` (default), then\n        :func:`urllib3.encode_multipart_formdata` is used to encode\n        the payload with the appropriate content type. Otherwise\n        :func:`urllib.parse.urlencode` is used with the\n        &amp;#x27;application/x-www-form-urlencoded&amp;#x27; content type.\n    \n        Multipart encoding must be used when posting files, and it&amp;#x27;s reasonably\n        safe to use it in other times too. However, it may break request\n        signing, such as with OAuth.\n    \n        Supports an optional ``fields`` parameter of key/value strings AND\n        key/filetuple. A filetuple is a (filename, data, MIME type) tuple where\n        the MIME type is optional. For example::\n    \n            fields = {\n                &amp;#x27;foo&amp;#x27;: &amp;#x27;bar&amp;#x27;,\n                &amp;#x27;fakefile&amp;#x27;: (&amp;#x27;foofile.txt&amp;#x27;, &amp;#x27;contents of foofile&amp;#x27;),\n                &amp;#x27;realfile&amp;#x27;: (&amp;#x27;barfile.txt&amp;#x27;, open(&amp;#x27;realfile&amp;#x27;).read()),\n                &amp;#x27;typedfile&amp;#x27;: (&amp;#x27;bazfile.bin&amp;#x27;, open(&amp;#x27;bazfile&amp;#x27;).read(),\n                              &amp;#x27;image/jpeg&amp;#x27;),\n                &amp;#x27;nonamefile&amp;#x27;: &amp;#x27;contents of nonamefile field&amp;#x27;,\n            }\n    \n        When uploading a file, providing a filename (the first parameter of the\n        tuple) is optional but recommended to best mimic behavior of browsers.\n    \n        Note that if ``headers`` are supplied, the &amp;#x27;Content-Type&amp;#x27; header will\n        be overwritten because it depends on the dynamic random boundary string\n        which is used to compose the body of the request. The random boundary\n        string can be explicitly set with the ``multipart_boundary`` parameter.\n    \n        :param method:\n            HTTP request method (such as GET, POST, PUT, etc.)\n    \n        :param url:\n            The URL to perform the request on.\n    \n        :param fields:\n            Data to encode and send in the request body.\n    \n        :param headers:\n            Dictionary of custom headers to send, such as User-Agent,\n            If-None-Match, etc. If None, pool headers are used. If provided,\n            these headers completely replace any pool-specific headers.\n    \n        :param encode_multipart:\n            If True, encode the ``fields`` using the multipart/form-data MIME\n            format.\n    \n        :param multipart_boundary:\n            If not specified, then a random boundary will be generated using\n            :func:`urllib3.filepost.choose_boundary`.\n        &amp;quot;&amp;quot;&amp;quot;\n        if headers is None:\n            headers = self.headers\n    \n        extra_kw: dict[str, typing.Any] = {&amp;quot;headers&amp;quot;: HTTPHeaderDict(headers)}\n        body: bytes | str\n    \n        if fields:\n            if &amp;quot;body&amp;quot; in urlopen_kw:\n                raise TypeError(\n                    &amp;quot;request got values for both &amp;#x27;fields&amp;#x27; and &amp;#x27;body&amp;#x27;, can only specify one.&amp;quot;\n                )\n    \n            if encode_multipart:\n                body, content_type = encode_multipart_formdata(\n                    fields, boundary=multipart_boundary\n                )\n            else:\n                body, content_type = (\n                    urlencode(fields),  # type: ignore[arg-type]\n                    &amp;quot;application/x-www-form-urlencoded&amp;quot;,\n                )\n    \n            extra_kw[&amp;quot;body&amp;quot;] = body\n            extra_kw[&amp;quot;headers&amp;quot;].setdefault(&amp;quot;Content-Type&amp;quot;, content_type)\n    \n        extra_kw.update(urlopen_kw)\n    \n&amp;gt;       return self.urlopen(method, url, **extra_kw)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nvenv/lib/python3.13/site-packages/urllib3/_request_methods.py:278: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = &amp;lt;urllib3.poolmanager.PoolManager object at 0x7f1d7088a710&amp;gt;\nmethod = &amp;#x27;POST&amp;#x27;, url = &amp;#x27;http://localhost:4723/session&amp;#x27;, redirect = True\nkw = {&amp;#x27;assert_same_host&amp;#x27;: False, &amp;#x27;body&amp;#x27;: &amp;#x27;{&amp;quot;capabilities&amp;quot;: {&amp;quot;firstMatch&amp;quot;: [{}], &amp;quot;alwaysMatch&amp;quot;: {&amp;quot;appium:automationName&amp;quot;: &amp;quot;U...))&amp;#x27;, &amp;#x27;Connection&amp;#x27;: &amp;#x27;keep-alive&amp;#x27;, &amp;#x27;X-Idempotency-Key&amp;#x27;: &amp;#x27;329b0d27-7561-4196-bf94-afead7cac451&amp;#x27;}), &amp;#x27;redirect&amp;#x27;: False, ...}\nu = Url(scheme=&amp;#x27;http&amp;#x27;, auth=None, host=&amp;#x27;localhost&amp;#x27;, port=4723, path=&amp;#x27;/session&amp;#x27;, query=None, fragment=None)\nconn = &amp;lt;urllib3.connectionpool.HTTPConnectionPool object at 0x7f1d708a2f90&amp;gt;\n\n    def urlopen(  # type: ignore[override]\n        self, method: str, url: str, redirect: bool = True, **kw: typing.Any\n    ) -&amp;gt; BaseHTTPResponse:\n        &amp;quot;&amp;quot;&amp;quot;\n        Same as :meth:`urllib3.HTTPConnectionPool.urlopen`\n        with custom cross-host redirect logic and only sends the request-uri\n        portion of the ``url``.\n    \n        The given ``url`` parameter must be absolute, such that an appropriate\n        :class:`urllib3.connectionpool.ConnectionPool` can be chosen for it.\n        &amp;quot;&amp;quot;&amp;quot;\n        u = parse_url(url)\n    \n        if u.scheme is None:\n            warnings.warn(\n                &amp;quot;URLs without a scheme (ie &amp;#x27;https://&amp;#x27;) are deprecated and will raise an error &amp;quot;\n                &amp;quot;in a future version of urllib3. To avoid this DeprecationWarning ensure all URLs &amp;quot;\n                &amp;quot;start with &amp;#x27;https://&amp;#x27; or &amp;#x27;http://&amp;#x27;. Read more in this issue: &amp;quot;\n                &amp;quot;https://github.com/urllib3/urllib3/issues/2920&amp;quot;,\n                category=DeprecationWarning,\n                stacklevel=2,\n            )\n    \n        conn = self.connection_from_host(u.host, port=u.port, scheme=u.scheme)\n    \n        kw[&amp;quot;assert_same_host&amp;quot;] = False\n        kw[&amp;quot;redirect&amp;quot;] = False\n    \n        if &amp;quot;headers&amp;quot; not in kw:\n            kw[&amp;quot;headers&amp;quot;] = self.headers\n    \n        if self._proxy_requires_url_absolute_form(u):\n            response = conn.urlopen(method, url, **kw)\n        else:\n&amp;gt;           response = conn.urlopen(method, u.request_uri, **kw)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nvenv/lib/python3.13/site-packages/urllib3/poolmanager.py:459: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = &amp;lt;urllib3.connectionpool.HTTPConnectionPool object at 0x7f1d708a2f90&amp;gt;\nmethod = &amp;#x27;POST&amp;#x27;, url = &amp;#x27;/session&amp;#x27;\nbody = &amp;#x27;{&amp;quot;capabilities&amp;quot;: {&amp;quot;firstMatch&amp;quot;: [{}], &amp;quot;alwaysMatch&amp;quot;: {&amp;quot;appium:automationName&amp;quot;: &amp;quot;UiAutomator2&amp;quot;, &amp;quot;platformName&amp;quot;: &amp;quot;Andro...skipServerInstallation&amp;quot;: true, &amp;quot;appium:autoLaunch&amp;quot;: false, &amp;quot;appium:skipUnlock&amp;quot;: true, &amp;quot;appium:skipLogCapture&amp;quot;: true}}}&amp;#x27;\nheaders = HTTPHeaderDict({&amp;#x27;Accept&amp;#x27;: &amp;#x27;application/json&amp;#x27;, &amp;#x27;Content-Type&amp;#x27;: &amp;#x27;application/json;charset=UTF-8&amp;#x27;, &amp;#x27;User-Agent&amp;#x27;: &amp;#x27;appium/...nium/4.34.2 (python linux))&amp;#x27;, &amp;#x27;Connection&amp;#x27;: &amp;#x27;keep-alive&amp;#x27;, &amp;#x27;X-Idempotency-Key&amp;#x27;: &amp;#x27;329b0d27-7561-4196-bf94-afead7cac451&amp;#x27;})\nretries = Retry(total=2, connect=None, read=None, redirect=None, status=None)\nredirect = False, assert_same_host = False, timeout = None, pool_timeout = None\nrelease_conn = True, chunked = False, body_pos = None, preload_content = True\ndecode_content = True, response_kw = {}\nparsed_url = Url(scheme=None, auth=None, host=None, port=None, path=&amp;#x27;/session&amp;#x27;, query=None, fragment=None)\ndestination_scheme = None, conn = None, release_this_conn = True\nhttp_tunnel_required = False\nerr = NewConnectionError(&amp;#x27;&amp;lt;urllib3.connection.HTTPConnection object at 0x7f1d708a3380&amp;gt;: Failed to establish a new connection: [Errno 111] Connection refused&amp;#x27;)\nclean_exit = False\n\n    def urlopen(  # type: ignore[override]\n        self,\n        method: str,\n        url: str,\n        body: _TYPE_BODY | None = None,\n        headers: typing.Mapping[str, str] | None = None,\n        retries: Retry | bool | int | None = None,\n        redirect: bool = True,\n        assert_same_host: bool = True,\n        timeout: _TYPE_TIMEOUT = _DEFAULT_TIMEOUT,\n        pool_timeout: int | None = None,\n        release_conn: bool | None = None,\n        chunked: bool = False,\n        body_pos: _TYPE_BODY_POSITION | None = None,\n        preload_content: bool = True,\n        decode_content: bool = True,\n        **response_kw: typing.Any,\n    ) -&amp;gt; BaseHTTPResponse:\n        &amp;quot;&amp;quot;&amp;quot;\n        Get a connection from the pool and perform an HTTP request. This is the\n        lowest level call for making a request, so you&amp;#x27;ll need to specify all\n        the raw details.\n    \n        .. note::\n    \n           More commonly, it&amp;#x27;s appropriate to use a convenience method\n           such as :meth:`request`.\n    \n        .. note::\n    \n           `release_conn` will only behave as expected if\n           `preload_content=False` because we want to make\n           `preload_content=False` the default behaviour someday soon without\n           breaking backwards compatibility.\n    \n        :param method:\n            HTTP request method (such as GET, POST, PUT, etc.)\n    \n        :param url:\n            The URL to perform the request on.\n    \n        :param body:\n            Data to send in the request body, either :class:`str`, :class:`bytes`,\n            an iterable of :class:`str`/:class:`bytes`, or a file-like object.\n    \n        :param headers:\n            Dictionary of custom headers to send, such as User-Agent,\n            If-None-Match, etc. If None, pool headers are used. If provided,\n            these headers completely replace any pool-specific headers.\n    \n        :param retries:\n            Configure the number of retries to allow before raising a\n            :class:`~urllib3.exceptions.MaxRetryError` exception.\n    \n            If ``None`` (default) will retry 3 times, see ``Retry.DEFAULT``. Pass a\n            :class:`~urllib3.util.retry.Retry` object for fine-grained control\n            over different types of retries.\n            Pass an integer number to retry connection errors that many times,\n            but no other types of errors. Pass zero to never retry.\n    \n            If ``False``, then retries are disabled and any exception is raised\n            immediately. Also, instead of raising a MaxRetryError on redirects,\n            the redirect response will be returned.\n    \n        :type retries: :class:`~urllib3.util.retry.Retry`, False, or an int.\n    \n        :param redirect:\n            If True, automatically handle redirects (status codes 301, 302,\n            303, 307, 308). Each redirect counts as a retry. Disabling retries\n            will disable redirect, too.\n    \n        :param assert_same_host:\n            If ``True``, will make sure that the host of the pool requests is\n            consistent else will raise HostChangedError. When ``False``, you can\n            use the pool on an HTTP proxy and request foreign hosts.\n    \n        :param timeout:\n            If specified, overrides the default timeout for this one\n            request. It may be a float (in seconds) or an instance of\n            :class:`urllib3.util.Timeout`.\n    \n        :param pool_timeout:\n            If set and the pool is set to block=True, then this method will\n            block for ``pool_timeout`` seconds and raise EmptyPoolError if no\n            connection is available within the time period.\n    \n        :param bool preload_content:\n            If True, the response&amp;#x27;s body will be preloaded into memory.\n    \n        :param bool decode_content:\n            If True, will attempt to decode the body based on the\n            &amp;#x27;content-encoding&amp;#x27; header.\n    \n        :param release_conn:\n            If False, then the urlopen call will not release the connection\n            back into the pool once a response is received (but will release if\n            you read the entire contents of the response such as when\n            `preload_content=True`). This is useful if you&amp;#x27;re not preloading\n            the response&amp;#x27;s content immediately. You will need to call\n            ``r.release_conn()`` on the response ``r`` to return the connection\n            back into the pool. If None, it takes the value of ``preload_content``\n            which defaults to ``True``.\n    \n        :param bool chunked:\n            If True, urllib3 will send the body using chunked transfer\n            encoding. Otherwise, urllib3 will send the body using the standard\n            content-length form. Defaults to False.\n    \n        :param int body_pos:\n            Position to seek to in file-like body in the event of a retry or\n            redirect. Typically this won&amp;#x27;t need to be set because urllib3 will\n            auto-populate the value when needed.\n        &amp;quot;&amp;quot;&amp;quot;\n        parsed_url = parse_url(url)\n        destination_scheme = parsed_url.scheme\n    \n        if headers is None:\n            headers = self.headers\n    \n        if not isinstance(retries, Retry):\n            retries = Retry.from_int(retries, redirect=redirect, default=self.retries)\n    \n        if release_conn is None:\n            release_conn = preload_content\n    \n        # Check host\n        if assert_same_host and not self.is_same_host(url):\n            raise HostChangedError(self, url, retries)\n    \n        # Ensure that the URL we&amp;#x27;re connecting to is properly encoded\n        if url.startswith(&amp;quot;/&amp;quot;):\n            url = to_str(_encode_target(url))\n        else:\n            url = to_str(parsed_url.url)\n    \n        conn = None\n    \n        # Track whether `conn` needs to be released before\n        # returning/raising/recursing. Update this variable if necessary, and\n        # leave `release_conn` constant throughout the function. That way, if\n        # the function recurses, the original value of `release_conn` will be\n        # passed down into the recursive call, and its value will be respected.\n        #\n        # See issue #651 [1] for details.\n        #\n        # [1] &amp;lt;https://github.com/urllib3/urllib3/issues/651&amp;gt;\n        release_this_conn = release_conn\n    \n        http_tunnel_required = connection_requires_http_tunnel(\n            self.proxy, self.proxy_config, destination_scheme\n        )\n    \n        # Merge the proxy headers. Only done when not using HTTP CONNECT. We\n        # have to copy the headers dict so we can safely change it without those\n        # changes being reflected in anyone else&amp;#x27;s copy.\n        if not http_tunnel_required:\n            headers = headers.copy()  # type: ignore[attr-defined]\n            headers.update(self.proxy_headers)  # type: ignore[union-attr]\n    \n        # Must keep the exception bound to a separate variable or else Python 3\n        # complains about UnboundLocalError.\n        err = None\n    \n        # Keep track of whether we cleanly exited the except block. This\n        # ensures we do proper cleanup in finally.\n        clean_exit = False\n    \n        # Rewind body position, if needed. Record current position\n        # for future rewinds in the event of a redirect/retry.\n        body_pos = set_file_position(body, body_pos)\n    \n        try:\n            # Request a connection from the queue.\n            timeout_obj = self._get_timeout(timeout)\n            conn = self._get_conn(timeout=pool_timeout)\n    \n            conn.timeout = timeout_obj.connect_timeout  # type: ignore[assignment]\n    \n            # Is this a closed/new connection that requires CONNECT tunnelling?\n            if self.proxy is not None and http_tunnel_required and conn.is_closed:\n                try:\n                    self._prepare_proxy(conn)\n                except (BaseSSLError, OSError, SocketTimeout) as e:\n                    self._raise_timeout(\n                        err=e, url=self.proxy.url, timeout_value=conn.timeout\n                    )\n                    raise\n    \n            # If we&amp;#x27;re going to release the connection in ``finally:``, then\n            # the response doesn&amp;#x27;t need to know about the connection. Otherwise\n            # it will also try to release it and we&amp;#x27;ll have a double-release\n            # mess.\n            response_conn = conn if not release_conn else None\n    \n            # Make the request on the HTTPConnection object\n            response = self._make_request(\n                conn,\n                method,\n                url,\n                timeout=timeout_obj,\n                body=body,\n                headers=headers,\n                chunked=chunked,\n                retries=retries,\n                response_conn=response_conn,\n                preload_content=preload_content,\n                decode_content=decode_content,\n                **response_kw,\n            )\n    \n            # Everything went great!\n            clean_exit = True\n    \n        except EmptyPoolError:\n            # Didn&amp;#x27;t get a connection from the pool, no need to clean up\n            clean_exit = True\n            release_this_conn = False\n            raise\n    \n        except (\n            TimeoutError,\n            HTTPException,\n            OSError,\n            ProtocolError,\n            BaseSSLError,\n            SSLError,\n            CertificateError,\n            ProxyError,\n        ) as e:\n            # Discard the connection for these exceptions. It will be\n            # replaced during the next _get_conn() call.\n            clean_exit = False\n            new_e: Exception = e\n            if isinstance(e, (BaseSSLError, CertificateError)):\n                new_e = SSLError(e)\n            if isinstance(\n                new_e,\n                (\n                    OSError,\n                    NewConnectionError,\n                    TimeoutError,\n                    SSLError,\n                    HTTPException,\n                ),\n            ) and (conn and conn.proxy and not conn.has_connected_to_proxy):\n                new_e = _wrap_proxy_error(new_e, conn.proxy.scheme)\n            elif isinstance(new_e, (OSError, HTTPException)):\n                new_e = ProtocolError(&amp;quot;Connection aborted.&amp;quot;, new_e)\n    \n            retries = retries.increment(\n                method, url, error=new_e, _pool=self, _stacktrace=sys.exc_info()[2]\n            )\n            retries.sleep()\n    \n            # Keep track of the error for the retry warning.\n            err = e\n    \n        finally:\n            if not clean_exit:\n                # We hit some kind of exception, handled or otherwise. We need\n                # to throw the connection away unless explicitly told not to.\n                # Close the connection, set the variable to None, and make sure\n                # we put the None back in the pool to avoid leaking it.\n                if conn:\n                    conn.close()\n                    conn = None\n                release_this_conn = True\n    \n            if release_this_conn:\n                # Put the connection back to be reused. If the connection is\n                # expired then it will be None, which will get replaced with a\n                # fresh connection during _get_conn.\n                self._put_conn(conn)\n    \n        if not conn:\n            # Try again\n            log.warning(\n                &amp;quot;Retrying (%r) after connection broken by &amp;#x27;%r&amp;#x27;: %s&amp;quot;, retries, err, url\n            )\n&amp;gt;           return self.urlopen(\n                method,\n                url,\n                body,\n                headers,\n                retries,\n                redirect,\n                assert_same_host,\n                timeout=timeout,\n                pool_timeout=pool_timeout,\n                release_conn=release_conn,\n                chunked=chunked,\n                body_pos=body_pos,\n                preload_content=preload_content,\n                decode_content=decode_content,\n                **response_kw,\n            )\n\nvenv/lib/python3.13/site-packages/urllib3/connectionpool.py:871: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = &amp;lt;urllib3.connectionpool.HTTPConnectionPool object at 0x7f1d708a2f90&amp;gt;\nmethod = &amp;#x27;POST&amp;#x27;, url = &amp;#x27;/session&amp;#x27;\nbody = &amp;#x27;{&amp;quot;capabilities&amp;quot;: {&amp;quot;firstMatch&amp;quot;: [{}], &amp;quot;alwaysMatch&amp;quot;: {&amp;quot;appium:automationName&amp;quot;: &amp;quot;UiAutomator2&amp;quot;, &amp;quot;platformName&amp;quot;: &amp;quot;Andro...skipServerInstallation&amp;quot;: true, &amp;quot;appium:autoLaunch&amp;quot;: false, &amp;quot;appium:skipUnlock&amp;quot;: true, &amp;quot;appium:skipLogCapture&amp;quot;: true}}}&amp;#x27;\nheaders = HTTPHeaderDict({&amp;#x27;Accept&amp;#x27;: &amp;#x27;application/json&amp;#x27;, &amp;#x27;Content-Type&amp;#x27;: &amp;#x27;application/json;charset=UTF-8&amp;#x27;, &amp;#x27;User-Agent&amp;#x27;: &amp;#x27;appium/...nium/4.34.2 (python linux))&amp;#x27;, &amp;#x27;Connection&amp;#x27;: &amp;#x27;keep-alive&amp;#x27;, &amp;#x27;X-Idempotency-Key&amp;#x27;: &amp;#x27;329b0d27-7561-4196-bf94-afead7cac451&amp;#x27;})\nretries = Retry(total=1, connect=None, read=None, redirect=None, status=None)\nredirect = False, assert_same_host = False, timeout = None, pool_timeout = None\nrelease_conn = True, chunked = False, body_pos = None, preload_content = True\ndecode_content = True, response_kw = {}\nparsed_url = Url(scheme=None, auth=None, host=None, port=None, path=&amp;#x27;/session&amp;#x27;, query=None, fragment=None)\ndestination_scheme = None, conn = None, release_this_conn = True\nhttp_tunnel_required = False\nerr = NewConnectionError(&amp;#x27;&amp;lt;urllib3.connection.HTTPConnection object at 0x7f1d7088bc50&amp;gt;: Failed to establish a new connection: [Errno 111] Connection refused&amp;#x27;)\nclean_exit = False\n\n    def urlopen(  # type: ignore[override]\n        self,\n        method: str,\n        url: str,\n        body: _TYPE_BODY | None = None,\n        headers: typing.Mapping[str, str] | None = None,\n        retries: Retry | bool | int | None = None,\n        redirect: bool = True,\n        assert_same_host: bool = True,\n        timeout: _TYPE_TIMEOUT = _DEFAULT_TIMEOUT,\n        pool_timeout: int | None = None,\n        release_conn: bool | None = None,\n        chunked: bool = False,\n        body_pos: _TYPE_BODY_POSITION | None = None,\n        preload_content: bool = True,\n        decode_content: bool = True,\n        **response_kw: typing.Any,\n    ) -&amp;gt; BaseHTTPResponse:\n        &amp;quot;&amp;quot;&amp;quot;\n        Get a connection from the pool and perform an HTTP request. This is the\n        lowest level call for making a request, so you&amp;#x27;ll need to specify all\n        the raw details.\n    \n        .. note::\n    \n           More commonly, it&amp;#x27;s appropriate to use a convenience method\n           such as :meth:`request`.\n    \n        .. note::\n    \n           `release_conn` will only behave as expected if\n           `preload_content=False` because we want to make\n           `preload_content=False` the default behaviour someday soon without\n           breaking backwards compatibility.\n    \n        :param method:\n            HTTP request method (such as GET, POST, PUT, etc.)\n    \n        :param url:\n            The URL to perform the request on.\n    \n        :param body:\n            Data to send in the request body, either :class:`str`, :class:`bytes`,\n            an iterable of :class:`str`/:class:`bytes`, or a file-like object.\n    \n        :param headers:\n            Dictionary of custom headers to send, such as User-Agent,\n            If-None-Match, etc. If None, pool headers are used. If provided,\n            these headers completely replace any pool-specific headers.\n    \n        :param retries:\n            Configure the number of retries to allow before raising a\n            :class:`~urllib3.exceptions.MaxRetryError` exception.\n    \n            If ``None`` (default) will retry 3 times, see ``Retry.DEFAULT``. Pass a\n            :class:`~urllib3.util.retry.Retry` object for fine-grained control\n            over different types of retries.\n            Pass an integer number to retry connection errors that many times,\n            but no other types of errors. Pass zero to never retry.\n    \n            If ``False``, then retries are disabled and any exception is raised\n            immediately. Also, instead of raising a MaxRetryError on redirects,\n            the redirect response will be returned.\n    \n        :type retries: :class:`~urllib3.util.retry.Retry`, False, or an int.\n    \n        :param redirect:\n            If True, automatically handle redirects (status codes 301, 302,\n            303, 307, 308). Each redirect counts as a retry. Disabling retries\n            will disable redirect, too.\n    \n        :param assert_same_host:\n            If ``True``, will make sure that the host of the pool requests is\n            consistent else will raise HostChangedError. When ``False``, you can\n            use the pool on an HTTP proxy and request foreign hosts.\n    \n        :param timeout:\n            If specified, overrides the default timeout for this one\n            request. It may be a float (in seconds) or an instance of\n            :class:`urllib3.util.Timeout`.\n    \n        :param pool_timeout:\n            If set and the pool is set to block=True, then this method will\n            block for ``pool_timeout`` seconds and raise EmptyPoolError if no\n            connection is available within the time period.\n    \n        :param bool preload_content:\n            If True, the response&amp;#x27;s body will be preloaded into memory.\n    \n        :param bool decode_content:\n            If True, will attempt to decode the body based on the\n            &amp;#x27;content-encoding&amp;#x27; header.\n    \n        :param release_conn:\n            If False, then the urlopen call will not release the connection\n            back into the pool once a response is received (but will release if\n            you read the entire contents of the response such as when\n            `preload_content=True`). This is useful if you&amp;#x27;re not preloading\n            the response&amp;#x27;s content immediately. You will need to call\n            ``r.release_conn()`` on the response ``r`` to return the connection\n            back into the pool. If None, it takes the value of ``preload_content``\n            which defaults to ``True``.\n    \n        :param bool chunked:\n            If True, urllib3 will send the body using chunked transfer\n            encoding. Otherwise, urllib3 will send the body using the standard\n            content-length form. Defaults to False.\n    \n        :param int body_pos:\n            Position to seek to in file-like body in the event of a retry or\n            redirect. Typically this won&amp;#x27;t need to be set because urllib3 will\n            auto-populate the value when needed.\n        &amp;quot;&amp;quot;&amp;quot;\n        parsed_url = parse_url(url)\n        destination_scheme = parsed_url.scheme\n    \n        if headers is None:\n            headers = self.headers\n    \n        if not isinstance(retries, Retry):\n            retries = Retry.from_int(retries, redirect=redirect, default=self.retries)\n    \n        if release_conn is None:\n            release_conn = preload_content\n    \n        # Check host\n        if assert_same_host and not self.is_same_host(url):\n            raise HostChangedError(self, url, retries)\n    \n        # Ensure that the URL we&amp;#x27;re connecting to is properly encoded\n        if url.startswith(&amp;quot;/&amp;quot;):\n            url = to_str(_encode_target(url))\n        else:\n            url = to_str(parsed_url.url)\n    \n        conn = None\n    \n        # Track whether `conn` needs to be released before\n        # returning/raising/recursing. Update this variable if necessary, and\n        # leave `release_conn` constant throughout the function. That way, if\n        # the function recurses, the original value of `release_conn` will be\n        # passed down into the recursive call, and its value will be respected.\n        #\n        # See issue #651 [1] for details.\n        #\n        # [1] &amp;lt;https://github.com/urllib3/urllib3/issues/651&amp;gt;\n        release_this_conn = release_conn\n    \n        http_tunnel_required = connection_requires_http_tunnel(\n            self.proxy, self.proxy_config, destination_scheme\n        )\n    \n        # Merge the proxy headers. Only done when not using HTTP CONNECT. We\n        # have to copy the headers dict so we can safely change it without those\n        # changes being reflected in anyone else&amp;#x27;s copy.\n        if not http_tunnel_required:\n            headers = headers.copy()  # type: ignore[attr-defined]\n            headers.update(self.proxy_headers)  # type: ignore[union-attr]\n    \n        # Must keep the exception bound to a separate variable or else Python 3\n        # complains about UnboundLocalError.\n        err = None\n    \n        # Keep track of whether we cleanly exited the except block. This\n        # ensures we do proper cleanup in finally.\n        clean_exit = False\n    \n        # Rewind body position, if needed. Record current position\n        # for future rewinds in the event of a redirect/retry.\n        body_pos = set_file_position(body, body_pos)\n    \n        try:\n            # Request a connection from the queue.\n            timeout_obj = self._get_timeout(timeout)\n            conn = self._get_conn(timeout=pool_timeout)\n    \n            conn.timeout = timeout_obj.connect_timeout  # type: ignore[assignment]\n    \n            # Is this a closed/new connection that requires CONNECT tunnelling?\n            if self.proxy is not None and http_tunnel_required and conn.is_closed:\n                try:\n                    self._prepare_proxy(conn)\n                except (BaseSSLError, OSError, SocketTimeout) as e:\n                    self._raise_timeout(\n                        err=e, url=self.proxy.url, timeout_value=conn.timeout\n                    )\n                    raise\n    \n            # If we&amp;#x27;re going to release the connection in ``finally:``, then\n            # the response doesn&amp;#x27;t need to know about the connection. Otherwise\n            # it will also try to release it and we&amp;#x27;ll have a double-release\n            # mess.\n            response_conn = conn if not release_conn else None\n    \n            # Make the request on the HTTPConnection object\n            response = self._make_request(\n                conn,\n                method,\n                url,\n                timeout=timeout_obj,\n                body=body,\n                headers=headers,\n                chunked=chunked,\n                retries=retries,\n                response_conn=response_conn,\n                preload_content=preload_content,\n                decode_content=decode_content,\n                **response_kw,\n            )\n    \n            # Everything went great!\n            clean_exit = True\n    \n        except EmptyPoolError:\n            # Didn&amp;#x27;t get a connection from the pool, no need to clean up\n            clean_exit = True\n            release_this_conn = False\n            raise\n    \n        except (\n            TimeoutError,\n            HTTPException,\n            OSError,\n            ProtocolError,\n            BaseSSLError,\n            SSLError,\n            CertificateError,\n            ProxyError,\n        ) as e:\n            # Discard the connection for these exceptions. It will be\n            # replaced during the next _get_conn() call.\n            clean_exit = False\n            new_e: Exception = e\n            if isinstance(e, (BaseSSLError, CertificateError)):\n                new_e = SSLError(e)\n            if isinstance(\n                new_e,\n                (\n                    OSError,\n                    NewConnectionError,\n                    TimeoutError,\n                    SSLError,\n                    HTTPException,\n                ),\n            ) and (conn and conn.proxy and not conn.has_connected_to_proxy):\n                new_e = _wrap_proxy_error(new_e, conn.proxy.scheme)\n            elif isinstance(new_e, (OSError, HTTPException)):\n                new_e = ProtocolError(&amp;quot;Connection aborted.&amp;quot;, new_e)\n    \n            retries = retries.increment(\n                method, url, error=new_e, _pool=self, _stacktrace=sys.exc_info()[2]\n            )\n            retries.sleep()\n    \n            # Keep track of the error for the retry warning.\n            err = e\n    \n        finally:\n            if not clean_exit:\n                # We hit some kind of exception, handled or otherwise. We need\n                # to throw the connection away unless explicitly told not to.\n                # Close the connection, set the variable to None, and make sure\n                # we put the None back in the pool to avoid leaking it.\n                if conn:\n                    conn.close()\n                    conn = None\n                release_this_conn = True\n    \n            if release_this_conn:\n                # Put the connection back to be reused. If the connection is\n                # expired then it will be None, which will get replaced with a\n                # fresh connection during _get_conn.\n                self._put_conn(conn)\n    \n        if not conn:\n            # Try again\n            log.warning(\n                &amp;quot;Retrying (%r) after connection broken by &amp;#x27;%r&amp;#x27;: %s&amp;quot;, retries, err, url\n            )\n&amp;gt;           return self.urlopen(\n                method,\n                url,\n                body,\n                headers,\n                retries,\n                redirect,\n                assert_same_host,\n                timeout=timeout,\n                pool_timeout=pool_timeout,\n                release_conn=release_conn,\n                chunked=chunked,\n                body_pos=body_pos,\n                preload_content=preload_content,\n                decode_content=decode_content,\n                **response_kw,\n            )\n\nvenv/lib/python3.13/site-packages/urllib3/connectionpool.py:871: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = &amp;lt;urllib3.connectionpool.HTTPConnectionPool object at 0x7f1d708a2f90&amp;gt;\nmethod = &amp;#x27;POST&amp;#x27;, url = &amp;#x27;/session&amp;#x27;\nbody = &amp;#x27;{&amp;quot;capabilities&amp;quot;: {&amp;quot;firstMatch&amp;quot;: [{}], &amp;quot;alwaysMatch&amp;quot;: {&amp;quot;appium:automationName&amp;quot;: &amp;quot;UiAutomator2&amp;quot;, &amp;quot;platformName&amp;quot;: &amp;quot;Andro...skipServerInstallation&amp;quot;: true, &amp;quot;appium:autoLaunch&amp;quot;: false, &amp;quot;appium:skipUnlock&amp;quot;: true, &amp;quot;appium:skipLogCapture&amp;quot;: true}}}&amp;#x27;\nheaders = HTTPHeaderDict({&amp;#x27;Accept&amp;#x27;: &amp;#x27;application/json&amp;#x27;, &amp;#x27;Content-Type&amp;#x27;: &amp;#x27;application/json;charset=UTF-8&amp;#x27;, &amp;#x27;User-Agent&amp;#x27;: &amp;#x27;appium/...nium/4.34.2 (python linux))&amp;#x27;, &amp;#x27;Connection&amp;#x27;: &amp;#x27;keep-alive&amp;#x27;, &amp;#x27;X-Idempotency-Key&amp;#x27;: &amp;#x27;329b0d27-7561-4196-bf94-afead7cac451&amp;#x27;})\nretries = Retry(total=0, connect=None, read=None, redirect=None, status=None)\nredirect = False, assert_same_host = False, timeout = None, pool_timeout = None\nrelease_conn = True, chunked = False, body_pos = None, preload_content = True\ndecode_content = True, response_kw = {}\nparsed_url = Url(scheme=None, auth=None, host=None, port=None, path=&amp;#x27;/session&amp;#x27;, query=None, fragment=None)\ndestination_scheme = None, conn = None, release_this_conn = True\nhttp_tunnel_required = False\nerr = NewConnectionError(&amp;#x27;&amp;lt;urllib3.connection.HTTPConnection object at 0x7f1d70914050&amp;gt;: Failed to establish a new connection: [Errno 111] Connection refused&amp;#x27;)\nclean_exit = False\n\n    def urlopen(  # type: ignore[override]\n        self,\n        method: str,\n        url: str,\n        body: _TYPE_BODY | None = None,\n        headers: typing.Mapping[str, str] | None = None,\n        retries: Retry | bool | int | None = None,\n        redirect: bool = True,\n        assert_same_host: bool = True,\n        timeout: _TYPE_TIMEOUT = _DEFAULT_TIMEOUT,\n        pool_timeout: int | None = None,\n        release_conn: bool | None = None,\n        chunked: bool = False,\n        body_pos: _TYPE_BODY_POSITION | None = None,\n        preload_content: bool = True,\n        decode_content: bool = True,\n        **response_kw: typing.Any,\n    ) -&amp;gt; BaseHTTPResponse:\n        &amp;quot;&amp;quot;&amp;quot;\n        Get a connection from the pool and perform an HTTP request. This is the\n        lowest level call for making a request, so you&amp;#x27;ll need to specify all\n        the raw details.\n    \n        .. note::\n    \n           More commonly, it&amp;#x27;s appropriate to use a convenience method\n           such as :meth:`request`.\n    \n        .. note::\n    \n           `release_conn` will only behave as expected if\n           `preload_content=False` because we want to make\n           `preload_content=False` the default behaviour someday soon without\n           breaking backwards compatibility.\n    \n        :param method:\n            HTTP request method (such as GET, POST, PUT, etc.)\n    \n        :param url:\n            The URL to perform the request on.\n    \n        :param body:\n            Data to send in the request body, either :class:`str`, :class:`bytes`,\n            an iterable of :class:`str`/:class:`bytes`, or a file-like object.\n    \n        :param headers:\n            Dictionary of custom headers to send, such as User-Agent,\n            If-None-Match, etc. If None, pool headers are used. If provided,\n            these headers completely replace any pool-specific headers.\n    \n        :param retries:\n            Configure the number of retries to allow before raising a\n            :class:`~urllib3.exceptions.MaxRetryError` exception.\n    \n            If ``None`` (default) will retry 3 times, see ``Retry.DEFAULT``. Pass a\n            :class:`~urllib3.util.retry.Retry` object for fine-grained control\n            over different types of retries.\n            Pass an integer number to retry connection errors that many times,\n            but no other types of errors. Pass zero to never retry.\n    \n            If ``False``, then retries are disabled and any exception is raised\n            immediately. Also, instead of raising a MaxRetryError on redirects,\n            the redirect response will be returned.\n    \n        :type retries: :class:`~urllib3.util.retry.Retry`, False, or an int.\n    \n        :param redirect:\n            If True, automatically handle redirects (status codes 301, 302,\n            303, 307, 308). Each redirect counts as a retry. Disabling retries\n            will disable redirect, too.\n    \n        :param assert_same_host:\n            If ``True``, will make sure that the host of the pool requests is\n            consistent else will raise HostChangedError. When ``False``, you can\n            use the pool on an HTTP proxy and request foreign hosts.\n    \n        :param timeout:\n            If specified, overrides the default timeout for this one\n            request. It may be a float (in seconds) or an instance of\n            :class:`urllib3.util.Timeout`.\n    \n        :param pool_timeout:\n            If set and the pool is set to block=True, then this method will\n            block for ``pool_timeout`` seconds and raise EmptyPoolError if no\n            connection is available within the time period.\n    \n        :param bool preload_content:\n            If True, the response&amp;#x27;s body will be preloaded into memory.\n    \n        :param bool decode_content:\n            If True, will attempt to decode the body based on the\n            &amp;#x27;content-encoding&amp;#x27; header.\n    \n        :param release_conn:\n            If False, then the urlopen call will not release the connection\n            back into the pool once a response is received (but will release if\n            you read the entire contents of the response such as when\n            `preload_content=True`). This is useful if you&amp;#x27;re not preloading\n            the response&amp;#x27;s content immediately. You will need to call\n            ``r.release_conn()`` on the response ``r`` to return the connection\n            back into the pool. If None, it takes the value of ``preload_content``\n            which defaults to ``True``.\n    \n        :param bool chunked:\n            If True, urllib3 will send the body using chunked transfer\n            encoding. Otherwise, urllib3 will send the body using the standard\n            content-length form. Defaults to False.\n    \n        :param int body_pos:\n            Position to seek to in file-like body in the event of a retry or\n            redirect. Typically this won&amp;#x27;t need to be set because urllib3 will\n            auto-populate the value when needed.\n        &amp;quot;&amp;quot;&amp;quot;\n        parsed_url = parse_url(url)\n        destination_scheme = parsed_url.scheme\n    \n        if headers is None:\n            headers = self.headers\n    \n        if not isinstance(retries, Retry):\n            retries = Retry.from_int(retries, redirect=redirect, default=self.retries)\n    \n        if release_conn is None:\n            release_conn = preload_content\n    \n        # Check host\n        if assert_same_host and not self.is_same_host(url):\n            raise HostChangedError(self, url, retries)\n    \n        # Ensure that the URL we&amp;#x27;re connecting to is properly encoded\n        if url.startswith(&amp;quot;/&amp;quot;):\n            url = to_str(_encode_target(url))\n        else:\n            url = to_str(parsed_url.url)\n    \n        conn = None\n    \n        # Track whether `conn` needs to be released before\n        # returning/raising/recursing. Update this variable if necessary, and\n        # leave `release_conn` constant throughout the function. That way, if\n        # the function recurses, the original value of `release_conn` will be\n        # passed down into the recursive call, and its value will be respected.\n        #\n        # See issue #651 [1] for details.\n        #\n        # [1] &amp;lt;https://github.com/urllib3/urllib3/issues/651&amp;gt;\n        release_this_conn = release_conn\n    \n        http_tunnel_required = connection_requires_http_tunnel(\n            self.proxy, self.proxy_config, destination_scheme\n        )\n    \n        # Merge the proxy headers. Only done when not using HTTP CONNECT. We\n        # have to copy the headers dict so we can safely change it without those\n        # changes being reflected in anyone else&amp;#x27;s copy.\n        if not http_tunnel_required:\n            headers = headers.copy()  # type: ignore[attr-defined]\n            headers.update(self.proxy_headers)  # type: ignore[union-attr]\n    \n        # Must keep the exception bound to a separate variable or else Python 3\n        # complains about UnboundLocalError.\n        err = None\n    \n        # Keep track of whether we cleanly exited the except block. This\n        # ensures we do proper cleanup in finally.\n        clean_exit = False\n    \n        # Rewind body position, if needed. Record current position\n        # for future rewinds in the event of a redirect/retry.\n        body_pos = set_file_position(body, body_pos)\n    \n        try:\n            # Request a connection from the queue.\n            timeout_obj = self._get_timeout(timeout)\n            conn = self._get_conn(timeout=pool_timeout)\n    \n            conn.timeout = timeout_obj.connect_timeout  # type: ignore[assignment]\n    \n            # Is this a closed/new connection that requires CONNECT tunnelling?\n            if self.proxy is not None and http_tunnel_required and conn.is_closed:\n                try:\n                    self._prepare_proxy(conn)\n                except (BaseSSLError, OSError, SocketTimeout) as e:\n                    self._raise_timeout(\n                        err=e, url=self.proxy.url, timeout_value=conn.timeout\n                    )\n                    raise\n    \n            # If we&amp;#x27;re going to release the connection in ``finally:``, then\n            # the response doesn&amp;#x27;t need to know about the connection. Otherwise\n            # it will also try to release it and we&amp;#x27;ll have a double-release\n            # mess.\n            response_conn = conn if not release_conn else None\n    \n            # Make the request on the HTTPConnection object\n            response = self._make_request(\n                conn,\n                method,\n                url,\n                timeout=timeout_obj,\n                body=body,\n                headers=headers,\n                chunked=chunked,\n                retries=retries,\n                response_conn=response_conn,\n                preload_content=preload_content,\n                decode_content=decode_content,\n                **response_kw,\n            )\n    \n            # Everything went great!\n            clean_exit = True\n    \n        except EmptyPoolError:\n            # Didn&amp;#x27;t get a connection from the pool, no need to clean up\n            clean_exit = True\n            release_this_conn = False\n            raise\n    \n        except (\n            TimeoutError,\n            HTTPException,\n            OSError,\n            ProtocolError,\n            BaseSSLError,\n            SSLError,\n            CertificateError,\n            ProxyError,\n        ) as e:\n            # Discard the connection for these exceptions. It will be\n            # replaced during the next _get_conn() call.\n            clean_exit = False\n            new_e: Exception = e\n            if isinstance(e, (BaseSSLError, CertificateError)):\n                new_e = SSLError(e)\n            if isinstance(\n                new_e,\n                (\n                    OSError,\n                    NewConnectionError,\n                    TimeoutError,\n                    SSLError,\n                    HTTPException,\n                ),\n            ) and (conn and conn.proxy and not conn.has_connected_to_proxy):\n                new_e = _wrap_proxy_error(new_e, conn.proxy.scheme)\n            elif isinstance(new_e, (OSError, HTTPException)):\n                new_e = ProtocolError(&amp;quot;Connection aborted.&amp;quot;, new_e)\n    \n            retries = retries.increment(\n                method, url, error=new_e, _pool=self, _stacktrace=sys.exc_info()[2]\n            )\n            retries.sleep()\n    \n            # Keep track of the error for the retry warning.\n            err = e\n    \n        finally:\n            if not clean_exit:\n                # We hit some kind of exception, handled or otherwise. We need\n                # to throw the connection away unless explicitly told not to.\n                # Close the connection, set the variable to None, and make sure\n                # we put the None back in the pool to avoid leaking it.\n                if conn:\n                    conn.close()\n                    conn = None\n                release_this_conn = True\n    \n            if release_this_conn:\n                # Put the connection back to be reused. If the connection is\n                # expired then it will be None, which will get replaced with a\n                # fresh connection during _get_conn.\n                self._put_conn(conn)\n    \n        if not conn:\n            # Try again\n            log.warning(\n                &amp;quot;Retrying (%r) after connection broken by &amp;#x27;%r&amp;#x27;: %s&amp;quot;, retries, err, url\n            )\n&amp;gt;           return self.urlopen(\n                method,\n                url,\n                body,\n                headers,\n                retries,\n                redirect,\n                assert_same_host,\n                timeout=timeout,\n                pool_timeout=pool_timeout,\n                release_conn=release_conn,\n                chunked=chunked,\n                body_pos=body_pos,\n                preload_content=preload_content,\n                decode_content=decode_content,\n                **response_kw,\n            )\n\nvenv/lib/python3.13/site-packages/urllib3/connectionpool.py:871: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = &amp;lt;urllib3.connectionpool.HTTPConnectionPool object at 0x7f1d708a2f90&amp;gt;\nmethod = &amp;#x27;POST&amp;#x27;, url = &amp;#x27;/session&amp;#x27;\nbody = &amp;#x27;{&amp;quot;capabilities&amp;quot;: {&amp;quot;firstMatch&amp;quot;: [{}], &amp;quot;alwaysMatch&amp;quot;: {&amp;quot;appium:automationName&amp;quot;: &amp;quot;UiAutomator2&amp;quot;, &amp;quot;platformName&amp;quot;: &amp;quot;Andro...skipServerInstallation&amp;quot;: true, &amp;quot;appium:autoLaunch&amp;quot;: false, &amp;quot;appium:skipUnlock&amp;quot;: true, &amp;quot;appium:skipLogCapture&amp;quot;: true}}}&amp;#x27;\nheaders = HTTPHeaderDict({&amp;#x27;Accept&amp;#x27;: &amp;#x27;application/json&amp;#x27;, &amp;#x27;Content-Type&amp;#x27;: &amp;#x27;application/json;charset=UTF-8&amp;#x27;, &amp;#x27;User-Agent&amp;#x27;: &amp;#x27;appium/...nium/4.34.2 (python linux))&amp;#x27;, &amp;#x27;Connection&amp;#x27;: &amp;#x27;keep-alive&amp;#x27;, &amp;#x27;X-Idempotency-Key&amp;#x27;: &amp;#x27;329b0d27-7561-4196-bf94-afead7cac451&amp;#x27;})\nretries = Retry(total=0, connect=None, read=None, redirect=None, status=None)\nredirect = False, assert_same_host = False, timeout = None, pool_timeout = None\nrelease_conn = True, chunked = False, body_pos = None, preload_content = True\ndecode_content = True, response_kw = {}\nparsed_url = Url(scheme=None, auth=None, host=None, port=None, path=&amp;#x27;/session&amp;#x27;, query=None, fragment=None)\ndestination_scheme = None, conn = None, release_this_conn = True\nhttp_tunnel_required = False, err = None, clean_exit = False\n\n    def urlopen(  # type: ignore[override]\n        self,\n        method: str,\n        url: str,\n        body: _TYPE_BODY | None = None,\n        headers: typing.Mapping[str, str] | None = None,\n        retries: Retry | bool | int | None = None,\n        redirect: bool = True,\n        assert_same_host: bool = True,\n        timeout: _TYPE_TIMEOUT = _DEFAULT_TIMEOUT,\n        pool_timeout: int | None = None,\n        release_conn: bool | None = None,\n        chunked: bool = False,\n        body_pos: _TYPE_BODY_POSITION | None = None,\n        preload_content: bool = True,\n        decode_content: bool = True,\n        **response_kw: typing.Any,\n    ) -&amp;gt; BaseHTTPResponse:\n        &amp;quot;&amp;quot;&amp;quot;\n        Get a connection from the pool and perform an HTTP request. This is the\n        lowest level call for making a request, so you&amp;#x27;ll need to specify all\n        the raw details.\n    \n        .. note::\n    \n           More commonly, it&amp;#x27;s appropriate to use a convenience method\n           such as :meth:`request`.\n    \n        .. note::\n    \n           `release_conn` will only behave as expected if\n           `preload_content=False` because we want to make\n           `preload_content=False` the default behaviour someday soon without\n           breaking backwards compatibility.\n    \n        :param method:\n            HTTP request method (such as GET, POST, PUT, etc.)\n    \n        :param url:\n            The URL to perform the request on.\n    \n        :param body:\n            Data to send in the request body, either :class:`str`, :class:`bytes`,\n            an iterable of :class:`str`/:class:`bytes`, or a file-like object.\n    \n        :param headers:\n            Dictionary of custom headers to send, such as User-Agent,\n            If-None-Match, etc. If None, pool headers are used. If provided,\n            these headers completely replace any pool-specific headers.\n    \n        :param retries:\n            Configure the number of retries to allow before raising a\n            :class:`~urllib3.exceptions.MaxRetryError` exception.\n    \n            If ``None`` (default) will retry 3 times, see ``Retry.DEFAULT``. Pass a\n            :class:`~urllib3.util.retry.Retry` object for fine-grained control\n            over different types of retries.\n            Pass an integer number to retry connection errors that many times,\n            but no other types of errors. Pass zero to never retry.\n    \n            If ``False``, then retries are disabled and any exception is raised\n            immediately. Also, instead of raising a MaxRetryError on redirects,\n            the redirect response will be returned.\n    \n        :type retries: :class:`~urllib3.util.retry.Retry`, False, or an int.\n    \n        :param redirect:\n            If True, automatically handle redirects (status codes 301, 302,\n            303, 307, 308). Each redirect counts as a retry. Disabling retries\n            will disable redirect, too.\n    \n        :param assert_same_host:\n            If ``True``, will make sure that the host of the pool requests is\n            consistent else will raise HostChangedError. When ``False``, you can\n            use the pool on an HTTP proxy and request foreign hosts.\n    \n        :param timeout:\n            If specified, overrides the default timeout for this one\n            request. It may be a float (in seconds) or an instance of\n            :class:`urllib3.util.Timeout`.\n    \n        :param pool_timeout:\n            If set and the pool is set to block=True, then this method will\n            block for ``pool_timeout`` seconds and raise EmptyPoolError if no\n            connection is available within the time period.\n    \n        :param bool preload_content:\n            If True, the response&amp;#x27;s body will be preloaded into memory.\n    \n        :param bool decode_content:\n            If True, will attempt to decode the body based on the\n            &amp;#x27;content-encoding&amp;#x27; header.\n    \n        :param release_conn:\n            If False, then the urlopen call will not release the connection\n            back into the pool once a response is received (but will release if\n            you read the entire contents of the response such as when\n            `preload_content=True`). This is useful if you&amp;#x27;re not preloading\n            the response&amp;#x27;s content immediately. You will need to call\n            ``r.release_conn()`` on the response ``r`` to return the connection\n            back into the pool. If None, it takes the value of ``preload_content``\n            which defaults to ``True``.\n    \n        :param bool chunked:\n            If True, urllib3 will send the body using chunked transfer\n            encoding. Otherwise, urllib3 will send the body using the standard\n            content-length form. Defaults to False.\n    \n        :param int body_pos:\n            Position to seek to in file-like body in the event of a retry or\n            redirect. Typically this won&amp;#x27;t need to be set because urllib3 will\n            auto-populate the value when needed.\n        &amp;quot;&amp;quot;&amp;quot;\n        parsed_url = parse_url(url)\n        destination_scheme = parsed_url.scheme\n    \n        if headers is None:\n            headers = self.headers\n    \n        if not isinstance(retries, Retry):\n            retries = Retry.from_int(retries, redirect=redirect, default=self.retries)\n    \n        if release_conn is None:\n            release_conn = preload_content\n    \n        # Check host\n        if assert_same_host and not self.is_same_host(url):\n            raise HostChangedError(self, url, retries)\n    \n        # Ensure that the URL we&amp;#x27;re connecting to is properly encoded\n        if url.startswith(&amp;quot;/&amp;quot;):\n            url = to_str(_encode_target(url))\n        else:\n            url = to_str(parsed_url.url)\n    \n        conn = None\n    \n        # Track whether `conn` needs to be released before\n        # returning/raising/recursing. Update this variable if necessary, and\n        # leave `release_conn` constant throughout the function. That way, if\n        # the function recurses, the original value of `release_conn` will be\n        # passed down into the recursive call, and its value will be respected.\n        #\n        # See issue #651 [1] for details.\n        #\n        # [1] &amp;lt;https://github.com/urllib3/urllib3/issues/651&amp;gt;\n        release_this_conn = release_conn\n    \n        http_tunnel_required = connection_requires_http_tunnel(\n            self.proxy, self.proxy_config, destination_scheme\n        )\n    \n        # Merge the proxy headers. Only done when not using HTTP CONNECT. We\n        # have to copy the headers dict so we can safely change it without those\n        # changes being reflected in anyone else&amp;#x27;s copy.\n        if not http_tunnel_required:\n            headers = headers.copy()  # type: ignore[attr-defined]\n            headers.update(self.proxy_headers)  # type: ignore[union-attr]\n    \n        # Must keep the exception bound to a separate variable or else Python 3\n        # complains about UnboundLocalError.\n        err = None\n    \n        # Keep track of whether we cleanly exited the except block. This\n        # ensures we do proper cleanup in finally.\n        clean_exit = False\n    \n        # Rewind body position, if needed. Record current position\n        # for future rewinds in the event of a redirect/retry.\n        body_pos = set_file_position(body, body_pos)\n    \n        try:\n            # Request a connection from the queue.\n            timeout_obj = self._get_timeout(timeout)\n            conn = self._get_conn(timeout=pool_timeout)\n    \n            conn.timeout = timeout_obj.connect_timeout  # type: ignore[assignment]\n    \n            # Is this a closed/new connection that requires CONNECT tunnelling?\n            if self.proxy is not None and http_tunnel_required and conn.is_closed:\n                try:\n                    self._prepare_proxy(conn)\n                except (BaseSSLError, OSError, SocketTimeout) as e:\n                    self._raise_timeout(\n                        err=e, url=self.proxy.url, timeout_value=conn.timeout\n                    )\n                    raise\n    \n            # If we&amp;#x27;re going to release the connection in ``finally:``, then\n            # the response doesn&amp;#x27;t need to know about the connection. Otherwise\n            # it will also try to release it and we&amp;#x27;ll have a double-release\n            # mess.\n            response_conn = conn if not release_conn else None\n    \n            # Make the request on the HTTPConnection object\n            response = self._make_request(\n                conn,\n                method,\n                url,\n                timeout=timeout_obj,\n                body=body,\n                headers=headers,\n                chunked=chunked,\n                retries=retries,\n                response_conn=response_conn,\n                preload_content=preload_content,\n                decode_content=decode_content,\n                **response_kw,\n            )\n    \n            # Everything went great!\n            clean_exit = True\n    \n        except EmptyPoolError:\n            # Didn&amp;#x27;t get a connection from the pool, no need to clean up\n            clean_exit = True\n            release_this_conn = False\n            raise\n    \n        except (\n            TimeoutError,\n            HTTPException,\n            OSError,\n            ProtocolError,\n            BaseSSLError,\n            SSLError,\n            CertificateError,\n            ProxyError,\n        ) as e:\n            # Discard the connection for these exceptions. It will be\n            # replaced during the next _get_conn() call.\n            clean_exit = False\n            new_e: Exception = e\n            if isinstance(e, (BaseSSLError, CertificateError)):\n                new_e = SSLError(e)\n            if isinstance(\n                new_e,\n                (\n                    OSError,\n                    NewConnectionError,\n                    TimeoutError,\n                    SSLError,\n                    HTTPException,\n                ),\n            ) and (conn and conn.proxy and not conn.has_connected_to_proxy):\n                new_e = _wrap_proxy_error(new_e, conn.proxy.scheme)\n            elif isinstance(new_e, (OSError, HTTPException)):\n                new_e = ProtocolError(&amp;quot;Connection aborted.&amp;quot;, new_e)\n    \n&amp;gt;           retries = retries.increment(\n                method, url, error=new_e, _pool=self, _stacktrace=sys.exc_info()[2]\n            )\n\nvenv/lib/python3.13/site-packages/urllib3/connectionpool.py:841: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = Retry(total=0, connect=None, read=None, redirect=None, status=None)\nmethod = &amp;#x27;POST&amp;#x27;, url = &amp;#x27;/session&amp;#x27;, response = None\nerror = NewConnectionError(&amp;#x27;&amp;lt;urllib3.connection.HTTPConnection object at 0x7f1d6ff7d350&amp;gt;: Failed to establish a new connection: [Errno 111] Connection refused&amp;#x27;)\n_pool = &amp;lt;urllib3.connectionpool.HTTPConnectionPool object at 0x7f1d708a2f90&amp;gt;\n_stacktrace = &amp;lt;traceback object at 0x7f1d7093b580&amp;gt;\n\n    def increment(\n        self,\n        method: str | None = None,\n        url: str | None = None,\n        response: BaseHTTPResponse | None = None,\n        error: Exception | None = None,\n        _pool: ConnectionPool | None = None,\n        _stacktrace: TracebackType | None = None,\n    ) -&amp;gt; Self:\n        &amp;quot;&amp;quot;&amp;quot;Return a new Retry object with incremented retry counters.\n    \n        :param response: A response object, or None, if the server did not\n            return a response.\n        :type response: :class:`~urllib3.response.BaseHTTPResponse`\n        :param Exception error: An error encountered during the request, or\n            None if the response was received successfully.\n    \n        :return: A new ``Retry`` object.\n        &amp;quot;&amp;quot;&amp;quot;\n        if self.total is False and error:\n            # Disabled, indicate to re-raise the error.\n            raise reraise(type(error), error, _stacktrace)\n    \n        total = self.total\n        if total is not None:\n            total -= 1\n    \n        connect = self.connect\n        read = self.read\n        redirect = self.redirect\n        status_count = self.status\n        other = self.other\n        cause = &amp;quot;unknown&amp;quot;\n        status = None\n        redirect_location = None\n    \n        if error and self._is_connection_error(error):\n            # Connect retry?\n            if connect is False:\n                raise reraise(type(error), error, _stacktrace)\n            elif connect is not None:\n                connect -= 1\n    \n        elif error and self._is_read_error(error):\n            # Read retry?\n            if read is False or method is None or not self._is_method_retryable(method):\n                raise reraise(type(error), error, _stacktrace)\n            elif read is not None:\n                read -= 1\n    \n        elif error:\n            # Other retry?\n            if other is not None:\n                other -= 1\n    \n        elif response and response.get_redirect_location():\n            # Redirect retry?\n            if redirect is not None:\n                redirect -= 1\n            cause = &amp;quot;too many redirects&amp;quot;\n            response_redirect_location = response.get_redirect_location()\n            if response_redirect_location:\n                redirect_location = response_redirect_location\n            status = response.status\n    \n        else:\n            # Incrementing because of a server error like a 500 in\n            # status_forcelist and the given method is in the allowed_methods\n            cause = ResponseError.GENERIC_ERROR\n            if response and response.status:\n                if status_count is not None:\n                    status_count -= 1\n                cause = ResponseError.SPECIFIC_ERROR.format(status_code=response.status)\n                status = response.status\n    \n        history = self.history + (\n            RequestHistory(method, url, error, status, redirect_location),\n        )\n    \n        new_retry = self.new(\n            total=total,\n            connect=connect,\n            read=read,\n            redirect=redirect,\n            status=status_count,\n            other=other,\n            history=history,\n        )\n    \n        if new_retry.is_exhausted():\n            reason = error or ResponseError(cause)\n&amp;gt;           raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE           urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host=&amp;#x27;localhost&amp;#x27;, port=4723): Max retries exceeded with url: /session (Caused by NewConnectionError(&amp;#x27;&amp;lt;urllib3.connection.HTTPConnection object at 0x7f1d6ff7d350&amp;gt;: Failed to establish a new connection: [Errno 111] Connection refused&amp;#x27;))\n\nvenv/lib/python3.13/site-packages/urllib3/util/retry.py:519: MaxRetryError\n\n------------------------------ Captured log setup ------------------------------\nWARNING  urllib3.connectionpool:connectionpool.py:868 Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by &amp;#x27;NewConnectionError(&amp;#x27;&amp;lt;urllib3.connection.HTTPConnection object at 0x7f1d708a3380&amp;gt;: Failed to establish a new connection: [Errno 111] Connection refused&amp;#x27;)&amp;#x27;: /session\nWARNING  urllib3.connectionpool:connectionpool.py:868 Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by &amp;#x27;NewConnectionError(&amp;#x27;&amp;lt;urllib3.connection.HTTPConnection object at 0x7f1d7088bc50&amp;gt;: Failed to establish a new connection: [Errno 111] Connection refused&amp;#x27;)&amp;#x27;: /session\nWARNING  urllib3.connectionpool:connectionpool.py:868 Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by &amp;#x27;NewConnectionError(&amp;#x27;&amp;lt;urllib3.connection.HTTPConnection object at 0x7f1d70914050&amp;gt;: Failed to establish a new connection: [Errno 111] Connection refused&amp;#x27;)&amp;#x27;: /session\n&#34;}]}, &#34;renderCollapsed&#34;: [&#34;passed&#34;], &#34;initialSort&#34;: &#34;result&#34;, &#34;title&#34;: &#34;enhanced_email_flow_report.html&#34;}"></div>
+    <script>
+      (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+const { getCollapsedCategory, setCollapsedIds } = require('./storage.js')
+
+class DataManager {
+    setManager(data) {
+        const collapsedCategories = [...getCollapsedCategory(data.renderCollapsed)]
+        const collapsedIds = []
+        const tests = Object.values(data.tests).flat().map((test, index) => {
+            const collapsed = collapsedCategories.includes(test.result.toLowerCase())
+            const id = `test_${index}`
+            if (collapsed) {
+                collapsedIds.push(id)
+            }
+            return {
+                ...test,
+                id,
+                collapsed,
+            }
+        })
+        const dataBlob = { ...data, tests }
+        this.data = { ...dataBlob }
+        this.renderData = { ...dataBlob }
+        setCollapsedIds(collapsedIds)
+    }
+
+    get allData() {
+        return { ...this.data }
+    }
+
+    resetRender() {
+        this.renderData = { ...this.data }
+    }
+
+    setRender(data) {
+        this.renderData.tests = [...data]
+    }
+
+    toggleCollapsedItem(id) {
+        this.renderData.tests = this.renderData.tests.map((test) =>
+            test.id === id ? { ...test, collapsed: !test.collapsed } : test,
+        )
+    }
+
+    set allCollapsed(collapsed) {
+        this.renderData = { ...this.renderData, tests: [...this.renderData.tests.map((test) => (
+            { ...test, collapsed }
+        ))] }
+    }
+
+    get testSubset() {
+        return [...this.renderData.tests]
+    }
+
+    get environment() {
+        return this.renderData.environment
+    }
+
+    get initialSort() {
+        return this.data.initialSort
+    }
+}
+
+module.exports = {
+    manager: new DataManager(),
+}
+
+},{"./storage.js":8}],2:[function(require,module,exports){
+const mediaViewer = require('./mediaviewer.js')
+const templateEnvRow = document.getElementById('template_environment_row')
+const templateResult = document.getElementById('template_results-table__tbody')
+
+function htmlToElements(html) {
+    const temp = document.createElement('template')
+    temp.innerHTML = html
+    return temp.content.childNodes
+}
+
+const find = (selector, elem) => {
+    if (!elem) {
+        elem = document
+    }
+    return elem.querySelector(selector)
+}
+
+const findAll = (selector, elem) => {
+    if (!elem) {
+        elem = document
+    }
+    return [...elem.querySelectorAll(selector)]
+}
+
+const dom = {
+    getStaticRow: (key, value) => {
+        const envRow = templateEnvRow.content.cloneNode(true)
+        const isObj = typeof value === 'object' && value !== null
+        const values = isObj ? Object.keys(value).map((k) => `${k}: ${value[k]}`) : null
+
+        const valuesElement = htmlToElements(
+            values ? `<ul>${values.map((val) => `<li>${val}</li>`).join('')}<ul>` : `<div>${value}</div>`)[0]
+        const td = findAll('td', envRow)
+        td[0].textContent = key
+        td[1].appendChild(valuesElement)
+
+        return envRow
+    },
+    getResultTBody: ({ testId, id, log, extras, resultsTableRow, tableHtml, result, collapsed }) => {
+        const resultBody = templateResult.content.cloneNode(true)
+        resultBody.querySelector('tbody').classList.add(result.toLowerCase())
+        resultBody.querySelector('tbody').id = testId
+        resultBody.querySelector('.collapsible').dataset.id = id
+
+        resultsTableRow.forEach((html) => {
+            const t = document.createElement('template')
+            t.innerHTML = html
+            resultBody.querySelector('.collapsible').appendChild(t.content)
+        })
+
+        if (log) {
+            // Wrap lines starting with "E" with span.error to color those lines red
+            const wrappedLog = log.replace(/^E.*$/gm, (match) => `<span class="error">${match}</span>`)
+            resultBody.querySelector('.log').innerHTML = wrappedLog
+        } else {
+            resultBody.querySelector('.log').remove()
+        }
+
+        if (collapsed) {
+            resultBody.querySelector('.collapsible > td')?.classList.add('collapsed')
+            resultBody.querySelector('.extras-row').classList.add('hidden')
+        } else {
+            resultBody.querySelector('.collapsible > td')?.classList.remove('collapsed')
+        }
+
+        const media = []
+        extras?.forEach(({ name, format_type, content }) => {
+            if (['image', 'video'].includes(format_type)) {
+                media.push({ path: content, name, format_type })
+            }
+
+            if (format_type === 'html') {
+                resultBody.querySelector('.extraHTML').insertAdjacentHTML('beforeend', `<div>${content}</div>`)
+            }
+        })
+        mediaViewer.setup(resultBody, media)
+
+        // Add custom html from the pytest_html_results_table_html hook
+        tableHtml?.forEach((item) => {
+            resultBody.querySelector('td[class="extra"]').insertAdjacentHTML('beforeend', item)
+        })
+
+        return resultBody
+    },
+}
+
+module.exports = {
+    dom,
+    htmlToElements,
+    find,
+    findAll,
+}
+
+},{"./mediaviewer.js":6}],3:[function(require,module,exports){
+const { manager } = require('./datamanager.js')
+const { doSort } = require('./sort.js')
+const storageModule = require('./storage.js')
+
+const getFilteredSubSet = (filter) =>
+    manager.allData.tests.filter(({ result }) => filter.includes(result.toLowerCase()))
+
+const doInitFilter = () => {
+    const currentFilter = storageModule.getVisible()
+    const filteredSubset = getFilteredSubSet(currentFilter)
+    manager.setRender(filteredSubset)
+}
+
+const doFilter = (type, show) => {
+    if (show) {
+        storageModule.showCategory(type)
+    } else {
+        storageModule.hideCategory(type)
+    }
+
+    const currentFilter = storageModule.getVisible()
+    const filteredSubset = getFilteredSubSet(currentFilter)
+    manager.setRender(filteredSubset)
+
+    const sortColumn = storageModule.getSort()
+    doSort(sortColumn, true)
+}
+
+module.exports = {
+    doFilter,
+    doInitFilter,
+}
+
+},{"./datamanager.js":1,"./sort.js":7,"./storage.js":8}],4:[function(require,module,exports){
+const { redraw, bindEvents, renderStatic } = require('./main.js')
+const { doInitFilter } = require('./filter.js')
+const { doInitSort } = require('./sort.js')
+const { manager } = require('./datamanager.js')
+const data = JSON.parse(document.getElementById('data-container').dataset.jsonblob)
+
+function init() {
+    manager.setManager(data)
+    doInitFilter()
+    doInitSort()
+    renderStatic()
+    redraw()
+    bindEvents()
+}
+
+init()
+
+},{"./datamanager.js":1,"./filter.js":3,"./main.js":5,"./sort.js":7}],5:[function(require,module,exports){
+const { dom, find, findAll } = require('./dom.js')
+const { manager } = require('./datamanager.js')
+const { doSort } = require('./sort.js')
+const { doFilter } = require('./filter.js')
+const {
+    getVisible,
+    getCollapsedIds,
+    setCollapsedIds,
+    getSort,
+    getSortDirection,
+    possibleFilters,
+} = require('./storage.js')
+
+const removeChildren = (node) => {
+    while (node.firstChild) {
+        node.removeChild(node.firstChild)
+    }
+}
+
+const renderStatic = () => {
+    const renderEnvironmentTable = () => {
+        const environment = manager.environment
+        const rows = Object.keys(environment).map((key) => dom.getStaticRow(key, environment[key]))
+        const table = document.getElementById('environment')
+        removeChildren(table)
+        rows.forEach((row) => table.appendChild(row))
+    }
+    renderEnvironmentTable()
+}
+
+const addItemToggleListener = (elem) => {
+    elem.addEventListener('click', ({ target }) => {
+        const id = target.parentElement.dataset.id
+        manager.toggleCollapsedItem(id)
+
+        const collapsedIds = getCollapsedIds()
+        if (collapsedIds.includes(id)) {
+            const updated = collapsedIds.filter((item) => item !== id)
+            setCollapsedIds(updated)
+        } else {
+            collapsedIds.push(id)
+            setCollapsedIds(collapsedIds)
+        }
+        redraw()
+    })
+}
+
+const renderContent = (tests) => {
+    const sortAttr = getSort(manager.initialSort)
+    const sortAsc = JSON.parse(getSortDirection())
+    const rows = tests.map(dom.getResultTBody)
+    const table = document.getElementById('results-table')
+    const tableHeader = document.getElementById('results-table-head')
+
+    const newTable = document.createElement('table')
+    newTable.id = 'results-table'
+
+    // remove all sorting classes and set the relevant
+    findAll('.sortable', tableHeader).forEach((elem) => elem.classList.remove('asc', 'desc'))
+    tableHeader.querySelector(`.sortable[data-column-type="${sortAttr}"]`)?.classList.add(sortAsc ? 'desc' : 'asc')
+    newTable.appendChild(tableHeader)
+
+    if (!rows.length) {
+        const emptyTable = document.getElementById('template_results-table__body--empty').content.cloneNode(true)
+        newTable.appendChild(emptyTable)
+    } else {
+        rows.forEach((row) => {
+            if (!!row) {
+                findAll('.collapsible td:not(.col-links', row).forEach(addItemToggleListener)
+                find('.logexpander', row).addEventListener('click',
+                    (evt) => evt.target.parentNode.classList.toggle('expanded'),
+                )
+                newTable.appendChild(row)
+            }
+        })
+    }
+
+    table.replaceWith(newTable)
+}
+
+const renderDerived = () => {
+    const currentFilter = getVisible()
+    possibleFilters.forEach((result) => {
+        const input = document.querySelector(`input[data-test-result="${result}"]`)
+        input.checked = currentFilter.includes(result)
+    })
+}
+
+const bindEvents = () => {
+    const filterColumn = (evt) => {
+        const { target: element } = evt
+        const { testResult } = element.dataset
+
+        doFilter(testResult, element.checked)
+        const collapsedIds = getCollapsedIds()
+        const updated = manager.renderData.tests.map((test) => {
+            return {
+                ...test,
+                collapsed: collapsedIds.includes(test.id),
+            }
+        })
+        manager.setRender(updated)
+        redraw()
+    }
+
+    const header = document.getElementById('environment-header')
+    header.addEventListener('click', () => {
+        const table = document.getElementById('environment')
+        table.classList.toggle('hidden')
+        header.classList.toggle('collapsed')
+    })
+
+    findAll('input[name="filter_checkbox"]').forEach((elem) => {
+        elem.addEventListener('click', filterColumn)
+    })
+
+    findAll('.sortable').forEach((elem) => {
+        elem.addEventListener('click', (evt) => {
+            const { target: element } = evt
+            const { columnType } = element.dataset
+            doSort(columnType)
+            redraw()
+        })
+    })
+
+    document.getElementById('show_all_details').addEventListener('click', () => {
+        manager.allCollapsed = false
+        setCollapsedIds([])
+        redraw()
+    })
+    document.getElementById('hide_all_details').addEventListener('click', () => {
+        manager.allCollapsed = true
+        const allIds = manager.renderData.tests.map((test) => test.id)
+        setCollapsedIds(allIds)
+        redraw()
+    })
+}
+
+const redraw = () => {
+    const { testSubset } = manager
+
+    renderContent(testSubset)
+    renderDerived()
+}
+
+module.exports = {
+    redraw,
+    bindEvents,
+    renderStatic,
+}
+
+},{"./datamanager.js":1,"./dom.js":2,"./filter.js":3,"./sort.js":7,"./storage.js":8}],6:[function(require,module,exports){
+class MediaViewer {
+    constructor(assets) {
+        this.assets = assets
+        this.index = 0
+    }
+
+    nextActive() {
+        this.index = this.index === this.assets.length - 1 ? 0 : this.index + 1
+        return [this.activeFile, this.index]
+    }
+
+    prevActive() {
+        this.index = this.index === 0 ? this.assets.length - 1 : this.index -1
+        return [this.activeFile, this.index]
+    }
+
+    get currentIndex() {
+        return this.index
+    }
+
+    get activeFile() {
+        return this.assets[this.index]
+    }
+}
+
+
+const setup = (resultBody, assets) => {
+    if (!assets.length) {
+        resultBody.querySelector('.media').classList.add('hidden')
+        return
+    }
+
+    const mediaViewer = new MediaViewer(assets)
+    const container = resultBody.querySelector('.media-container')
+    const leftArrow = resultBody.querySelector('.media-container__nav--left')
+    const rightArrow = resultBody.querySelector('.media-container__nav--right')
+    const mediaName = resultBody.querySelector('.media__name')
+    const counter = resultBody.querySelector('.media__counter')
+    const imageEl = resultBody.querySelector('img')
+    const sourceEl = resultBody.querySelector('source')
+    const videoEl = resultBody.querySelector('video')
+
+    const setImg = (media, index) => {
+        if (media?.format_type === 'image') {
+            imageEl.src = media.path
+
+            imageEl.classList.remove('hidden')
+            videoEl.classList.add('hidden')
+        } else if (media?.format_type === 'video') {
+            sourceEl.src = media.path
+
+            videoEl.classList.remove('hidden')
+            imageEl.classList.add('hidden')
+        }
+
+        mediaName.innerText = media?.name
+        counter.innerText = `${index + 1} / ${assets.length}`
+    }
+    setImg(mediaViewer.activeFile, mediaViewer.currentIndex)
+
+    const moveLeft = () => {
+        const [media, index] = mediaViewer.prevActive()
+        setImg(media, index)
+    }
+    const doRight = () => {
+        const [media, index] = mediaViewer.nextActive()
+        setImg(media, index)
+    }
+    const openImg = () => {
+        window.open(mediaViewer.activeFile.path, '_blank')
+    }
+    if (assets.length === 1) {
+        container.classList.add('media-container--fullscreen')
+    } else {
+        leftArrow.addEventListener('click', moveLeft)
+        rightArrow.addEventListener('click', doRight)
+    }
+    imageEl.addEventListener('click', openImg)
+}
+
+module.exports = {
+    setup,
+}
+
+},{}],7:[function(require,module,exports){
+const { manager } = require('./datamanager.js')
+const storageModule = require('./storage.js')
+
+const genericSort = (list, key, ascending, customOrder) => {
+    let sorted
+    if (customOrder) {
+        sorted = list.sort((a, b) => {
+            const aValue = a.result.toLowerCase()
+            const bValue = b.result.toLowerCase()
+
+            const aIndex = customOrder.findIndex((item) => item.toLowerCase() === aValue)
+            const bIndex = customOrder.findIndex((item) => item.toLowerCase() === bValue)
+
+            // Compare the indices to determine the sort order
+            return aIndex - bIndex
+        })
+    } else {
+        sorted = list.sort((a, b) => a[key] === b[key] ? 0 : a[key] > b[key] ? 1 : -1)
+    }
+
+    if (ascending) {
+        sorted.reverse()
+    }
+    return sorted
+}
+
+const durationSort = (list, ascending) => {
+    const parseDuration = (duration) => {
+        if (duration.includes(':')) {
+            // If it's in the format "HH:mm:ss"
+            const [hours, minutes, seconds] = duration.split(':').map(Number)
+            return (hours * 3600 + minutes * 60 + seconds) * 1000
+        } else {
+            // If it's in the format "nnn ms"
+            return parseInt(duration)
+        }
+    }
+    const sorted = list.sort((a, b) => parseDuration(a['duration']) - parseDuration(b['duration']))
+    if (ascending) {
+        sorted.reverse()
+    }
+    return sorted
+}
+
+const doInitSort = () => {
+    const type = storageModule.getSort(manager.initialSort)
+    const ascending = storageModule.getSortDirection()
+    const list = manager.testSubset
+    const initialOrder = ['Error', 'Failed', 'Rerun', 'XFailed', 'XPassed', 'Skipped', 'Passed']
+
+    storageModule.setSort(type)
+    storageModule.setSortDirection(ascending)
+
+    if (type?.toLowerCase() === 'original') {
+        manager.setRender(list)
+    } else {
+        let sortedList
+        switch (type) {
+        case 'duration':
+            sortedList = durationSort(list, ascending)
+            break
+        case 'result':
+            sortedList = genericSort(list, type, ascending, initialOrder)
+            break
+        default:
+            sortedList = genericSort(list, type, ascending)
+            break
+        }
+        manager.setRender(sortedList)
+    }
+}
+
+const doSort = (type, skipDirection) => {
+    const newSortType = storageModule.getSort(manager.initialSort) !== type
+    const currentAsc = storageModule.getSortDirection()
+    let ascending
+    if (skipDirection) {
+        ascending = currentAsc
+    } else {
+        ascending = newSortType ? false : !currentAsc
+    }
+    storageModule.setSort(type)
+    storageModule.setSortDirection(ascending)
+
+    const list = manager.testSubset
+    const sortedList = type === 'duration' ? durationSort(list, ascending) : genericSort(list, type, ascending)
+    manager.setRender(sortedList)
+}
+
+module.exports = {
+    doInitSort,
+    doSort,
+}
+
+},{"./datamanager.js":1,"./storage.js":8}],8:[function(require,module,exports){
+const possibleFilters = [
+    'passed',
+    'skipped',
+    'failed',
+    'error',
+    'xfailed',
+    'xpassed',
+    'rerun',
+]
+
+const getVisible = () => {
+    const url = new URL(window.location.href)
+    const settings = new URLSearchParams(url.search).get('visible')
+    const lower = (item) => {
+        const lowerItem = item.toLowerCase()
+        if (possibleFilters.includes(lowerItem)) {
+            return lowerItem
+        }
+        return null
+    }
+    return settings === null ?
+        possibleFilters :
+        [...new Set(settings?.split(',').map(lower).filter((item) => item))]
+}
+
+const hideCategory = (categoryToHide) => {
+    const url = new URL(window.location.href)
+    const visibleParams = new URLSearchParams(url.search).get('visible')
+    const currentVisible = visibleParams ? visibleParams.split(',') : [...possibleFilters]
+    const settings = [...new Set(currentVisible)].filter((f) => f !== categoryToHide).join(',')
+
+    url.searchParams.set('visible', settings)
+    window.history.pushState({}, null, unescape(url.href))
+}
+
+const showCategory = (categoryToShow) => {
+    if (typeof window === 'undefined') {
+        return
+    }
+    const url = new URL(window.location.href)
+    const currentVisible = new URLSearchParams(url.search).get('visible')?.split(',').filter(Boolean) ||
+        [...possibleFilters]
+    const settings = [...new Set([categoryToShow, ...currentVisible])]
+    const noFilter = possibleFilters.length === settings.length || !settings.length
+
+    noFilter ? url.searchParams.delete('visible') : url.searchParams.set('visible', settings.join(','))
+    window.history.pushState({}, null, unescape(url.href))
+}
+
+const getSort = (initialSort) => {
+    const url = new URL(window.location.href)
+    let sort = new URLSearchParams(url.search).get('sort')
+    if (!sort) {
+        sort = initialSort || 'result'
+    }
+    return sort
+}
+
+const setSort = (type) => {
+    const url = new URL(window.location.href)
+    url.searchParams.set('sort', type)
+    window.history.pushState({}, null, unescape(url.href))
+}
+
+const getCollapsedCategory = (renderCollapsed) => {
+    let categories
+    if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href)
+        const collapsedItems = new URLSearchParams(url.search).get('collapsed')
+        switch (true) {
+        case !renderCollapsed && collapsedItems === null:
+            categories = ['passed']
+            break
+        case collapsedItems?.length === 0 || /^["']{2}$/.test(collapsedItems):
+            categories = []
+            break
+        case /^all$/.test(collapsedItems) || collapsedItems === null && /^all$/.test(renderCollapsed):
+            categories = [...possibleFilters]
+            break
+        default:
+            categories = collapsedItems?.split(',').map((item) => item.toLowerCase()) || renderCollapsed
+            break
+        }
+    } else {
+        categories = []
+    }
+    return categories
+}
+
+const getSortDirection = () => JSON.parse(sessionStorage.getItem('sortAsc')) || false
+const setSortDirection = (ascending) => sessionStorage.setItem('sortAsc', ascending)
+
+const getCollapsedIds = () => JSON.parse(sessionStorage.getItem('collapsedIds')) || []
+const setCollapsedIds = (list) => sessionStorage.setItem('collapsedIds', JSON.stringify(list))
+
+module.exports = {
+    getVisible,
+    hideCategory,
+    showCategory,
+    getCollapsedIds,
+    setCollapsedIds,
+    getSort,
+    setSort,
+    getSortDirection,
+    setSortDirection,
+    getCollapsedCategory,
+    possibleFilters,
+}
+
+},{}]},{},[4]);
+    </script>
+  </footer>
+</html>
