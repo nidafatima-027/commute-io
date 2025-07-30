@@ -36,7 +36,13 @@ python run_get_started_test.py
 python run_signup_test.py
 ```
 
-#### Step 3: Run All Tests
+#### Step 3: Test Complete Email Authentication Flow
+```bash
+# Test the complete email authentication journey
+python run_email_flow_test.py
+```
+
+#### Step 4: Run All Tests
 ```bash
 # Run smoke tests
 python run_tests.py --smoke
@@ -74,6 +80,7 @@ The test framework automatically configures itself using `setup_test_environment
 ### Features
 - `get_started.feature` - Get Started page tests (start here!)
 - `signup_flow.feature` - Signup screen and email/phone options
+- `email_authentication_flow.feature` - Complete email authentication journey
 - `onboarding.feature` - Onboarding flow tests
 - `authentication.feature` - Signup and authentication tests
 - `ride_booking.feature` - Ride booking functionality

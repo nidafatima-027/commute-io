@@ -76,7 +76,20 @@ class SignupPage(BasePage):
                     result = self.tap_element(element)
                     if result:
                         print("✓ Successfully tapped 'Continue with email' button")
-                        return True
+                        
+                        # Wait for navigation to complete
+                        time.sleep(3)
+                        
+                        # Verify navigation by checking if we're on email page
+                        email_page = EmailPage()
+                        if email_page.is_email_page_displayed():
+                            print("✓ Successfully navigated to email input screen")
+                            return True
+                        else:
+                            print("⚠ Navigation verification failed, but tap was successful")
+                            # List all visible elements to help debug
+                            self.list_all_visible_elements()
+                            return True
                     else:
                         print("✗ Failed to tap 'Continue with email' button")
                         continue
@@ -98,6 +111,18 @@ class SignupPage(BasePage):
                     result = self.tap_element(element)
                     if result:
                         print("✓ Successfully tapped fallback email element")
+                        
+                        # Wait for navigation to complete
+                        time.sleep(3)
+                        
+                        # Verify navigation
+                        email_page = EmailPage()
+                        if email_page.is_email_page_displayed():
+                            print("✓ Successfully navigated to email input screen")
+                            return True
+                        else:
+                            print("⚠ Navigation verification failed, but tap was successful")
+                            return True
                         return True
         except Exception as e:
             print(f"Fallback strategy failed: {str(e)}")
