@@ -9,7 +9,7 @@ interface RideRequest {
   id: number;
   rider_id: number;
   name: string;
-  rating: number;
+  rider_rating: number;
   rides: number;
   image: string;
   bio: string;
@@ -45,7 +45,7 @@ export default function JoinRequestsScreen() {
       pathname: '/(tabs)/ride-request-screen',
       params: {
         name: request.name,
-        rating: request.rating,
+        rating: request.rider_rating,
         rides_taken: request.rides,
         photo_url: request.image,
         bio: request.bio,
@@ -103,7 +103,7 @@ export default function JoinRequestsScreen() {
             id: req.id,
             rider_id: user.id,
             name: user.name,
-            rating: user.rating || 0.0,
+            rider_rating: user.rider_rating || 0.0,
             rides: user.rides_taken || 0,
             image: user.photo_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
             bio: user.bio || 'No bio provided',
@@ -217,7 +217,7 @@ export default function JoinRequestsScreen() {
                       <View style={styles.userStats}>
                         <View style={styles.ratingContainer}>
                           <Star size={14} color="#FFD700" fill="#FFD700" />
-                          <Text style={styles.ratingText}>{request.rating}</Text>
+                          <Text style={styles.ratingText}>{request.rider_rating}</Text>
                         </View>
                         <Text style={styles.ridesText}>• {request.rides} rides</Text>
                       </View>

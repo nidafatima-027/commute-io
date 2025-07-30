@@ -42,19 +42,19 @@ async def get_profile(current_user: User = Depends(get_current_user), db: Sessio
         Ride.driver_id == current_user.id
     ).count()
 
-    driver_rating = db.query(
+    driver_rating = round(db.query(
         func.avg(func.coalesce(RideHistory.rating_given, 5))
     ).join(
         Ride, RideHistory.ride_id == Ride.id
     ).filter(
         Ride.driver_id == current_user.id
-    ).scalar() if rides_offered > 0 else 0
+    ).scalar() or 0, 1) if rides_offered > 0 else 0
 
-    rider_rating = db.query(
+    rider_rating = round(db.query(
         func.avg(func.coalesce(RideHistory.rating_received, 5))
     ).filter(
         RideHistory.user_id == current_user.id
-    ).scalar() if rides_taken > 0 else 0
+    ).scalar() or 0, 1) if rides_taken > 0 else 0
     
     profile_data = {
         "id": current_user.id,
@@ -125,6 +125,19 @@ async def get_user_profile(user_id: int, db: Session = Depends(get_db)):
         Ride.driver_id == user_id
     ).count()
 
+    rider_rating = round(db.query(
+        func.avg(func.coalesce(RideHistory.rating_received, 5))
+    ).filter(
+        RideHistory.user_id == user_id
+    ).scalar() or 0, 1) if rides_taken > 0 else 0
+
+    driver_rating = round(db.query(
+        func.avg(func.coalesce(RideHistory.rating_given, 5))
+    ).join(
+        Ride, RideHistory.ride_id == Ride.id
+    ).filter(
+        Ride.driver_id == user_id
+    ).scalar() or 0, 1) if rides_offered > 0 else 0
 
     return {
         "id": user.id,
@@ -133,4 +146,6 @@ async def get_user_profile(user_id: int, db: Session = Depends(get_db)):
         "photo_url": user.photo_url,
         "rides_taken": rides_taken,
         "rides_offered": rides_offered,
+        "rider_rating": rider_rating,
+        "driver_rating": driver_rating,
     }

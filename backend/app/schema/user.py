@@ -118,6 +118,8 @@ class PublicUserProfile(BaseModel):
     photo_url: Optional[str]
     rides_taken: int
     rides_offered: int
+    rider_rating: float
+    driver_rating: float
 
 class UserRegister(UserBase):
     password: str
@@ -158,3 +160,7 @@ class OTPVerify(BaseModel):
 class OTPMobileVerify(BaseModel):
     phone: str
     otp: str
+
+class UserRideResponse(UserResponse):
+    driver_rating: Optional[float]
+    ride_offered: Optional[int]

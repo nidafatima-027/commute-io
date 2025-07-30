@@ -183,6 +183,24 @@ export default function TabLayout() {
           href: null, // Hide this tab
         }}
       />
+      <Tabs.Screen
+        name="rider-rating-screen"
+        options={{
+          href: null, // Hide this tab
+        }}
+      />
+      <Tabs.Screen
+        name="rider-summary-details"
+        options={{
+          href: null, // Hide this tab
+        }}
+      />
+      <Tabs.Screen
+        name="driver-summary-details"
+        options={{
+          href: null, // Hide this tab
+        }}
+      />
     </Tabs>
   );
 }

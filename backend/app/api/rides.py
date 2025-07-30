@@ -9,6 +9,7 @@ from app.db.crud.ride import (
     get_user_rides, 
     get_ride,
     update_ride,
+    get_user_completed_rides
 )
 from app.db.crud.ride_request import (
     create_ride_request,
@@ -24,15 +25,17 @@ from app.schema.ride import (
     RideCreate,
     RideHistoryResponse, 
     RideUpdate, 
-    RideResponse, 
+    RideResponse,
+    DriverRideResponse,
     RideRequestCreate,
     RideRequestResponse,
     RideRequestUpdate,
     RideHistoryUpdateRequest,
     RideHistoryCreate,
-    RiderHistoryUpdateRequest
+    RiderHistoryUpdateRequest,
+    CheckRequestResponse
 )
-from app.db.crud.ride_history import create_ride_history_entry, get_user_ride_history_by_id, get_rider_ride_history, get_ride_history_by_id, complete_ride_history, update_received_rating
+from app.db.crud.ride_history import create_ride_history_entry, get_user_ride_history_by_id, get_rider_ride_history, get_ride_history_by_id, complete_ride_history, update_received_rating, get_ride_history_by_ride_id
 
 router = APIRouter()
 
@@ -52,7 +55,7 @@ async def search_rides(
             detail=f"Error fetching rides: {str(e)}"
         )
 
-@router.post("/", response_model=RideResponse)
+@router.post("/", response_model=DriverRideResponse)
 async def create_new_ride(
     ride: RideCreate,
     current_user = Depends(get_current_user),
@@ -61,12 +64,19 @@ async def create_new_ride(
     return create_ride(db, ride, current_user.id)
 
 
-@router.get("/my-rides", response_model=List[RideResponse])
+@router.get("/my-rides", response_model=List[DriverRideResponse])
 async def get_my_rides(
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     return get_user_rides(db, current_user.id)
+
+@router.get("/my-completed-rides", response_model=List[DriverRideResponse])
+async def get_my_rides(
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    return get_user_completed_rides(db, current_user.id)
 
 @router.get("/my-requests", response_model=List[RideRequestResponse])
 async def get_my_ride_requests(
@@ -103,7 +113,7 @@ async def get_ride_details(
     return ride
 
 
-@router.put("/{ride_id}", response_model=RideResponse)
+@router.put("/{ride_id}", response_model=DriverRideResponse)
 async def update_ride_details(
     ride_id: int,
     ride_update: RideUpdate,
@@ -176,6 +186,30 @@ async def request_ride(
                 "error": str(e)
             }
         )
+    
+@router.get("/{ride_id}/check-request", response_model=CheckRequestResponse)
+async def check_existing_request(
+    ride_id: int,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    try:
+        exists = user_already_requested(db, ride_id, current_user.id)
+        if exists:
+            existing_request_time = get_existing_request_time(db, ride_id, current_user.id)
+            return {
+                "exists": True,
+                "requested_at": existing_request_time
+            }
+        return {"exists": False}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "code": "server_error",
+                "message": "Error checking request status"
+            }
+        )
 
 @router.get("/{ride_id}/requests", response_model=List[RideRequestResponse])
 async def get_ride_join_requests(
@@ -232,6 +266,14 @@ async def get_user_ride_history(
 ):
     """Get user's ride history (both as driver and rider)"""
     return get_rider_ride_history(db, user_id, ride_id)
+
+@router.get("/history-ride/{ride_id}", response_model=List[RideHistoryResponse])
+async def get_user_ride_history(
+    ride_id: int,
+    db: Session = Depends(get_db)
+):
+    """Get user's ride history (both as driver and rider)"""
+    return get_ride_history_by_ride_id(db, ride_id)
 
 
 @router.post("/history", response_model=RideHistoryResponse)

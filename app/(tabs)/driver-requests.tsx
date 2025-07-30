@@ -120,19 +120,8 @@ export default function DriverRequestsScreen() {
             'rider'  // Since this is a passenger joining the ride
           );
       // Navigate to ride confirmation screen
-      router.push({
-        pathname: '/(tabs)/ride-confirmed',
-        params: {
-          driverName: 'You', // Current user is the driver
-          riderName: request.rider.name,
-          riderImage: request.rider.photo_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
-          startLocation: request.ride.start_location,
-          endLocation: request.ride.end_location,
-          startTime: request.ride.start_time,
-          totalFare: request.ride.total_fare,
-          userRole: 'driver',
-        },
-      });
+      Alert.alert('Request Accepted', 'The ride request has been accepted.');
+      loadRequests();
     } catch (error) {
       console.error('Error accepting request:', error);
       Alert.alert('Error', 'Failed to accept request');
