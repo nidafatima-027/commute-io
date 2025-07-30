@@ -55,11 +55,17 @@ class DriverFactory:
         if device_udid:
             options.udid = device_udid
         
-        # Additional capabilities for better performance
+        # Additional capabilities for better performance and Expo Go compatibility
         options.set_capability("autoGrantPermissions", True)
         options.set_capability("automationName", "UiAutomator2")
         options.set_capability("uiautomator2ServerLaunchTimeout", 60000)
         options.set_capability("adbExecTimeout", 60000)
+        
+        # Expo Go specific capabilities
+        options.set_capability("dontStopAppOnReset", android_config.get('dont_stop_app_on_reset', True))
+        options.set_capability("skipDeviceInitialization", android_config.get('skip_device_initialization', False))
+        options.set_capability("skipServerInstallation", android_config.get('skip_server_installation', True))
+        options.set_capability("autoLaunch", android_config.get('auto_launch', False))
         
         try:
             cls._driver = webdriver.Remote(
