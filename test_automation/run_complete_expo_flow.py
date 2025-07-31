@@ -194,6 +194,31 @@ def run_tests(test_type="complete"):
         print(f"❌ Failed to run tests: {str(e)}")
         return False
 
+def get_python_command():
+    """Get the appropriate Python command for the current system"""
+    # Try different Python commands
+    python_commands = ['python3', 'python', 'py']
+    
+    # First, try to use the virtual environment if it exists
+    venv_python = os.path.join(os.getcwd(), 'venv', 'bin', 'python')
+    if os.path.exists(venv_python):
+        print(f"✅ Using virtual environment Python: {venv_python}")
+        return venv_python
+    
+    # Try system Python commands
+    for cmd in python_commands:
+        try:
+            result = subprocess.run([cmd, '--version'], 
+                                  capture_output=True, text=True, timeout=5)
+            if result.returncode == 0:
+                print(f"✅ Using Python command: {cmd}")
+                return cmd
+        except:
+            continue
+    
+    print("❌ No Python command found")
+    return None
+
 def main():
     parser = argparse.ArgumentParser(description="Run Complete Expo Flow Tests")
     parser.add_argument("--test-type", choices=["complete", "navigation", "elements"], 

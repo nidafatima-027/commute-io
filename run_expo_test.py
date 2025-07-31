@@ -166,6 +166,14 @@ def get_python_command():
     # Try different Python commands
     python_commands = ['python3', 'python', 'py']
     
+    # First, try to use the virtual environment if it exists
+    test_automation_dir = os.path.join(os.getcwd(), "test_automation")
+    venv_python = os.path.join(test_automation_dir, 'venv', 'bin', 'python')
+    if os.path.exists(venv_python):
+        print(f"✅ Using virtual environment Python: {venv_python}")
+        return venv_python
+    
+    # Try system Python commands
     for cmd in python_commands:
         try:
             result = subprocess.run([cmd, '--version'], 
