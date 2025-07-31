@@ -3,7 +3,8 @@ Shared pytest fixtures for test automation.
 """
 import pytest
 import time
-from utils.driver_factory import DriverFactory
+from utils.driver_factory import create_driver, close_driver
+from utils.navigation_helper import navigation_helper
 from pages.onboarding_page import OnboardingPage
 from pages.authentication_page import SignupPage, EmailPage, OTPVerificationPage, ProfileSetupPage
 
@@ -12,10 +13,10 @@ from pages.authentication_page import SignupPage, EmailPage, OTPVerificationPage
 def appium_driver():
     """Session-scoped Appium driver fixture."""
     print("\n🚀 Setting up Appium driver for test session...")
-    driver = DriverFactory.create_driver()
+    driver = create_driver()
     yield driver
     print("\n🧹 Cleaning up Appium driver...")
-    DriverFactory.quit_driver()
+    close_driver(driver)
 
 
 @pytest.fixture(scope="function")

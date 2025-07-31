@@ -205,28 +205,37 @@ def run_tests(test_type="complete"):
         print(f"❌ Test automation directory not found: {test_automation_dir}")
         return False
     
-    # Run pytest with appropriate options
-    if test_type == "complete":
-        cmd = [
-            python_cmd, "-m", "pytest", 
-            "pytest_tests/test_complete_expo_flow.py::TestCompleteExpoFlow::test_complete_expo_authentication_flow",
-            "-v", "-s", "--tb=long"
-        ]
-    elif test_type == "navigation":
-        cmd = [
-            python_cmd, "-m", "pytest", 
-            "pytest_tests/test_complete_expo_flow.py::TestCompleteExpoFlow::test_navigation_verification",
-            "-v", "-s", "--tb=short"
-        ]
-    elif test_type == "elements":
-        cmd = [
-            python_cmd, "-m", "pytest", 
-            "pytest_tests/test_complete_expo_flow.py::TestCompleteExpoFlow::test_screen_elements_detection",
-            "-v", "-s", "--tb=short"
-        ]
+    # Use the simple test runner that avoids conftest.py issues
+    simple_runner = os.path.join(test_automation_dir, "run_simple_expo_test.py")
+    
+    if os.path.exists(simple_runner):
+        cmd = [python_cmd, simple_runner, test_type]
     else:
-        print(f"❌ Unknown test type: {test_type}")
-        return False
+        # Fallback to direct pytest command
+        if test_type == "complete":
+            cmd = [
+                python_cmd, "-m", "pytest", 
+                "pytest_tests/test_complete_expo_flow.py::TestCompleteExpoFlow::test_complete_expo_authentication_flow",
+                "-v", "-s", "--tb=long",
+                "--ignore=conftest.py"
+            ]
+        elif test_type == "navigation":
+            cmd = [
+                python_cmd, "-m", "pytest", 
+                "pytest_tests/test_complete_expo_flow.py::TestCompleteExpoFlow::test_navigation_verification",
+                "-v", "-s", "--tb=short",
+                "--ignore=conftest.py"
+            ]
+        elif test_type == "elements":
+            cmd = [
+                python_cmd, "-m", "pytest", 
+                "pytest_tests/test_complete_expo_flow.py::TestCompleteExpoFlow::test_screen_elements_detection",
+                "-v", "-s", "--tb=short",
+                "--ignore=conftest.py"
+            ]
+        else:
+            print(f"❌ Unknown test type: {test_type}")
+            return False
     
     try:
         print(f"📁 Running from directory: {test_automation_dir}")
