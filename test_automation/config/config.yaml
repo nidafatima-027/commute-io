@@ -6,41 +6,22 @@ appium:
 android:
   platform_name: "Android"
   automation_name: "UiAutomator2"
-  # Connect to already running Expo Go app - NO launching
-  app_package: "host.exp.exponent"  # Expo Go package name
-  # Remove app_activity to avoid launching
-  device_name: "Android Device"  # Will be auto-detected for physical device
-  no_reset: true  # Don't reset the app
+  # app_package: "host.exp.exponent"  # Expo Go package name (commented out for APK)
+  # app_activity: (add if you know your app's main activity)
+  app: "./CarpoolingApp.apk"  # Path to your APK file
+  device_name: "Android Device"
+  no_reset: true
   full_reset: false
   new_command_timeout: 300
-  # Connect to existing app capabilities
-  auto_launch: false  # NEVER launch - only connect
-  dont_stop_app_on_reset: true  # Keep app running
-  skip_device_initialization: true  # Skip initialization 
+  # auto_launch: false  # Not needed for APK
+  dont_stop_app_on_reset: true
+  skip_device_initialization: true
   skip_server_installation: true
-  # Additional no-launch settings
   skip_unlock: true
   skip_log_capture: true
-  
-# Expo Go URL scheme configuration
-expo:
-  scheme: "exp://"
-  base_url: "exp://192.168.1.100:8081"  # Update with your local IP
-  app_slug: "bolt-expo-nativewind"
-  
-# URL navigation paths for direct screen access
-navigation_urls:
-  onboarding: "/onboarding"
-  signup: "/auth/signup"
-  email_page: "/auth/EmailPage"
-  phone_page: "/auth/PhoneNumberPage"
-  profile_setup: "/auth/profile-setup"
-  home: "/(tabs)"
-  search: "/(tabs)/search"
-  profile: "/(tabs)/profile"
-  messages: "/(tabs)/messages"
-  driver_requests: "/(tabs)/driver-requests"
-  
+
+# Expo Go and navigation_urls removed for APK automation
+
 test_data:
   valid_phone: "+1234567890"
   valid_email: "test@example.com"
