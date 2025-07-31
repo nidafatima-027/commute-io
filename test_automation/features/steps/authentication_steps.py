@@ -51,15 +51,50 @@ def step_enter_valid_phone_number(context, phone_number):
 @when('I enter phone number "{phone_number}"')
 def step_enter_phone_number(context, phone_number):
     """Step to enter phone number (for validation testing)."""
-    context.signup_page.enter_phone_number(phone_number)
+    # Check if we're on phone page or signup page
+    from pages.authentication_page import PhoneNumberPage
+    phone_page = PhoneNumberPage()
+    
+    if phone_page.is_phone_page_displayed():
+        # We're on the phone input screen
+        assert phone_page.enter_phone_number(phone_number), f"Failed to enter phone number: {phone_number}"
+        context.phone_page = phone_page
+    else:
+        # We're still on signup page
+        assert context.signup_page.enter_phone_number(phone_number), f"Failed to enter phone number: {phone_number}"
+    
     context.entered_phone = phone_number
 
 
 @when('I tap on Continue button')
 def step_tap_continue_button(context):
     """Step to tap Continue button."""
-    assert context.signup_page.tap_continue_button(), "Failed to tap Continue button"
+    # Check which page we're on and tap the appropriate continue button
+    from pages.authentication_page import EmailPage, PhoneNumberPage
+    
+    email_page = EmailPage()
+    phone_page = PhoneNumberPage()
+    
+    if email_page.is_email_page_displayed():
+        # We're on the email input screen
+        assert email_page.tap_continue_button(), "Failed to tap Continue button on email page"
+        context.email_page = email_page
+    elif phone_page.is_phone_page_displayed():
+        # We're on the phone input screen
+        assert phone_page.tap_continue_button(), "Failed to tap Continue button on phone page"
+        context.phone_page = phone_page
+    else:
+        # We're still on signup page
+        assert context.signup_page.tap_continue_button(), "Failed to tap Continue button on signup page"
+    
     time.sleep(2)  # Wait for navigation
+
+
+@when('I tap Continue button')
+def step_tap_continue_button_simple(context):
+    """Step to tap Continue button (simple version)."""
+    # This is an alias for the above step
+    step_tap_continue_button(context)
 
 
 @then('I should be navigated to phone OTP verification screen')
@@ -87,7 +122,18 @@ def step_enter_valid_email(context, email):
 @when('I enter email "{email}"')
 def step_enter_email(context, email):
     """Step to enter email (for validation testing)."""
-    context.signup_page.enter_email(email)
+    # Check if we're on email page or signup page
+    from pages.authentication_page import EmailPage
+    email_page = EmailPage()
+    
+    if email_page.is_email_page_displayed():
+        # We're on the email input screen
+        assert email_page.enter_email(email), f"Failed to enter email: {email}"
+        context.email_page = email_page
+    else:
+        # We're still on signup page
+        assert context.signup_page.enter_email(email), f"Failed to enter email: {email}"
+    
     context.entered_email = email
 
 

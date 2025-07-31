@@ -6,22 +6,33 @@ appium:
 android:
   platform_name: "Android"
   automation_name: "UiAutomator2"
-  # Connect to already running Expo Go app - NO launching
   app_package: "host.exp.exponent"  # Expo Go package name
-  # Remove app_activity to avoid launching
-  device_name: "Android Device"  # Will be auto-detected for physical device
-  no_reset: true  # Don't reset the app
+  app_activity: "host.exp.exponent.MainActivity"  # Expo Go main activity
+  device_name: "Android Device"
+  no_reset: true
   full_reset: false
   new_command_timeout: 300
-  # Connect to existing app capabilities
-  auto_launch: false  # NEVER launch - only connect
-  dont_stop_app_on_reset: true  # Keep app running
-  skip_device_initialization: true  # Skip initialization 
+  auto_launch: false  # Don't auto-launch, we'll use deep linking
+  dont_stop_app_on_reset: true
+  skip_device_initialization: true
   skip_server_installation: true
-  # Additional no-launch settings
   skip_unlock: true
   skip_log_capture: true
-  
+
+# Expo Go configuration
+expo:
+  deep_link_scheme: "exp://"
+  app_url: "exp://192.168.1.100:8081"  # Update with your Expo server IP
+  qr_code_scan: true
+
+# Navigation URLs for deep linking
+navigation_urls:
+  get_started: "exp://192.168.1.100:8081/--/onboarding"
+  signup: "exp://192.168.1.100:8081/--/auth/signup"
+  email_page: "exp://192.168.1.100:8081/--/auth/EmailPage"
+  otp_verification: "exp://192.168.1.100:8081/--/auth/EmailOTP"
+  profile_setup: "exp://192.168.1.100:8081/--/auth/profile-setup"
+
 test_data:
   valid_phone: "+1234567890"
   valid_email: "test@example.com"

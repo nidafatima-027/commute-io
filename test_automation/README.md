@@ -1,340 +1,315 @@
-# Commute.io Mobile Test Automation Framework
+# Commute.io Test Automation
 
-A comprehensive BDD test automation framework for the Commute.io Android app using Python, Appium, and Behave.
+This directory contains automated tests for the Commute.io mobile app using Appium, Behave, and Python.
 
-## 🏗️ Framework Architecture
+## 🚀 Quick Start
 
-- **BDD Framework**: Behave (Gherkin syntax)
-- **Mobile Automation**: Appium with Python client
-- **Page Object Model**: Organized page classes for maintainability
-- **Reporting**: Allure reporting with screenshots
-- **Configuration**: YAML-based configuration management
-
-## 📋 Prerequisites
-
-### Software Requirements
-
-1. **Python 3.8+**
-2. **Java JDK 8+** (required by Appium)
-3. **Android SDK** with ADB in PATH
-4. **Node.js 14+** (for Appium server)
-5. **Appium Server**
-
-### Device Requirements
-
-- Physical Android device with USB debugging enabled
-- Commute.io app installed (`com.anonymous.boltexponativewind`)
-- Device connected via USB
-
-## 🚀 Quick Setup
-
-### 1. Install Appium Server
-
+### 1. Setup Environment
 ```bash
-npm install -g appium
-npm install -g @appium/doctor
-
-# Verify installation
-appium-doctor --android
-```
-
-### 2. Clone and Setup Framework
-
-```bash
+# Navigate to test automation directory
 cd test_automation
 
-# Install Python dependencies
-pip install -r requirements.txt
-
-# Check prerequisites
-python run_tests.py --check
+# Run the setup script (automatically detects your IP and installs dependencies)
+python setup_test_environment.py
 ```
 
-### 3. Start Appium Server
-
+### 2. Start Required Services
 ```bash
+# Start Expo development server (in project root)
+npm start
+
+# Start Appium server (in another terminal)
 appium --port 4723
 ```
 
-### 4. Connect Device and Install App
+### 3. Run Tests (Progressive Approach)
 
+#### Step 1: Test Get Started Page
 ```bash
-# Check device connection
-adb devices
-
-# Install app (if not already installed)
-adb install path/to/commute-app.apk
-
-# Verify app installation
-adb shell pm list packages | grep com.anonymous.boltexponativewind
+# Test the Get Started page (recommended first test)
+python run_get_started_test.py
 ```
 
-## 🎯 Running Tests
-
-### Basic Test Execution
-
+#### Step 2: Test Signup Flow
 ```bash
-# Run all tests
-python run_tests.py
+# Test navigation to signup screen and email/phone options
+python run_signup_test.py
+```
 
-# Run smoke tests only
+#### Step 3: Test Complete Email Authentication Flow
+```bash
+# Test the complete email authentication journey
+python run_email_flow_test.py
+```
+
+#### Step 4: Run All Tests
+```bash
+# Run smoke tests
 python run_tests.py --smoke
 
-# Run specific feature
-python run_tests.py --feature onboarding.feature
-
-# Run tests with specific tags
-python run_tests.py --tags "@authentication and @smoke"
+# Run all tests
+python run_tests.py --regression
 ```
 
-### Advanced Test Execution
+## 📋 Prerequisites
 
-```bash
-# Run authentication tests
-python run_tests.py --auth
-
-# Run ride booking tests
-python run_tests.py --ride
-
-# Generate Allure report
-python run_tests.py --smoke --report
-
-# Run with specific format
-python run_tests.py --format json
-```
-
-### Direct Behave Commands
-
-```bash
-# Basic execution
-behave
-
-# Run with tags
-behave --tags="@smoke"
-
-# Run specific feature
-behave features/onboarding.feature
-
-# Generate Allure results
-behave -f allure_behave.formatter:AllureFormatter -o allure-results
-```
-
-## 🏭 Framework Structure
-
-```
-test_automation/
-├── features/
-│   ├── onboarding.feature          # Onboarding scenarios
-│   ├── authentication.feature     # Login/signup scenarios
-│   ├── ride_booking.feature       # Ride booking scenarios
-│   ├── driver_features.feature    # Driver-specific scenarios
-│   ├── environment.py             # Behave hooks & setup
-│   └── steps/
-│       ├── onboarding_steps.py    # Onboarding step definitions
-│       ├── authentication_steps.py # Auth step definitions
-│       └── common_steps.py        # Reusable step definitions
-├── pages/
-│   ├── base_page.py               # Base page class
-│   ├── onboarding_page.py         # Onboarding page object
-│   └── authentication_page.py    # Auth page objects
-├── utils/
-│   ├── driver_factory.py          # WebDriver management
-│   └── screenshot_helper.py       # Screenshot utilities
-├── config/
-│   └── config.yaml               # Test configuration
-├── behave.ini                    # Behave configuration
-├── requirements.txt              # Python dependencies
-├── run_tests.py                 # Test runner script
-└── README.md                    # This file
-```
-
-## 🎪 Available Test Scenarios
-
-### Onboarding Tests
-- View onboarding screens
-- Complete onboarding flow
-- Skip onboarding
-- Accessibility features
-
-### Authentication Tests
-- Phone number registration
-- Email registration
-- OTP verification
-- Profile setup
-- Input validation
-- Error handling
-
-### Ride Booking Tests
-- Search for rides
-- Book immediate rides
-- Book recurring rides
-- Filter search results
-- Location selection
-- Price calculation
-
-### Driver Features Tests
-- Offer rides
-- Manage ride requests
-- Accept/decline requests
-- Start/complete rides
-- Earnings tracking
-
-## 🏷️ Test Tags
-
-Organize and filter tests using tags:
-
-- `@smoke` - Critical functionality tests
-- `@authentication` - User authentication tests
-- `@onboarding` - App onboarding tests
-- `@ride_booking` - Ride booking functionality
-- `@driver` - Driver-specific features
-- `@negative` - Negative/error scenario tests
-- `@accessibility` - Accessibility compliance tests
+- **Python 3.8+**
+- **Node.js & npm**
+- **Android SDK** with ADB in PATH
+- **Appium 2.x**
+- **Android device** with USB debugging enabled
+- **Expo Go** app installed on device
 
 ## 🔧 Configuration
 
-### Device Configuration
+The test framework automatically configures itself using `setup_test_environment.py`. Key configuration files:
 
-Edit `config/config.yaml`:
+- `config/config.yaml` - Test configuration
+- `behave.ini` - Behave framework settings
+- `requirements.txt` - Python dependencies
 
-```yaml
-android:
-  platform_name: "Android"
-  device_name: "Your Device Name"
-  app_package: "com.anonymous.boltexponativewind"
-  # Add device UDID if multiple devices
-  # udid: "your-device-udid"
+### Important Configuration Notes
+
+1. **IP Address**: The setup script automatically detects your local IP and updates the config
+2. **Expo Go**: Tests connect to Expo Go app, not a standalone APK
+3. **App State**: Tests keep the app running between scenarios for faster execution
+4. **App Navigation**: Tests use normal app navigation flow
+
+## 🧪 Test Structure
+
+### Features
+- `get_started.feature` - Get Started page tests (start here!)
+- `signup_flow.feature` - Signup screen and email/phone options
+- `email_authentication_flow.feature` - Complete email authentication journey
+- `onboarding.feature` - Onboarding flow tests
+- `authentication.feature` - Signup and authentication tests
+- `ride_booking.feature` - Ride booking functionality
+- `driver_features.feature` - Driver-specific features
+
+### Page Objects
+- `pages/onboarding_page.py` - Get Started page interactions
+- `pages/authentication_page.py` - Signup, email, phone, and OTP page interactions
+- `pages/base_page.py` - Common page functionality
+
+### Utilities
+- `utils/driver_factory.py` - Appium driver management
+- `utils/screenshot_helper.py` - Screenshot capture on failures
+
+## 🎯 Test Execution
+
+### Progressive Testing (Recommended)
+
+1. **Get Started Page** - Basic UI elements
+   ```bash
+   python run_get_started_test.py
+   ```
+
+2. **Signup Flow** - Navigation and options
+   ```bash
+   python run_signup_test.py
+   ```
+
+3. **Email Authentication** - Email input and OTP
+   ```bash
+   python run_tests.py --feature email_auth.feature
+   ```
+
+4. **Phone Authentication** - Phone input and OTP
+   ```bash
+   python run_tests.py --feature phone_auth.feature
+   ```
+
+5. **Profile Setup** - User profile creation
+   ```bash
+   python run_tests.py --feature profile_setup.feature
+   ```
+
+### Basic Commands
+```bash
+# Check prerequisites
+python run_tests.py --check
+
+# Install dependencies
+python run_tests.py --install
+
+# Run specific feature
+python run_tests.py --feature get_started.feature
+
+# Run with tags
+python run_tests.py --tags @smoke
+
+# Generate Allure report
+python run_tests.py --feature get_started.feature --report
 ```
 
-### Test Data Configuration
+### Test Suites
+```bash
+# Smoke tests (quick validation)
+python run_tests.py --smoke
 
-```yaml
-test_data:
-  valid_phone: "+1234567890"
-  valid_email: "test@example.com"
-  # Add your test data here
+# Authentication tests only
+python run_tests.py --auth
+
+# Ride booking tests only
+python run_tests.py --ride
+
+# All tests (regression)
+python run_tests.py --regression
+```
+
+## 📱 App Flow Analysis
+
+### Navigation Flow
+1. **Onboarding Screen** (`/onboarding`) - Get Started page
+2. **Signup Screen** (`/auth/signup`) - Choose email or phone
+3. **Authentication Flow**:
+   - Email: `/auth/EmailPage` → `/auth/EmailOTP` → `/auth/profile-setup`
+   - Phone: `/auth/PhoneNumberPage` → `/auth/PhoneOTP` → `/auth/profile-setup`
+4. **Profile Setup**: `/auth/DailySchedule` → `/auth/PreferredpickupLocation` → `/auth/AddLocationScreen`
+5. **Main App** (`/(tabs)`) - Home, Search, Requests, Messages, Profile
+
+### Key Screens Tested
+- ✅ **Get Started page** - App title, welcome message, Get Started button
+- ✅ **Signup screen** - Continue with email/phone options
+- ✅ **Email input screen** - Email address input
+- ✅ **Phone input screen** - Phone number input
+- ✅ **Navigation flows** - Screen transitions
+- ✅ **Accessibility features** - Screen reader support
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+1. **"Expo Go not found"**
+   - Install Expo Go from Google Play Store
+   - Make sure your app is loaded in Expo Go
+
+2. **"Cannot connect to device"**
+   - Enable USB debugging on your Android device
+   - Run `adb devices` to verify connection
+
+3. **"Appium server not responding"**
+   - Start Appium: `appium --port 4723`
+   - Check if port 4723 is available
+
+4. **"IP address issues"**
+   - Run `python setup_test_environment.py` to auto-detect IP
+   - Update `config/config.yaml` manually if needed
+
+5. **"App not loading in Expo Go"**
+   - Start Expo server: `npm start`
+   - Scan QR code with Expo Go app
+
+6. **"Navigation test failed"**
+   - Check screenshots in `screenshots/` directory
+   - Verify app is on correct screen
+   - Check element locators in page objects
+
+### Debug Mode
+```bash
+# Run with verbose output
+python run_tests.py --feature get_started.feature --format plain
+
+# Check Appium connection
+python test_appium_connection.py
+
+# Inspect app elements
+python inspect_app.py
 ```
 
 ## 📊 Reporting
 
 ### Allure Reports
-
-Generate beautiful HTML reports with screenshots:
-
 ```bash
-# Run tests with Allure format
-python run_tests.py --smoke --report
+# Generate and serve report
+python run_tests.py --feature get_started.feature --report
 
-# Or manually generate
-behave -f allure_behave.formatter:AllureFormatter -o allure-results
+# Generate report only
+allure generate allure-results -o allure-report --clean
+
+# Serve existing report
 allure serve allure-results
 ```
 
-### Console Output
+### Screenshots
+- Screenshots are automatically captured on test failures
+- Stored in `screenshots/` directory
+- Attached to Allure reports
 
-```bash
-# Pretty format (default)
-behave -f pretty
+## 🚀 Advanced Features
 
-# Plain format
-behave -f plain
+### URL Navigation
+Tests use Expo Go's URL scheme for direct screen access:
+```python
+# Navigate directly to Get Started page
+context.url_navigator.navigate_to_onboarding()
 
-# JSON format
-behave -f json
+# Navigate to signup screen
+context.url_navigator.navigate_to_signup()
 ```
 
-## 🐛 Troubleshooting
+### App State Management
+- App stays running between test scenarios
+- Faster execution and better state preservation
+- Only quits driver after all tests complete
 
-### Common Issues
+### Progressive Testing
+Start with simple tests and build up:
+1. **Get Started page** (basic UI elements)
+2. **Signup flow** (navigation and options)
+3. **Authentication** (email/phone input)
+4. **OTP verification** (code entry)
+5. **Profile setup** (user information)
+6. **Core features** (ride booking, messaging)
 
-1. **Appium server not running**
-   ```bash
-   # Start Appium server
-   appium --port 4723
-   ```
+## 📝 Test Development
 
-2. **Device not detected**
-   ```bash
-   # Check ADB connection
-   adb devices
-   adb kill-server
-   adb start-server
-   ```
+### Adding New Tests
+1. Create feature file in `features/`
+2. Add step definitions in `features/steps/`
+3. Create page objects in `pages/`
+4. Update configuration if needed
 
-3. **App not installed**
-   ```bash
-   # Verify app installation
-   adb shell pm list packages | grep boltexponativewind
-   ```
+### Best Practices
+- Use descriptive scenario names
+- Add appropriate tags (@smoke, @regression, etc.)
+- Include accessibility tests
+- Add screenshots for failures
+- Keep tests independent
 
-4. **Permission issues**
-   ```bash
-   # Grant app permissions manually on device
-   # Or use ADB
-   adb shell pm grant com.anonymous.boltexponativewind android.permission.ACCESS_FINE_LOCATION
-   ```
+## 🎯 Next Steps After Current Tests
 
-### Debug Mode
+### Immediate Actions
+1. **Test Get Started page** - `python run_get_started_test.py`
+2. **Test Signup flow** - `python run_signup_test.py`
+3. **Create email authentication test** - Email input and OTP flow
+4. **Create phone authentication test** - Phone input and OTP flow
+5. **Create profile setup test** - User profile creation
 
-Enable verbose logging:
-
-```bash
-# Run with debug output
-behave --no-capture --show-timings -v
-
-# Check Appium logs
-appium --port 4723 --log-level debug
-```
+### Future Enhancements
+1. **OTP Verification Tests** - Complete OTP entry and verification
+2. **Profile Setup Tests** - Complete user profile creation
+3. **Main App Tests** - Home screen and core functionality
+4. **Ride Booking Tests** - Complete ride booking flow
+5. **Messaging Tests** - In-app messaging functionality
 
 ## 🤝 Contributing
 
-### Adding New Tests
-
-1. **Create Feature File**
-   ```gherkin
-   Feature: New Feature
-     Scenario: New test scenario
-       Given preconditions
-       When actions
-       Then assertions
-   ```
-
-2. **Implement Step Definitions**
-   ```python
-   @when('I perform new action')
-   def step_new_action(context):
-       page = NewPage()
-       page.perform_action()
-   ```
-
-3. **Add Page Objects**
-   ```python
-   class NewPage(BasePage):
-       def perform_action(self):
-           # Implementation
-   ```
-
-### Best Practices
-
-- Use Page Object Model for UI interactions
-- Keep step definitions simple and reusable
-- Add proper error handling and assertions
-- Use meaningful test data
-- Tag tests appropriately
-- Add screenshots on failures
+1. Follow the existing test structure
+2. Add appropriate tags to scenarios
+3. Update documentation
+4. Test your changes thoroughly
 
 ## 📞 Support
 
-For issues and questions:
-
+For issues or questions:
 1. Check the troubleshooting section
-2. Review Appium and Behave documentation
-3. Check device and app setup
-4. Verify Appium server connectivity
+2. Review the logs in `screenshots/`
+3. Run the setup script to verify environment
+4. Check Appium and Expo Go documentation
 
-## 📚 Documentation Links
+---
 
-- [Appium Documentation](https://appium.io/docs/)
-- [Behave Documentation](https://behave.readthedocs.io/)
-- [Selenium WebDriver](https://selenium-python.readthedocs.io/)
-- [Allure Reporting](https://docs.qameta.io/allure/)
+**Last Updated**: [CURRENT_DATE]  
+**Test Framework Version**: 2.0  
+**Compatible with**: Commute.io v1.0.0
