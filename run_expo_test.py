@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Complete Expo Flow Test Runner
+Complete Expo Flow Test Runner - Windows Compatible
 
 This script runs a comprehensive test that covers all authentication scenarios
 in one continuous flow using Expo Go, without relaunching the app.
@@ -18,6 +18,7 @@ import sys
 import subprocess
 import time
 import argparse
+import platform
 from pathlib import Path
 
 def check_prerequisites():
@@ -96,10 +97,20 @@ def get_expo_server_ip():
     """Get the Expo server IP address"""
     try:
         # Try to get IP from hostname
-        result = subprocess.run(['hostname', '-I'], capture_output=True, text=True)
-        if result.returncode == 0:
-            ip = result.stdout.strip().split()[0]
-            return ip
+        if platform.system() == "Windows":
+            result = subprocess.run(['ipconfig'], capture_output=True, text=True)
+            if result.returncode == 0:
+                # Parse Windows ipconfig output
+                lines = result.stdout.split('\n')
+                for line in lines:
+                    if 'IPv4' in line and '192.168.' in line:
+                        ip = line.split(':')[-1].strip()
+                        return ip
+        else:
+            result = subprocess.run(['hostname', '-I'], capture_output=True, text=True)
+            if result.returncode == 0:
+                ip = result.stdout.strip().split()[0]
+                return ip
     except:
         pass
     
@@ -108,7 +119,7 @@ def get_expo_server_ip():
 
 def update_config_with_ip(ip):
     """Update the config file with the correct IP address"""
-    config_path = "test_automation/config/config.yaml"
+    config_path = os.path.join("test_automation", "config", "config.yaml")
     
     try:
         with open(config_path, 'r') as file:
@@ -150,9 +161,32 @@ def update_config_with_ip(ip):
     except Exception as e:
         print(f"❌ Failed to update config: {str(e)}")
 
+def get_python_command():
+    """Get the appropriate Python command for the current system"""
+    # Try different Python commands
+    python_commands = ['python3', 'python', 'py']
+    
+    for cmd in python_commands:
+        try:
+            result = subprocess.run([cmd, '--version'], 
+                                  capture_output=True, text=True, timeout=5)
+            if result.returncode == 0:
+                print(f"✅ Using Python command: {cmd}")
+                return cmd
+        except:
+            continue
+    
+    print("❌ No Python command found")
+    return None
+
 def run_tests(test_type="complete"):
     """Run the specified test type"""
     print(f"\n🧪 Running {test_type} test...")
+    
+    # Get Python command
+    python_cmd = get_python_command()
+    if not python_cmd:
+        return False
     
     # Get the absolute path to test_automation directory
     current_dir = os.getcwd()
@@ -166,19 +200,19 @@ def run_tests(test_type="complete"):
     # Run pytest with appropriate options
     if test_type == "complete":
         cmd = [
-            "python3", "-m", "pytest", 
+            python_cmd, "-m", "pytest", 
             "pytest_tests/test_complete_expo_flow.py::TestCompleteExpoFlow::test_complete_expo_authentication_flow",
             "-v", "-s", "--tb=long"
         ]
     elif test_type == "navigation":
         cmd = [
-            "python3", "-m", "pytest", 
+            python_cmd, "-m", "pytest", 
             "pytest_tests/test_complete_expo_flow.py::TestCompleteExpoFlow::test_navigation_verification",
             "-v", "-s", "--tb=short"
         ]
     elif test_type == "elements":
         cmd = [
-            "python3", "-m", "pytest", 
+            python_cmd, "-m", "pytest", 
             "pytest_tests/test_complete_expo_flow.py::TestCompleteExpoFlow::test_screen_elements_detection",
             "-v", "-s", "--tb=short"
         ]
@@ -188,6 +222,8 @@ def run_tests(test_type="complete"):
     
     try:
         print(f"📁 Running from directory: {test_automation_dir}")
+        print(f"🔧 Command: {' '.join(cmd)}")
+        
         result = subprocess.run(cmd, cwd=test_automation_dir)
         return result.returncode == 0
     except Exception as e:
@@ -204,8 +240,9 @@ def main():
     
     args = parser.parse_args()
     
-    print("🚀 Complete Expo Flow Test Runner")
-    print("=" * 50)
+    print("🚀 Complete Expo Flow Test Runner (Windows Compatible)")
+    print("=" * 60)
+    print(f"🖥️  Platform: {platform.system()} {platform.release()}")
     
     # Check prerequisites unless skipped
     if not args.skip_checks:
