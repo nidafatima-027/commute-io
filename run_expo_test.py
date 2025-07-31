@@ -205,36 +205,20 @@ def run_tests(test_type="complete"):
         print(f"❌ Test automation directory not found: {test_automation_dir}")
         return False
     
-    # Use the simple test runner that avoids conftest.py issues
-    simple_runner = os.path.join(test_automation_dir, "run_simple_expo_test.py")
+    # Use the standalone test runner that has no import dependencies
+    standalone_runner = os.path.join(test_automation_dir, "standalone_expo_test.py")
     
-    if os.path.exists(simple_runner):
-        cmd = [python_cmd, simple_runner, test_type]
+    if os.path.exists(standalone_runner):
+        cmd = [python_cmd, standalone_runner]
+        print(f"✅ Using standalone test runner: {standalone_runner}")
     else:
-        # Fallback to direct pytest command
-        if test_type == "complete":
-            cmd = [
-                python_cmd, "-m", "pytest", 
-                "pytest_tests/test_complete_expo_flow.py::TestCompleteExpoFlow::test_complete_expo_authentication_flow",
-                "-v", "-s", "--tb=long",
-                "--ignore=conftest.py"
-            ]
-        elif test_type == "navigation":
-            cmd = [
-                python_cmd, "-m", "pytest", 
-                "pytest_tests/test_complete_expo_flow.py::TestCompleteExpoFlow::test_navigation_verification",
-                "-v", "-s", "--tb=short",
-                "--ignore=conftest.py"
-            ]
-        elif test_type == "elements":
-            cmd = [
-                python_cmd, "-m", "pytest", 
-                "pytest_tests/test_complete_expo_flow.py::TestCompleteExpoFlow::test_screen_elements_detection",
-                "-v", "-s", "--tb=short",
-                "--ignore=conftest.py"
-            ]
+        # Fallback to simple test runner
+        simple_runner = os.path.join(test_automation_dir, "run_simple_expo_test.py")
+        if os.path.exists(simple_runner):
+            cmd = [python_cmd, simple_runner, test_type]
+            print(f"✅ Using simple test runner: {simple_runner}")
         else:
-            print(f"❌ Unknown test type: {test_type}")
+            print(f"❌ No test runners found")
             return False
     
     try:
