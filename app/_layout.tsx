@@ -35,7 +35,7 @@ export default function RootLayout() {
 
   return (
     <>
-      <Stack screenOptions={{ headerShown: false }}>
+      <Stack initialRouteName="onboarding" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="auth/signup" />
         <Stack.Screen name="auth/profile-setup" />
