@@ -61,6 +61,7 @@ async def create_new_ride(
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    print(ride)
     return create_ride(db, ride, current_user.id)
 
 

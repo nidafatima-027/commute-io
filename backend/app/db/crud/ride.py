@@ -71,6 +71,12 @@ def create_ride(db: Session, ride: RideCreate, driver_id: int) -> Ride:
         start_location=ride.start_location,  # Direct string assignment
         end_location=ride.end_location,      # Direct string assignment
         car_id=ride.car_id,
+        start_latitude = ride.start_latitude,
+        start_longitude = ride.start_longitude,
+        end_latitude = ride.end_latitude,
+        end_longitude = ride.end_longitude,
+        distance_km = ride.distance_km,
+        estimated_duration = ride.estimated_duration,
         start_time=ride.start_time,
         seats_available=ride.seats_available,
         total_fare=ride.total_fare,

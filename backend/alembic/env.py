@@ -11,6 +11,16 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 from app.core.database import Base
 from app.core.config import settings
 
+from app.db.models.user import User  # example import
+from app.db.models.ride import Ride  # example import
+# Import ALL your other models here
+from app.db.models.car import Car
+from app.db.models.message import Message
+from app.db.models.ride_history import RideHistory
+from app.db.models.schedule import Schedule
+from app.db.models.location import PreferredLocation
+from app.db.models.ride_request import RideRequest
+print("Tables in metadata:", list(Base.metadata.tables.keys()))
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config

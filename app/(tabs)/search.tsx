@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Image, ActivityIndicator  } from "react-native";
-import { ArrowLeft, Search } from "lucide-react-native"; // example icons; install lucide-react-native or use react-native-vector-icons
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Image, ActivityIndicator, Dimensions  } from "react-native";
+import { ArrowLeft, Search, MapPin, X } from "lucide-react-native"; // example icons; install lucide-react-native or use react-native-vector-icons
 import { router} from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ridesAPI, usersAPI  } from '../../services/api'; // Adjust the import path as needed
 import webSocketService from '../../services/websocket-mock';
-
+import MapView, { Marker } from 'react-native-maps';
+import LocationPicker from '../../components/LocationPicker';
+import { LocationResult } from '../../services/mapService';
 
 interface Ride {
   id: string;
@@ -17,6 +19,10 @@ interface Ride {
   seats_available: number;
   total_fare: number;
   status: string;
+  start_latitude: number;
+  start_longitude: number;
+  end_latitude: number;
+  end_longitude: number;
   driver: {
     id: number;
     name: string;
@@ -44,6 +50,17 @@ export default function FindRideScreen() {
   const [profileLoading, setProfileLoading] = useState(true);
   const [pickupLocation, setPickupLocation] = useState('');
   const [destinationLocation, setDestinationLocation] = useState('');
+  const [showMap, setShowMap] = useState(false);
+  const [mapRegion, setMapRegion] = useState({
+    latitude: 24.8607, // Default to Karachi coordinates
+    longitude: 67.0011,
+    latitudeDelta: 0.0922,
+    longitudeDelta: 0.0421,
+  });
+  const [showFromLocationPicker, setShowFromLocationPicker] = useState(false);
+  const [showToLocationPicker, setShowToLocationPicker] = useState(false);
+  const [fromLocationData, setFromLocationData] = useState<LocationResult | null>(null);
+  const [toLocationData, setToLocationData] = useState<LocationResult | null>(null);
 
   useEffect(() => {
     const loadUserProfile = async () => {
@@ -71,6 +88,15 @@ export default function FindRideScreen() {
         setAllRides(data);
         setRides(data);
         setError(null);
+        if (data.length > 0) {
+          const firstRide = data[0];
+          setMapRegion({
+            latitude: (firstRide.start_latitude + firstRide.end_latitude) / 2,
+            longitude: (firstRide.start_longitude + firstRide.end_longitude) / 2,
+            latitudeDelta: 0.5,
+            longitudeDelta: 0.5,
+          });
+        }
       } catch (err: any) {
         console.error('Failed to fetch rides:', err);
         setError(err.message || 'Failed to load rides. Please try again.');
@@ -149,6 +175,8 @@ const handleChatPress = () => {
   const clearFilters = () => {
     setPickupLocation('');
     setDestinationLocation('');
+    setFromLocationData(null);
+    setToLocationData(null);
   };
 
     const handleRidePress = (ride: Ride) => {
@@ -173,6 +201,52 @@ const handleChatPress = () => {
         price: ride.total_fare/ride.car.seats,
       }
     });
+  };
+
+  const handleFromLocationSelect = (location: LocationResult) => {
+    setFromLocationData(location);
+    setPickupLocation(location.address);
+    setShowFromLocationPicker(false);
+    
+    // Update map to show selected location
+    if (toLocationData) {
+      setMapRegion({
+        latitude: (location.coordinates.latitude + toLocationData.coordinates.latitude) / 2,
+        longitude: (location.coordinates.longitude + toLocationData.coordinates.longitude) / 2,
+        latitudeDelta: 0.5,
+        longitudeDelta: 0.5,
+      });
+    } else {
+      setMapRegion({
+        latitude: location.coordinates.latitude,
+        longitude: location.coordinates.longitude,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      });
+    }
+  };
+
+  const handleToLocationSelect = (location: LocationResult) => {
+    setToLocationData(location);
+    setDestinationLocation(location.address);
+    setShowToLocationPicker(false);
+    
+    // Update map to show selected location
+    if (fromLocationData) {
+      setMapRegion({
+        latitude: (location.coordinates.latitude + fromLocationData.coordinates.latitude) / 2,
+        longitude: (location.coordinates.longitude + fromLocationData.coordinates.longitude) / 2,
+        latitudeDelta: 0.5,
+        longitudeDelta: 0.5,
+      });
+    } else {
+      setMapRegion({
+        latitude: location.coordinates.latitude,
+        longitude: location.coordinates.longitude,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      });
+    }
   };
 
   const formatRideData = (ride: Ride) => {
@@ -230,7 +304,15 @@ const handleChatPress = () => {
       vehicle: `${ride.car.make} ${ride.car.model}`,
       seatsAvailable: ride.seats_available,
       price: `$${ride.total_fare.toFixed(2)}`,
+      startLatitude: ride.start_latitude,
+      startLongitude: ride.start_longitude,
+      endLatitude: ride.end_latitude,
+      endLongitude: ride.end_longitude,
     };
+  };
+
+  const toggleMapView = () => {
+    setShowMap(!showMap);
   };
 
   return (
@@ -245,111 +327,181 @@ const handleChatPress = () => {
       </View>
 
       {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInputContainer}>
-          <Search size={20} color="#9CA3AF" style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Pickup location"
-            placeholderTextColor="#9CA3AF"
-            value={pickupLocation}
-            onChangeText={setPickupLocation}
-          />
-        </View>
-        <View style={styles.searchInputContainer}>
-          <Search size={20} color="#9CA3AF" style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Destination"
-            placeholderTextColor="#9CA3AF"
-            value={destinationLocation}
-            onChangeText={setDestinationLocation}
-          />
-                  </View>
-          {(pickupLocation || destinationLocation) && (
-            <TouchableOpacity style={styles.clearButton} onPress={clearFilters}>
-              <Text style={styles.clearButtonText}>Clear Filters</Text>
+       <View style={styles.searchContainer}>
+        <TouchableOpacity 
+          style={styles.searchInputContainer}
+          onPress={() => setShowFromLocationPicker(true)}
+        >
+          <MapPin size={20} color="#9CA3AF" style={styles.searchIcon} />
+          <Text style={[styles.searchInput, !pickupLocation && styles.placeholderText]}>
+            {pickupLocation || 'Pickup location'}
+          </Text>
+          {pickupLocation && (
+            <TouchableOpacity onPress={() => setPickupLocation('')}>
+              <X size={20} color="#9CA3AF" />
             </TouchableOpacity>
           )}
-        </View>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.searchInputContainer}
+          onPress={() => setShowToLocationPicker(true)}
+        >
+          <MapPin size={20} color="#9CA3AF" style={styles.searchIcon} />
+          <Text style={[styles.searchInput, !destinationLocation && styles.placeholderText]}>
+            {destinationLocation || 'Destination'}
+          </Text>
+          {destinationLocation && (
+            <TouchableOpacity onPress={() => setDestinationLocation('')}>
+              <X size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+          )}
+        </TouchableOpacity>
+
+        {(pickupLocation || destinationLocation) && (
+          <TouchableOpacity style={styles.clearButton} onPress={clearFilters}>
+            <Text style={styles.clearButtonText}>Clear Filters</Text>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity style={styles.mapToggleButton} onPress={toggleMapView}>
+          <Text style={styles.mapToggleButtonText}>
+            {showMap ? 'Show List' : 'Show Map'}
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Content */}
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {profileLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#4ECDC4" />
-          </View>
-        ) : userProfile && !userProfile.is_rider ? (
-          <View style={styles.roleWarningContainer}>
-            <Text style={styles.roleWarningText}>
-              You're not registered as a rider yet.
-            </Text>
-            <Text style={styles.roleWarningSubtext}>
-              Update your profile to access rider features.
-            </Text>
-            <TouchableOpacity 
-              style={styles.updateProfileButton}
-              onPress={handleEditProfile}
-            >
-              <Text style={styles.updateProfileButtonText}>
-                Update Profile
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <>
-            {/* Section Header */}
-            <Text style={styles.sectionTitle}>Suggested Rides</Text>
-            
-            {loading && (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#4ECDC4" />
-              </View>
-            )}
-            
-            {error && (
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{error}</Text>
-                <TouchableOpacity 
-                  style={styles.retryButton}
-                  onPress={() => {
-                    setError(null);
-                    setLoading(true);
-                    ridesAPI.searchRides().then(setRides).catch(setError).finally(() => setLoading(false));
-                  }}
-                >
-                  <Text style={styles.retryButtonText}>Retry</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-            
-            {!loading && !error && rides.length === 0 && (
-              <View style={styles.emptyState}>
-                <Text style={styles.emptyStateText}>No rides available at the moment</Text>
-              </View>
-            )}
-            
-            {/* Rides List */}
-            {!loading && !error && rides.map((ride) => {
+      {showMap ? (
+        <View style={styles.mapContainer}>
+          <MapView style={styles.map} region={mapRegion}>
+            {/* Markers for rides */}
+            {rides.map((ride) => {
               const formattedRide = formatRideData(ride);
               return (
-                <TouchableOpacity 
-                  key={ride.id} 
-                  style={styles.rideCard}
-                  onPress={() => handleRidePress(ride)}
-                  activeOpacity={0.7}
-                >
-                  <Image source={{ uri: formattedRide.avatar }} style={styles.avatarImage} />
-                  <View style={styles.rideInfo}>
-                    <Text style={styles.destination}>To: {formattedRide.destination}</Text>
-                    <Text style={styles.details}>{formattedRide.details}</Text>
-                  </View>
-                </TouchableOpacity>
+                <React.Fragment key={ride.id}>
+                  <Marker
+                    coordinate={{
+                      latitude: formattedRide.startLatitude!,
+                      longitude: formattedRide.startLongitude!
+                    }}
+                    title="Pickup"
+                    description={formattedRide.fromAddress}
+                    pinColor="#4ECDC4"
+                  />
+                  <Marker
+                    coordinate={{
+                      latitude: formattedRide.endLatitude!,
+                      longitude: formattedRide.endLongitude!
+                    }}
+                    title="Destination"
+                    description={formattedRide.toAddress}
+                    pinColor="#FF6B6B"
+                  />
+                </React.Fragment>
               );
             })}
-          </>
-        )}
-      </ScrollView>
+            
+            {/* Markers for selected locations */}
+            {fromLocationData && (
+              <Marker
+                coordinate={{
+                  latitude: fromLocationData.coordinates.latitude,
+                  longitude: fromLocationData.coordinates.longitude
+                }}
+                title="Your Pickup"
+                pinColor="#4ECDC4"
+              />
+            )}
+            
+            {toLocationData && (
+              <Marker
+                coordinate={{
+                  latitude: toLocationData.coordinates.latitude,
+                  longitude: toLocationData.coordinates.longitude
+                }}
+                title="Your Destination"
+                pinColor="#FF6B6B"
+              />
+            )}
+          </MapView>
+        </View>
+      ) : (
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          {profileLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#4ECDC4" />
+            </View>
+          ) : userProfile && !userProfile.is_rider ? (
+            <View style={styles.roleWarningContainer}>
+              <Text style={styles.roleWarningText}>
+                You're not registered as a rider yet.
+              </Text>
+              <Text style={styles.roleWarningSubtext}>
+                Update your profile to access rider features.
+              </Text>
+              <TouchableOpacity 
+                style={styles.updateProfileButton}
+                onPress={handleEditProfile}
+              >
+                <Text style={styles.updateProfileButtonText}>
+                  Update Profile
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              <Text style={styles.sectionTitle}>Suggested Rides</Text>
+              
+              {loading && (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#4ECDC4" />
+                </View>
+              )}
+              
+              {error && (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>{error}</Text>
+                  <TouchableOpacity 
+                    style={styles.retryButton}
+                    onPress={() => {
+                      setError(null);
+                      setLoading(true);
+                      ridesAPI.searchRides().then(setRides).catch(setError).finally(() => setLoading(false));
+                    }}
+                  >
+                    <Text style={styles.retryButtonText}>Retry</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              
+              {!loading && !error && rides.length === 0 && (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyStateText}>No rides available at the moment</Text>
+                </View>
+              )}
+              
+              {!loading && !error && rides.map((ride) => {
+                const formattedRide = formatRideData(ride);
+                return (
+                  <TouchableOpacity 
+                    key={ride.id} 
+                    style={styles.rideCard}
+                    onPress={() => handleRidePress(ride)}
+                    activeOpacity={0.7}
+                  >
+                    <Image source={{ uri: formattedRide.avatar }} style={styles.avatarImage} />
+                    <View style={styles.rideInfo}>
+                      <Text style={styles.destination}>To: {formattedRide.destination}</Text>
+                      <Text style={styles.details}>{formattedRide.details}</Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </>
+          )}
+        </ScrollView>
+      )}
 
       {/* Chat Button */}
       <View style={styles.chatContainer}>
@@ -357,6 +509,23 @@ const handleChatPress = () => {
           <Text style={styles.chatButtonText}>Chat with us</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Location Pickers */}
+      <LocationPicker
+        visible={showFromLocationPicker}
+        onClose={() => setShowFromLocationPicker(false)}
+        onLocationSelect={handleFromLocationSelect}
+        title="Select Pickup Location"
+        initialLocation={fromLocationData}
+      />
+
+      <LocationPicker
+        visible={showToLocationPicker}
+        onClose={() => setShowToLocationPicker(false)}
+        onLocationSelect={handleToLocationSelect}
+        title="Select Destination"
+        initialLocation={toLocationData}
+      />
     </SafeAreaView>
   );
 }
@@ -450,6 +619,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Inter-Regular",
     color: "#2d3748",
+  },
+  placeholderText: {
+    color: '#9CA3AF',
   },
   content: {
     flex: 1,
@@ -563,4 +735,25 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: '#6B7280',
   },
+  mapContainer: {
+    flex: 1,
+    width: '100%',
+    height: Dimensions.get('window').height - 200,
+  },
+  map: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  mapToggleButton: {
+    backgroundColor: '#4ECDC4',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  mapToggleButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  }, 
 });

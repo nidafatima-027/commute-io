@@ -9,9 +9,19 @@ class RideBase(BaseModel):
     car_id: int
     start_location: str
     end_location: str
+    start_latitude: Optional[float] = None
+    start_longitude: Optional[float] = None
+    end_latitude: Optional[float] = None
+    end_longitude: Optional[float] = None
+    distance_km: Optional[float] = None
+    estimated_duration: Optional[int] = None
     start_time: datetime
     seats_available: int
     total_fare: Optional[float] = None
+
+    class Config:
+        extra = "forbid"  # ← This allows extra fields if needed
+        arbitrary_types_allowed = True
 
 
 class RideCreate(RideBase):

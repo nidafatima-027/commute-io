@@ -259,10 +259,17 @@ export const ridesAPI = {
     car_id: number;
     start_location: string;  // Changed from start_location_id
     end_location: string;    // Changed from end_location_id
+    start_latitude: number;
+    start_longitude: number;
+    end_latitude: number;
+    end_longitude: number;
+    distance_km: number;
+    estimated_duration: number;
     start_time: string;
     seats_available: number;
     total_fare: number; 
   }) {
+    console.log(rideData)
     return apiRequest('/rides/', {
       method: 'POST',
       body: JSON.stringify(rideData),

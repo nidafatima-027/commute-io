@@ -10,7 +10,13 @@ class Ride(Base):
     driver_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     car_id = Column(Integer, ForeignKey("cars.id"), nullable=False)
     start_location = Column(String, nullable=False)  # String field as expected by PostgreSQL
-    end_location = Column(String, nullable=False)    # String field as expected by PostgreSQL
+    end_location = Column(String, nullable=False)
+    start_latitude = Column(Float, nullable=True)    # Start location latitude
+    start_longitude = Column(Float, nullable=True)   # Start location longitude
+    end_latitude = Column(Float, nullable=True)      # End location latitude
+    end_longitude = Column(Float, nullable=True)     # End location longitude
+    distance_km = Column(Float, nullable=True)       # Calculated distance in kilometers
+    estimated_duration = Column(Integer, nullable=True)    # String field as expected by PostgreSQL
     start_time = Column(DateTime, nullable=False)
     seats_available = Column(Integer, nullable=False)
     total_fare = Column(Float, nullable=True)        # Added as used in CRUD
