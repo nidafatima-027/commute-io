@@ -1,27 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
+import { getApiUrl } from './config';
 
 // Function to get the API base URL dynamically
 const getApiBaseUrl = () => {
-  const isDevelopment = __DEV__;
-
-  if (!isDevelopment) {
-    return 'https://your-production-api.com/api';
-  }
-
-  if (Platform.OS === 'web') {
-    return 'http://localhost:8000/api';
-  }
-
-  const debuggerHost = Constants.expoConfig?.hostUri?.split(':')[0];
-
-  if (debuggerHost) {
-    return `http://${debuggerHost}:8000/api`;
-  }
-
-  // Fallback for development
-  return 'http://localhost:8000/api';
+  // Use the new configuration system
+  const apiUrl = getApiUrl();
+  console.log('🌐 Using API URL:', apiUrl);
+  return apiUrl;
 };
 
 

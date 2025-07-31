@@ -48,6 +48,7 @@ export default function RootLayout() {
         <Stack.Screen name="auth/EmailOTP" />
         <Stack.Screen name="auth/EmailPage" />
         <Stack.Screen name="auth/AddLocationScreen" />
+        <Stack.Screen name="debug/network" options={{ headerShown: true, title: "Network Debug" }} />
       </Stack>
       <StatusBar style="auto" />
     </>
