@@ -40,14 +40,14 @@ export default function OfferRideScreen() {
 
   const handleFromLocationSelect = (location: LocationResult) => {
     setFromLocationData(location);
-    setFromLocation(location.address);
+    setFromLocation(prev => prev || location.address);
     setShowFromLocationPicker(false);
     calculateRouteInfo(location, toLocationData);
   };
 
   const handleToLocationSelect = (location: LocationResult) => {
     setToLocationData(location);
-    setToLocation(location.address);
+    setToLocation(prev => prev || location.address);
     setShowToLocationPicker(false);
     calculateRouteInfo(fromLocationData, location);
   };
@@ -77,8 +77,10 @@ export default function OfferRideScreen() {
   const validateForm = () => {
     const errors: { [key: string]: string } = {};
 
-    if (!fromLocation.trim()) errors.fromLocation = 'Pickup location is required.';
-    if (!toLocation.trim()) errors.toLocation = 'Destination is required.';
+    if (!fromLocation.trim()) errors.fromLocation = 'Location name is required.';
+  if (!fromLocationData) errors.fromLocation = 'Please select a location on map.';
+  if (!toLocation.trim()) errors.toLocation = 'Destination name is required.';
+  if (!toLocationData) errors.toLocation = 'Please select a destination on map.';
     if (!date) errors.date = 'Date is required.';
     if (!time) errors.time = 'Time is required.';
     if (!seats.trim() || isNaN(Number(seats)) || Number(seats) <= 0)
@@ -133,11 +135,6 @@ export default function OfferRideScreen() {
       total_fare: parseInt(totalFare), // Example fare calculation
     };
 
-    console.log(fromLocationData?.coordinates.latitude)
-        console.log(fromLocationData?.coordinates.longitude)
-        console.log(toLocationData?.coordinates.latitude)
-        console.log(toLocationData?.coordinates.longitude)
-
     // 4. Create ride
     const response = await ridesAPI.createRide(rideData);
     
@@ -181,16 +178,37 @@ export default function OfferRideScreen() {
           <View style={styles.section}>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>From</Text>
+              {/* Name/Label Input */}
+              <View style={styles.inputContainer}>
+                <MapPin size={20} color="#9CA3AF" />
+                <TextInput
+                  style={styles.input}
+                  value={fromLocation}
+                  onChangeText={setFromLocation}
+                  placeholder="Enter location name"
+                  placeholderTextColor="#9CA3AF"
+                />
+              </View>
+              
+              {/* Map Selection Button */}
               <TouchableOpacity 
-                style={styles.inputContainer}
+                style={styles.mapSelectionButton}
                 onPress={() => setShowFromLocationPicker(true)}
               >
-                <MapPin size={20} color="#9CA3AF" />
-                <Text style={[styles.input, styles.inputText, !fromLocation && styles.placeholderText]}>
-                  {fromLocation || 'Select pickup location'}
-                </Text>
                 <Map size={20} color="#4ECDC4" />
+                <Text style={styles.mapSelectionText}>
+                  {fromLocationData ? 'Change location on map' : 'Select location on map'}
+                </Text>
               </TouchableOpacity>
+              
+              {/* Selected Address Display */}
+              {fromLocationData && (
+                <View style={styles.selectedAddressContainer}>
+                  <Text style={styles.selectedAddressText}>
+                    {fromLocationData.address}
+                  </Text>
+                </View>
+              )}
               {formErrors.fromLocation && (
                 <Text style={styles.errorText}>{formErrors.fromLocation}</Text>
               )}
@@ -198,16 +216,37 @@ export default function OfferRideScreen() {
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>To</Text>
+              {/* Name/Label Input */}
+              <View style={styles.inputContainer}>
+                <MapPin size={20} color="#9CA3AF" />
+                <TextInput
+                  style={styles.input}
+                  value={toLocation}
+                  onChangeText={setToLocation}
+                  placeholder="Enter location name (e.g., University, Mall)"
+                  placeholderTextColor="#9CA3AF"
+                />
+              </View>
+              
+              {/* Map Selection Button */}
               <TouchableOpacity 
-                style={styles.inputContainer}
+                style={styles.mapSelectionButton}
                 onPress={() => setShowToLocationPicker(true)}
               >
-                <MapPin size={20} color="#9CA3AF" />
-                <Text style={[styles.input, styles.inputText, !toLocation && styles.placeholderText]}>
-                  {toLocation || 'Select destination'}
-                </Text>
                 <Map size={20} color="#4ECDC4" />
+                <Text style={styles.mapSelectionText}>
+                  {toLocationData ? 'Change location on map' : 'Select location on map'}
+                </Text>
               </TouchableOpacity>
+              
+              {/* Selected Address Display */}
+              {toLocationData && (
+                <View style={styles.selectedAddressContainer}>
+                  <Text style={styles.selectedAddressText}>
+                    {toLocationData.address}
+                  </Text>
+                </View>
+              )}
               {formErrors.toLocation && (
                 <Text style={styles.errorText}>{formErrors.toLocation}</Text>
               )}
@@ -564,5 +603,31 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
+  },
+  mapSelectionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0F9FF',
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  mapSelectionText: {
+    marginLeft: 8,
+    color: '#4ECDC4',
+    fontFamily: 'Inter-Medium',
+  },
+  selectedAddressContainer: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 8,
+  },
+  selectedAddressText: {
+    color: '#4B5563',
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
   },
 });

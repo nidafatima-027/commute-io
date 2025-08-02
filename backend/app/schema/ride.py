@@ -17,6 +17,7 @@ class RideBase(BaseModel):
     estimated_duration: Optional[int] = None
     start_time: datetime
     seats_available: int
+    main_stops: Optional[list[str]] = None  # List of main stops as strings
     total_fare: Optional[float] = None
 
     class Config:
@@ -58,6 +59,8 @@ class DriverRideResponse(RideBase):
 class RideRequestCreate(BaseModel):
     ride_id: int
     message: Optional[str] = None
+    joining_stop: str  # New field
+    ending_stop: str   # New field
 
 
 class UserPublic(BaseModel):
@@ -88,6 +91,8 @@ class RideRequestResponse(BaseModel):
     status: str
     requested_at: datetime
     message: Optional[str] = None
+    joining_stop: str  # New field
+    ending_stop: str   # New field
     rider: UserPublic
     ride: RidePublic
 

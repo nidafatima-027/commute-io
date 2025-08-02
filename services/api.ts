@@ -245,7 +245,7 @@ export const usersAPI = {
 
 // Rides API
 export const ridesAPI = {
-  async searchRides(limit: number = 50) {
+  async searchRides(limit: number = 10) {
   try {
     const data = await apiRequest(`/rides/?limit=${limit}`);
     return data || []; // Ensure we always return an array
@@ -299,19 +299,21 @@ export const ridesAPI = {
     });
   },
 
-  async requestRide(rideId: number, message?: string) {
-  const response = await apiRequest('/rides/request', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ 
-      ride_id: rideId, 
-      message: message || "I'd like to join your ride" 
-    }),
-  });
-  return response;
-},
+  async requestRide(rideId: number, joiningStop: string, endingStop: string, message?: string) {
+    const response = await apiRequest('/rides/request', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        ride_id: rideId, 
+        message: message || "I'd like to join your ride",
+        joining_stop: joiningStop,
+        ending_stop: endingStop
+      }),
+    });
+    return response;
+  },
 
   async getRideRequests(rideId: number) {
     return apiRequest(`/rides/${rideId}/requests`);

@@ -5,8 +5,10 @@ from app.db.models.ride_request import RideRequest
 from app.db.models.ride import Ride
 
 
-def create_ride_request(db: Session, ride_id: int, rider_id: int, message: str = None) -> RideRequest:
-    db_request = RideRequest(ride_id=ride_id, rider_id=rider_id, message=message)
+def create_ride_request(db: Session, ride_id: int, rider_id: int,
+                        joining_stop: str, ending_stop: str, message: str = None ) -> RideRequest:
+    db_request = RideRequest(ride_id=ride_id, rider_id=rider_id, message=message,
+                             joining_stop=joining_stop, ending_stop=ending_stop)
     db.add(db_request)
     db.commit()
     db.refresh(db_request)

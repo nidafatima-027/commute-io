@@ -12,6 +12,8 @@ class RideRequest(Base):
     status = Column(String, nullable=False, default="pending")  # pending, accepted, rejected
     requested_at = Column(DateTime(timezone=True), server_default=func.now())
     message = Column(Text, nullable=True)
+    joining_stop = Column(String(255), nullable=False)  # New field
+    ending_stop = Column(String(255), nullable=False)   # New field
 
     # Relationships
     rider = relationship("User", back_populates="ride_requests")

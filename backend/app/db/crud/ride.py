@@ -4,7 +4,7 @@ from datetime import datetime, date
 from app.db.models.ride import Ride
 from app.db.models.ride_history import RideHistory
 from app.schema.ride import RideCreate, RideUpdate
-import pytz
+import pytz, requests, json, re, ast, os
 from sqlalchemy import func
 
 def get_available_rides(db: Session, user_id: int, limit: int = 50) -> List[Ride]:
@@ -66,20 +66,21 @@ def get_user_completed_rides(db: Session, user_id: int) -> List[Ride]:
     )
 
 def create_ride(db: Session, ride: RideCreate, driver_id: int) -> Ride:
+    main_stops = extract_main_stops(ride.start_location, ride.end_location)
+    
+    # Add start and end locations to the stops list
+    if main_stops:
+        # Create complete route: start -> intermediate stops -> end
+        complete_stops = [ride.start_location] + main_stops + [ride.end_location]
+    else:
+        # If no intermediate stops, just start and end
+        complete_stops = [ride.start_location, ride.end_location]
+    
+    print(f"Complete route stops: {complete_stops}")
     db_ride = Ride(
+        **ride.dict(exclude={"main_stops"}),
         driver_id=driver_id,
-        start_location=ride.start_location,  # Direct string assignment
-        end_location=ride.end_location,      # Direct string assignment
-        car_id=ride.car_id,
-        start_latitude = ride.start_latitude,
-        start_longitude = ride.start_longitude,
-        end_latitude = ride.end_latitude,
-        end_longitude = ride.end_longitude,
-        distance_km = ride.distance_km,
-        estimated_duration = ride.estimated_duration,
-        start_time=ride.start_time,
-        seats_available=ride.seats_available,
-        total_fare=ride.total_fare,
+        main_stops=complete_stops
     )
     db.add(db_ride)
     db.commit()
@@ -116,3 +117,52 @@ def update_ride(db: Session, ride_id: int, ride_update: RideUpdate, driver_id: i
     return db_ride
 
     
+def extract_main_stops(start_location: str, end_location: str) -> list:
+    prompt = f"""
+    You are a route planner for Karachi, Pakistan.
+    
+    Task: List the main stops/landmarks between "{start_location}" and "{end_location}" in Karachi.
+    
+    Instructions:
+    - Return ONLY a Python list format
+    - Include 3-6 main stops/landmarks along the route
+    - Do not include any explanation or additional text
+    - Format: ["Stop1", "Stop2", "Stop3"]
+    
+    Route: {start_location} to {end_location}
+    
+    Response:"""
+
+    groq_payload = {
+        "model": "llama3-70b-8192",
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": 200,
+        "temperature": 0.1,
+    }
+
+    headers = {
+        "Authorization": f"Bearer {os.getenv('GROQ_API_KEY')}",
+        "Content-Type": "application/json"
+    }
+
+    try:
+        response = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=groq_payload)
+        content = response.json()["choices"][0]["message"]["content"]
+        print("Full Groq Content:", content)  # Debug line
+        
+        # Extract the list from the content using regex
+        list_pattern = r'\[.*?\]'
+        match = re.search(list_pattern, content, re.DOTALL)
+        
+        if match:
+            list_str = match.group(0)
+            print("Extracted list string:", list_str)  # Debug line
+            stops_list = ast.literal_eval(list_str)
+            if isinstance(stops_list, list):
+                return stops_list
+        
+        print("No valid list found in response")
+        return []
+    except Exception as e:
+        print("Error extracting stops:", e)
+        return []

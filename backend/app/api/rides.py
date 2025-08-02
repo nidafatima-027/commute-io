@@ -133,6 +133,8 @@ async def request_ride(
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    
+    print(f"creating ride request: {request}")
     try:
         # Check if ride exists and user is not the driver
         ride = get_ride(db, request.ride_id)
@@ -164,13 +166,34 @@ async def request_ride(
                     "message": "You have already requested this ride",
                     "metadata": {
                         "ride_id": request.ride_id,
-                        "requested_at": existing_request_time
+                        "requested_at": existing_request_time,
+                        "joining_stop": request.joining_stop,
+                        "ending_stop": request.ending_stop
                     }
                 }
             )
         
+        # Validate stops
+        if not request.joining_stop or not request.ending_stop:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "code": "invalid_stops",
+                    "message": "Both joining and ending stops are required"
+                }
+            )
+        
+        if request.joining_stop == request.ending_stop:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "code": "same_stops",
+                    "message": "Joining and ending stops cannot be the same"
+                }
+            )
+        
         # Create new request
-        ride_request = create_ride_request(db, request.ride_id, current_user.id, request.message)
+        ride_request = create_ride_request(db, request.ride_id, current_user.id,request.joining_stop, request.ending_stop, request.message)
         db.commit()
         return ride_request
 

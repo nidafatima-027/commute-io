@@ -5,6 +5,7 @@ import { ArrowLeft, MapPin, Clock, Car, Users, MessageCircle } from 'lucide-reac
 import { router, useLocalSearchParams } from 'expo-router';
 import RideRequestModal from '@/components/RideRequestModal';
 import { ridesAPI } from '@/services/api'; // Adjust the import path as needed
+import { Picker } from '@react-native-picker/picker';
 
 
 export default function RideDetailsScreen() {
@@ -14,8 +15,14 @@ const [requestStatus, setRequestStatus] = useState<'idle' | 'loading' | 'success
 const [errorMessage, setErrorMessage] = useState('');
 const [additionalInfo, setAdditionalInfo] = useState<{ requestedAt?: string } | null>(null);
   const [hasRequested, setHasRequested] = useState(false);
+  const [joiningStop, setJoiningStop] = useState('');
+  const [endingStop, setEndingStop] = useState('');
 
 useEffect(() => {
+  if (rideDetails.rideStops && rideDetails.rideStops.length > 0) {
+    setJoiningStop(rideDetails.rideStops[0]);
+    setEndingStop(rideDetails.rideStops[rideDetails.rideStops.length - 1]);
+  }
     const checkExistingRequest = async () => {
       try {
         const rideId = parseInt(params.ride as string);
@@ -63,12 +70,28 @@ const formatRequestTime = (timestamp: string): string => {
 
   const handleRequestRide = async () => {
   if (hasRequested) return;
-    setRequestStatus('loading');
+  if (!joiningStop || !endingStop) {
+      setRequestStatus('error');
+      setErrorMessage('Please select both joining and ending stops');
+      setShowModal(true);
+      return;
+  }
+    
+  if (joiningStop === endingStop) {
+      setRequestStatus('error');
+      setErrorMessage('Joining and ending stops cannot be the same');
+      setShowModal(true);
+      return;
+  }
+
+  setRequestStatus('loading');
   setShowModal(true);
 
   try {
     const rideId = parseInt(params.ride as string); 
-    const response = await ridesAPI.requestRide(rideId, "Please accept my ride request");
+    const response = await ridesAPI.requestRide(rideId,
+        joiningStop, endingStop, "Please accept my ride request", 
+      );
     setRequestStatus('success');
     setHasRequested(true);
   } catch (error: any) {
@@ -151,7 +174,11 @@ const formatRequestTime = (timestamp: string): string => {
     departureTime: params.departureTime as string || '10:00 AM',
     vehicle: params.vehicle as string || 'Toyota Camry',
     seatsAvailable: parseInt(params.seatsAvailable as string) || 4,
-    price: params.price as string || '$15',
+    price: params.price as string || 'RS150',
+    rideStops: params.rideStops ? JSON.parse(params.rideStops as string) : [
+    params.fromLocation as string || 'Campus',
+    params.toLocation as string || 'Home'
+  ],
   };
 
   return (
@@ -208,6 +235,69 @@ const formatRequestTime = (timestamp: string): string => {
               </View>
             </View>
 
+            {/* Stop Selection */}
+            <View style={styles.stopSelectionContainer}>
+              <View style={styles.stopPickerContainer}>
+                <Text style={styles.stopPickerLabel}>Joining Stop</Text>
+                <View style={[
+                  styles.pickerWrapper,
+                  hasRequested && styles.disabledPicker
+                ]}>
+                  <Picker
+                    selectedValue={joiningStop}
+                    onValueChange={(itemValue) => setJoiningStop(itemValue)}
+                    enabled={!hasRequested}
+                    style={styles.picker}
+                  >
+                    {rideDetails.rideStops && rideDetails.rideStops.length > 0 ? (
+    rideDetails.rideStops.map((stop: string) => (
+      <Picker.Item 
+        key={stop} 
+        label={`${stop}`} 
+        value={stop} 
+      />
+    ))
+  ) : (
+    <Picker.Item 
+      label="No stops available" 
+      value="" 
+    />
+  )}
+                  </Picker>
+                </View>
+              </View>
+
+              <View style={styles.stopPickerContainer}>
+                <Text style={styles.stopPickerLabel}>Ending Stop</Text>
+                <View style={[
+                  styles.pickerWrapper,
+                  hasRequested && styles.disabledPicker
+                ]}>
+                  <Picker
+                    selectedValue={endingStop}
+                    onValueChange={(itemValue) => setEndingStop(itemValue)}
+                    enabled={!hasRequested}
+                    style={styles.picker}
+                  >
+                    {rideDetails.rideStops && rideDetails.rideStops.length > 0 ? (
+    rideDetails.rideStops.map((stop: string) => (
+      <Picker.Item 
+        key={stop} 
+        label={`${stop}`} 
+        value={stop} 
+      />
+    ))
+  ) : (
+    <Picker.Item 
+      label="No stops available" 
+      value="" 
+    />
+  )}
+                  </Picker>
+                </View>
+              </View>
+            </View>
+
             {/* Map Preview */}
             <View style={styles.mapContainer}>
               <Image
@@ -261,17 +351,17 @@ const formatRequestTime = (timestamp: string): string => {
           {/* Action Buttons */}
           <View style={styles.actionContainer}>
             <TouchableOpacity 
-  style={[
-    styles.requestButton,
-    hasRequested && styles.requestButtonDisabled
-  ]} 
-  onPress={handleRequestRide}
-  disabled={hasRequested}
->
-  <Text style={styles.requestButtonText}>
-    {hasRequested ? 'Already Requested' : 'Request Ride'}
-  </Text>
-</TouchableOpacity>
+              style={[
+                styles.requestButton,
+                hasRequested && styles.requestButtonDisabled
+              ]} 
+              onPress={handleRequestRide}
+              disabled={hasRequested}
+            >
+              <Text style={styles.requestButtonText}>
+                {hasRequested ? 'Already Requested' : 'Request Ride'}
+              </Text>
+            </TouchableOpacity>
 
             <TouchableOpacity style={styles.messageButton} onPress={handleMessage}>
               <MessageCircle size={20} color="#4ECDC4" />
@@ -289,11 +379,11 @@ const formatRequestTime = (timestamp: string): string => {
 
       {/* Ride Request Modal */}
       <RideRequestModal 
-  visible={showModal} 
-  onClose={handleModalClose}
-  status={requestStatus}
-  errorMessage={errorMessage}
-/>
+        visible={showModal} 
+        onClose={handleModalClose}
+        status={requestStatus}
+        errorMessage={errorMessage}
+      />
     </SafeAreaView>
   );
 }
@@ -422,6 +512,34 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     color: '#718096',
+  },
+  stopSelectionContainer: {
+    marginTop: 16,
+    marginBottom: 16,
+  },
+  stopPickerContainer: {
+    marginBottom: 16,
+  },
+  stopPickerLabel: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#2d3748',
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  pickerWrapper: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    overflow: 'hidden',
+  },
+  picker: {
+    width: '100%',
+  },
+  disabledPicker: {
+    backgroundColor: '#f3f4f6',
+    opacity: 0.7,
   },
   mapContainer: {
     height: 200,

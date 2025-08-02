@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View, Alert, Dimensions } from 'react-native';
-import MapView, { Marker, Polyline, Region } from 'react-native-maps';
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE, Region } from 'react-native-maps';
 import { Coordinates, LocationResult } from '../services/mapService';
 
 const { width, height } = Dimensions.get('window');
@@ -144,7 +144,7 @@ export default function MapComponent({
     <View style={[styles.container, style]}>
       <MapView
         ref={mapRef}
-        provider={undefined} // Uses free OpenStreetMap on Android, Apple Maps on iOS
+        provider={PROVIDER_GOOGLE} // Uses free OpenStreetMap on Android, Apple Maps on iOS
         style={styles.map}
         region={region}
         onRegionChangeComplete={setRegion}

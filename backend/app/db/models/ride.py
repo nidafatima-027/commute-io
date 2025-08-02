@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, ForeignKey, Text, Time
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+from sqlalchemy.dialects.postgresql import JSONB  # if using Postgres
 from app.core.database import Base
 
 class Ride(Base):
@@ -21,6 +22,7 @@ class Ride(Base):
     seats_available = Column(Integer, nullable=False)
     total_fare = Column(Float, nullable=True)        # Added as used in CRUD
     status = Column(String, nullable=False, default="active")  # pending, confirmed, in_progress, completed, cancelled
+    main_stops = Column(JSONB, nullable=True)
 
     # Relationships
     driver = relationship("User", foreign_keys=[driver_id], back_populates="driver_rides")

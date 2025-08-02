@@ -23,3 +23,11 @@ ALTER TABLE rides ADD COLUMN estimated_duration INTEGER;
 ALTER TABLE rides ALTER COLUMN start_location SET NOT NULL;
 ALTER TABLE rides ALTER COLUMN end_location SET NOT NULL;
 ALTER TABLE rides ALTER COLUMN total_fare DROP NOT NULL;
+
+
+ALTER TABLE rides
+ADD COLUMN main_stops JSONB;
+
+ALTER TABLE ride_requests
+ADD COLUMN joining_stop VARCHAR(255),
+ADD COLUMN ending_stop VARCHAR(255);
