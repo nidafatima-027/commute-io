@@ -30,6 +30,7 @@ export default function ProfileSetupScreen() {
     vehicleYear: '',
     vehicleColor: '',
     photo_url: '',
+    carPhoto_url: '',
   });
   const [errors, setErrors] = useState<Partial<Record<FormField, string>>>({});
   const [loading, setLoading] = useState(false);
@@ -147,6 +148,31 @@ export default function ProfileSetupScreen() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleUploadCarPhoto = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (!permissionResult.granted) {
+        Alert.alert('Permission required', 'We need access to your photos to upload a car picture.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.5,
+        base64: true,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
+        handleInputChange('carPhoto_url', base64Image);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to upload car image. Please try again.');
+    }
+  };
 
   const handleInputChange = (field: FormField, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -223,6 +249,7 @@ export default function ProfileSetupScreen() {
           ac_available: formData.acAvailable,
           color: formData.vehicleColor, // Add if you have this field
           year: formData.vehicleYear, // Add if you have this field
+          photo_url: formData.carPhoto_url || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMwAAADACAMAAAB/Pny7AAAAP1BMVEX///+ZmZmVlZX8/PySkpL4+Pijo6Pp6emJiYmgoKDy8vLv7++cnJy0tLTj4+PCwsLd3d3U1NTKysqtra27u7tpcLS/AAAHuElEQVR4nO1dDY+sKgxVQFwVv9D//1ufOLN3dh0/OFBw9oWTTeYmN1EPLaWUtmRZQkJCQkJCQkJCQkJCQkJCQkLCx4MXdVOWXdcNC5afsmzqgt/9VTh4Uw6jnttJqpwxsYAxpuTUznocurq4+/ts8Bj2Zhj7Viq2Msh/wvBiedX249Dc/Kk24KWep4qJDYsNpYXQNOvys1Wu0a3Mt+LYgTKMctnqj5UPH9oqv+TxorMQWjRuMOLh/LOEVGhpS+S3zlW6MGzu/v4fqHsmvscbhWB9fff3P2GGtO6F+Kc7LnTEXPPsE4TD6/FBxQdC6E+QTj1K4SySn3TkeDcd3rXXhtgOjLXdrZpWO5qwfYjqLl0zg9hNhFRyI5xpyG4yBLqi5ZKvq84tVAqy2fKbThubyKIJJb1YnmyqMramDe5L5DUiTxy9bLWCcWEs5sThOhiRJ3Q076boA02XF1hfxGETgcuDTQTwGFwWd6CPoWlxuBg24W1a7+3uW7PRYdnwbIwkFwM2BqSSrWsluFiq1z8UvDQN4UTDFx8G/Zx8DfstNNZfFItnE4xMMQl0cOXc'
         };
       
         await usersAPI.createCar(carData);
@@ -530,6 +557,26 @@ export default function ProfileSetupScreen() {
                   trackColor={{ false: '#E5E7EB', true: '#4ECDC4' }}
                   thumbColor="#ffffff"
                 />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Car Photo</Text>
+                <TouchableOpacity 
+                  style={styles.uploadButton}
+                  onPress={handleUploadCarPhoto}
+                >
+                  {formData.carPhoto_url ? (
+                    <Image 
+                      source={{ uri: formData.carPhoto_url }} 
+                      style={{ width: 60, height: 60, borderRadius: 8 }}
+                    />
+                  ) : (
+                    <>
+                      <Upload size={20} color="#4ECDC4" />
+                      <Text style={styles.uploadText}>Upload Car Photo</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
               </View>
             </View>
           )}

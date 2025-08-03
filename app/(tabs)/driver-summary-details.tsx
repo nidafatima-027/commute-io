@@ -235,8 +235,8 @@ export default function DriverSummaryDetails() {
               </View>
               {rideDetails.total_fare && (
                 <View style={styles.routeItem}>
-                  <Text style={styles.routeLabel}>Total Fare:</Text>
-                  <Text style={styles.routeValue}>${rideDetails.total_fare.toFixed(2)}</Text>
+                  <Text style={styles.routeLabel}>Total Fare: </Text>
+                  <Text style={styles.routeValue}>PKR {rideDetails.total_fare}</Text>
                 </View>
               )}
             </View>

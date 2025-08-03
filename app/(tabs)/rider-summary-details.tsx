@@ -24,6 +24,7 @@ interface RideDetails {
     make: string;
     model: string;
     photo_url: string;
+    seats: number;
   };
 }
 
@@ -224,7 +225,7 @@ export default function RiderSummaryDetails() {
                 {rideDetails.ride.total_fare && (
                   <View style={styles.routeItem}>
                     <Text style={styles.routeLabel}>Fare:</Text>
-                    <Text style={styles.routeValue}>${rideDetails.ride.total_fare.toFixed(2)}</Text>
+                    <Text style={styles.routeValue}>PKR {rideDetails.ride.total_fare/rideDetails.ride.car.seats}</Text>
                   </View>
                 )}
               </View>

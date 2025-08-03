@@ -91,8 +91,8 @@ class RideRequestResponse(BaseModel):
     status: str
     requested_at: datetime
     message: Optional[str] = None
-    joining_stop: str  # New field
-    ending_stop: str   # New field
+    joining_stop: Optional[str] = None  # Made optional
+    ending_stop: Optional[str] = None   # Made optional
     rider: UserPublic
     ride: RidePublic
 

@@ -6,10 +6,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Home, Briefcase, GraduationCap } from 'lucide-react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { locationsAPI } from '../../services/api';
 
 type Location = {
@@ -21,16 +22,7 @@ type Location = {
 };
 
 export default function PreferedPickupLocations() {
-    const handleClose = () => {
-    router.push('/auth/profile-setup');
-    };
-
-     const handleAddNewLocation = () => {
-    // TODO: Implement add location functionality
-    router.push('/auth/AddLocationScreen')
-    console.log('Add new location pressed');
-  };
-
+  const [refreshing, setRefreshing] = useState(false);
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +30,12 @@ export default function PreferedPickupLocations() {
   useEffect(() => {
     fetchLocations();
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchLocations();
+    }, [])
+  );
 
   const fetchLocations = async () => {
     setLoading(true);
@@ -52,9 +50,20 @@ export default function PreferedPickupLocations() {
     }
   };
 
+  const handleRefresh = () => {
+    fetchLocations();
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false}
+      refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+          />
+        }
+      >
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>

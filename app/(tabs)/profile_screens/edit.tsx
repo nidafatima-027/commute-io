@@ -61,6 +61,9 @@ export default function EditProfileScreen() {
           smoking_preference: "Not required"
         },
   });
+  const [carPhotoUrl, setCarPhotoUrl] = React.useState(
+  Array.isArray(params.carPhoto_url) ? params.carPhoto_url[0] : params.carPhoto_url || ''
+);
   // const [name, setName] = React.useState(
   //   Array.isArray(params.name) ? params.name[0] : params.name || ''
   // );
@@ -90,6 +93,32 @@ export default function EditProfileScreen() {
   const handleBack = () => {
     router.push('/(tabs)/profile');
   };
+
+const handleUploadCarPhoto = async () => {
+  try {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (!permissionResult.granted) {
+      Alert.alert('Permission required', 'We need access to your photos to upload a car picture.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.5,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
+      setCarPhotoUrl(base64Image);
+    }
+  } catch (error) {
+    Alert.alert('Error', 'Failed to upload car image. Please try again.');
+  }
+};
 
 const handleInputChange = (field: FormField, value: string | boolean) => {
     setFormData({
@@ -232,6 +261,7 @@ const handleInputChange = (field: FormField, value: string | boolean) => {
           };
           //console.log(userData);
           await usersAPI.updateProfile(userData);
+          const car = await carsAPI.getCars();
           if (formData.isDriver) {
             const carData = {
               make: formData.vehicleMake,
@@ -239,16 +269,19 @@ const handleInputChange = (field: FormField, value: string | boolean) => {
               license_plate: formData.numberPlate,
               seats: parseInt(formData.numberOfSeats),
               ac_available: formData.acAvailable,
-              color: formData.vehicleColor, // Add if you have this field
-              year: parseInt(formData.vehicleYear), // Convert to number
+              color: formData.vehicleColor,
+              year: parseInt(formData.vehicleYear),
+              photo_url: carPhotoUrl || '',
             };
-            const car = await carsAPI.getCars();
-            if(car.length > 0) {
-            await carsAPI.updateCar(car[0].id, carData);
-            }
-            else{
+            
+            if (car.length > 0) {
+              await carsAPI.updateCar(car[0].id, carData);
+            } else {
               await carsAPI.createCar(carData);
             }
+          } else if (car.length > 0) {
+            // If driver is unchecked and car exists, delete the car
+            await carsAPI.deleteCar(car[0].id);
           }
           router.push('/(tabs)/profile');
         } catch (error) {
@@ -613,6 +646,25 @@ const handleInputChange = (field: FormField, value: string | boolean) => {
                   thumbColor="#ffffff"
                 />
               </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Car Photo</Text>
+                <TouchableOpacity 
+                  style={styles.uploadButton}
+                  onPress={handleUploadCarPhoto}
+                >
+                  {carPhotoUrl ? (
+                    <Image 
+                      source={{ uri: carPhotoUrl }} 
+                      style={styles.carImage}
+                    />
+                  ) : (
+                    <>
+                      <Text style={styles.uploadCarText}>Upload Car Photo</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
           )}
 
@@ -797,5 +849,25 @@ const styles = StyleSheet.create({
   placeholderText: {
     color: '#9CA3AF',
     fontFamily: 'Inter-Regular',
+  },
+  uploadButton: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 100,
+  },
+  carImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 8,
+  },
+  uploadCarText: {
+    color: '#4ECDC4',
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
   },
 });

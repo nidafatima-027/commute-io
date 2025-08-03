@@ -1,8 +1,10 @@
 from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
+from sqlalchemy import func
 from datetime import datetime, timedelta
 from app.db.models.ride_request import RideRequest
 from app.db.models.ride import Ride
+from app.db.models.ride_history import RideHistory
 
 
 def create_ride_request(db: Session, ride_id: int, rider_id: int,
@@ -38,16 +40,38 @@ def get_user_ride_requests(db: Session, user_id: int) -> List[RideRequest]:
 
 def get_driver_ride_requests(db: Session, driver_id: int) -> List[RideRequest]:
     """Get all ride requests for rides owned by the driver"""
-    return (db.query(RideRequest)
+    ride_requests = (db.query(RideRequest)
             .join(Ride, RideRequest.ride_id == Ride.id)
             .options(
                 joinedload(RideRequest.rider),
                 joinedload(RideRequest.ride).joinedload(Ride.driver),
                 joinedload(RideRequest.ride).joinedload(Ride.car)
             )
-            .filter(Ride.driver_id == driver_id,Ride.status == 'active')
+            .filter(Ride.driver_id == driver_id, Ride.status == 'active')
             .order_by(RideRequest.requested_at.desc())
             .all())
+    
+    for request in ride_requests:
+        # Count rides taken by the rider
+        rides_taken = db.query(RideHistory).filter(
+            RideHistory.user_id == request.rider_id
+        ).count()
+        
+        # Calculate average rating if rider has taken rides
+        if rides_taken > 0:
+            avg_rating = db.query(
+                func.avg(func.coalesce(RideHistory.rating_received, 5))
+            ).filter(
+                RideHistory.user_id == request.rider_id,
+                RideHistory.role == 'rider'
+            ).scalar() or 0
+            request.rider.rating = round(float(avg_rating), 1)
+        else:
+            request.rider.rating = 0.0
+        
+        request.rider.rides_taken = rides_taken
+    
+    return ride_requests
 
 def update_ride_request_status(db: Session, request_id: int, status: str) -> Optional[RideRequest]:
     db_request = db.query(RideRequest).filter(RideRequest.id == request_id).first()

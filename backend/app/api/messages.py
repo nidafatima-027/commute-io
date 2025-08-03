@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
+from app.db.models.user import User
 
 from app.core.database import get_db
 from app.api.auth import get_current_user
@@ -33,4 +34,17 @@ async def get_conversation_with_user(
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    target_user = db.query(User).filter(User.id == user_id).first()
+    if not target_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Optionally, you might want to prevent users from checking their own messages
+    if user_id == current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot get conversation with yourself"
+        )
     return get_conversation(db, current_user.id, user_id)

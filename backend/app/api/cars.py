@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
+from app.db.models.car import Car
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -24,6 +25,17 @@ async def create_user_car(
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    if not current_user.is_driver:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only drivers can register cars"
+        )
+    existing_car = db.query(Car).filter(Car.user_id == current_user.id).first()
+    if existing_car:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User already has a registered car"
+        )
     return create_car(db, car, current_user.id)
 
 

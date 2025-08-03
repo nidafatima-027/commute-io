@@ -55,4 +55,7 @@ ALTER TABLE users ALTER COLUMN preferences TYPE JSON USING preferences::JSON;
 CREATE USER commute_user WITH PASSWORD 'your_password';
 GRANT ALL PRIVILEGES ON DATABASE commute_io TO commute_user;
 
-GRANT CREATE, USAGE ON SCHEMA public TO commute_user;s
+GRANT CREATE, USAGE ON SCHEMA public TO commute_user;
+
+ALTER TABLE cars
+ADD CONSTRAINT cars_user_id_unique UNIQUE (user_id);

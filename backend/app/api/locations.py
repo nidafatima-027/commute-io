@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
+from app.db.models.location import PreferredLocation
 
 from app.core.database import get_db
 from app.api.auth import get_current_user
@@ -24,4 +25,14 @@ async def create_user_location(
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    existing = db.query(PreferredLocation).filter(
+        (PreferredLocation.user_id == current_user.id) &
+        ((PreferredLocation.name == location.name) | 
+         (PreferredLocation.address == location.address))
+    ).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Location with this name or address already exists"
+        )
     return create_location(db, location.dict(), current_user.id)

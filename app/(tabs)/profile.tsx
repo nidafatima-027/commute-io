@@ -35,6 +35,7 @@ interface CarDetails {
   license_plate: string;
   seats: number;
   ac_available: boolean;
+  photo_url?: string; // Optional, in case the car has a photo
 }
 
 export default function ProfileScreen() {
@@ -99,6 +100,7 @@ useFocusEffect(
       numberOfSeats: cars.length > 0 ? cars[0].seats.toString() : '',
       acAvailable: cars.length > 0 ? (cars[0].ac_available ? 'true' : 'false') : 'false',
       preferences: profile.preferences ? JSON.stringify(profile.preferences) : '{}',
+      carPhoto_url: cars.length > 0 ? cars[0].photo_url || '' : '',
     },
   });
   }
@@ -233,17 +235,20 @@ useFocusEffect(
             <Text style={styles.sectionTitle}>My Car</Text>
             {cars.map((car) => (
               <View key={car.id} style={styles.carCard}>
-                <View style={styles.carIcon}>
-                  <Car size={24} color="#4ECDC4" />
-                </View>
-                <View style={styles.carDetails}>
-                  <Text style={styles.carMakeModel}>{car.make} {car.model} ({car.year})</Text>
-                  <Text style={styles.carPlate}>Plate: {car.license_plate}</Text>
-                  <Text style={styles.carInfo}>
-                    {car.color} • {car.seats} seats • AC: {car.ac_available ? 'Yes' : 'No'}
-                  </Text>
-                </View>
-              </View>
+        <View style={styles.carImageContainer}>
+          <Image
+            source={{ uri: car.photo_url || 'https://via.placeholder.com/150' }}
+            style={styles.carImage}
+          />
+        </View>
+        <View style={styles.carDetails}>
+          <Text style={styles.carMakeModel}>{car.make} {car.model} ({car.year})</Text>
+          <Text style={styles.carPlate}>Plate: {car.license_plate}</Text>
+          <Text style={styles.carInfo}>
+            {car.color} • {car.seats} seats • AC: {car.ac_available ? 'Yes' : 'No'}
+          </Text>
+        </View>
+      </View>
             ))}
           </View>
         )}
@@ -401,6 +406,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E7EB',
     marginBottom: 12,
+    alignItems: 'center', // Add this to vertically center items
+  },
+  carImageContainer: {
+    width: 80,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 16,
+    overflow: 'hidden', // Ensure the image stays within bounds
+  },
+  carImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
   carIcon: {
     width: 40,

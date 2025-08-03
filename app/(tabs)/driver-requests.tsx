@@ -23,6 +23,8 @@ interface RideRequest {
   status: string;
   requested_at: string;
   message?: string;
+  joining_stop?: string; // Optional
+  ending_stop?: string; // Optional
   rider: {
     id: number;
     name: string;
@@ -220,7 +222,7 @@ const handleEditProfile = () => {
           {formatDateTime(request.ride.start_time)}
         </Text>
         <Text style={styles.fareText}>
-          ${request.ride.total_fare} • {request.ride.seats_available} seats available
+          PKR {request.ride.total_fare} • {request.ride.seats_available} seats available
         </Text>
       </View>
 

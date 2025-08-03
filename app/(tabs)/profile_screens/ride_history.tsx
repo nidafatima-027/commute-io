@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIn
 import { ArrowLeft } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { ridesAPI } from '../../../services/api';
+import { usersAPI, ridesAPI } from '../../../services/api';
 
 interface User {
   id: number;
@@ -65,18 +65,37 @@ interface RideHistoryItem {
   ride?: Ride;
 }
 
+type UserProfile = {
+    is_driver: boolean;
+    is_rider: boolean;
+    // add other properties as needed
+  };
+
 export default function RideHistoryScreen() {
   const [rideHistory, setRideHistory] = useState<RideHistoryItem[]>([]);
   const [driverRides, setDriverRides] = useState<RideHistoryItem[]>([]);
   const [passengerCounts, setPassengerCounts] = useState<{[key: number]: number}>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      try {
+        const profileData = await usersAPI.getProfile();
+        setUserProfile(profileData);
+      } catch (error) {
+        console.error('Failed to load user profile:', error);
+      }
+    };
+    loadUserProfile();
+  }, []); // load profile only once
   
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+        if(userProfile?.is_driver) {
         // Fetch driver rides
         const driverResponse = await ridesAPI.getMyCompletedRides();
         const formattedDriverRides = driverResponse.map((ride: any) => ({
@@ -112,10 +131,12 @@ export default function RideHistoryScreen() {
           counts[ride.ride_id] = passengers.length;
         }
         setPassengerCounts(counts);
-        
+      }
         // Fetch rider history
-        const riderResponse = await ridesAPI.getRideHistory();
-        setRideHistory(riderResponse);
+       if (userProfile?.is_rider) {
+          const riderResponse = await ridesAPI.getRideHistory();
+          setRideHistory(riderResponse);
+        }
         
         setError(null);
       } catch (err) {
@@ -127,7 +148,7 @@ export default function RideHistoryScreen() {
     };
     
     fetchData();
-  }, []);
+  }, [userProfile]);
 
   const fetchPassengerDetails = async (rideId: number) => {
     try {
@@ -240,6 +261,8 @@ export default function RideHistoryScreen() {
             </View>
           ) : (
             <>
+            {              userProfile?.is_driver && (
+              <>
               {/* Driver Section */}
                 <Text style={styles.sectionTitle}>As a Driver</Text>
               {driverRides.length === 0 ? (
@@ -265,7 +288,7 @@ export default function RideHistoryScreen() {
                             {getPassengerInfo(ride.ride_id)}
                           </Text>
                           {ride.ride?.total_fare && (
-                            <Text style={styles.fareText}>${ride.ride.total_fare.toFixed(2)}</Text>
+                            <Text style={styles.fareText}>PKR {ride.ride.total_fare}</Text>
                           )}
                         </View>
                         <View style={styles.carInfoContainer}>
@@ -284,7 +307,11 @@ export default function RideHistoryScreen() {
                   </TouchableOpacity>
                 ))
               )}
+              </>
+            )}
 
+              {userProfile?.is_rider && (
+                <>
               {/* Rider Section */}
                <Text style={[styles.sectionTitle, { marginTop: 32 }]}>As a Rider</Text>
               {riderRides.length === 0 ? (
@@ -306,12 +333,14 @@ export default function RideHistoryScreen() {
                         </Text>
                         <Text style={styles.rideRoute}>{formatRoute(ride)}</Text>
                         <View style={styles.rideInfoContainer}>
-                          <Text style={styles.rideInfo}>
-                            Driver: {getDriverName(ride)}
-                          </Text>
-                          {ride.ride?.total_fare && (
-                            <Text style={styles.fareText}>${ride.ride.total_fare.toFixed(2)}</Text>
-                          )}
+                          <View>
+                            <Text style={styles.rideInfo}>
+                              Driver: {getDriverName(ride)}
+                            </Text>
+                            {ride.ride?.total_fare && (
+                              <Text style={styles.fareText}>PKR {ride.ride.total_fare/ride.ride.car.seats}</Text>
+                            )}
+                          </View>
                         </View>
                         {ride.rating_received && (
                           <Text style={styles.ratingText}>
@@ -323,6 +352,14 @@ export default function RideHistoryScreen() {
                     </View>
                   </TouchableOpacity>
                 ))
+              )}
+                </>
+              )}
+               {/* Show message if user is neither driver nor rider */}
+              {!userProfile?.is_driver && !userProfile?.is_rider && (
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>You haven't taken or given any rides yet</Text>
+                </View>
               )}
             </>
           )}
@@ -412,15 +449,14 @@ const styles = StyleSheet.create({
     color: '#4ECDC4',
   },
   rideInfoContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     marginTop: 4,
   },
   fareText: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: '#2d3748',
+    marginTop: 4, // Add some spacing between the driver name and fare
+
   },
   carInfoContainer: {
     marginTop: 4,
