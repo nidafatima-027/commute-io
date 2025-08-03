@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, MapPin, Clock, Car, Users, MessageCircle } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import RideRequestModal from '@/components/RideRequestModal';
 import { ridesAPI } from '@/services/api'; // Adjust the import path as needed
 import { Picker } from '@react-native-picker/picker';
+import MapView, { Marker, Polyline } from 'react-native-maps';
+import * as Location from 'expo-location';
 
 
 export default function RideDetailsScreen() {
@@ -17,6 +19,21 @@ const [additionalInfo, setAdditionalInfo] = useState<{ requestedAt?: string } | 
   const [hasRequested, setHasRequested] = useState(false);
   const [joiningStop, setJoiningStop] = useState('');
   const [endingStop, setEndingStop] = useState('');
+  const [region, setRegion] = useState({
+    latitude: 37.78825,
+    longitude: -122.4324,
+    latitudeDelta: 0.0922,
+    longitudeDelta: 0.0421,
+  });
+  const [routeCoordinates, setRouteCoordinates] = useState<{ latitude: number; longitude: number }[]>([]);
+  const startLat = parseFloat(params.start_Latitude as string);
+  const startLng = parseFloat(params.start_Longitude as string);
+  const endLat = parseFloat(params.end_Latitude as string);
+  const endLng = parseFloat(params.end_Longitude as string);
+  const mapRef = useRef<MapView>(null);
+  const [isMapReady, setIsMapReady] = useState(false);
+  const [mapHeight, setMapHeight] = useState(200);
+
 
 useEffect(() => {
   if (rideDetails.rideStops && rideDetails.rideStops.length > 0) {
@@ -43,6 +60,54 @@ useEffect(() => {
 
     checkExistingRequest();
   }, [params.ride]);
+
+useEffect(() => {
+    // Calculate initial region when coordinates are available
+    console.log('Start Coordinates:', startLat, startLng);
+    console.log('End Coordinates:', endLat, endLng);
+    if (startLat && startLng && endLat && endLng) {
+      const coordinates = [
+        { latitude: startLat, longitude: startLng },
+        { latitude: endLat, longitude: endLng },
+      ];
+      
+      setRouteCoordinates(coordinates);
+      
+      // Calculate region that fits both points
+      const minLat = Math.min(startLat, endLat);
+      const maxLat = Math.max(startLat, endLat);
+      const minLng = Math.min(startLng, endLng);
+      const maxLng = Math.max(startLng, endLng);
+      
+      setRegion({
+        latitude: (minLat + maxLat) / 2,
+        longitude: (minLng + maxLng) / 2,
+        latitudeDelta: (maxLat - minLat) * 1.5, // Add some padding
+        longitudeDelta: (maxLng - minLng) * 1.5,
+      });
+    }
+  }, [startLat, startLng, endLat, endLng]);
+
+const fitToCoordinates = () => {
+    if (mapRef.current && isMapReady && startLat && startLng && endLat && endLng) {
+      mapRef.current.fitToCoordinates(
+        [
+          { latitude: startLat, longitude: startLng },
+          { latitude: endLat, longitude: endLng }
+        ],
+        {
+          edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+          animated: true
+        }
+      );
+    }
+  };
+
+ useEffect(() => {
+    if (isMapReady) {
+      fitToCoordinates();
+    }
+  }, [isMapReady, startLat, startLng, endLat, endLng]);
 
   const handleBack = () => {
     router.back();
@@ -183,7 +248,10 @@ const formatRequestTime = (timestamp: string): string => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        onScrollBeginDrag={() => setMapHeight(200)} // Reset height when scrolling
+      >
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
@@ -250,19 +318,19 @@ const formatRequestTime = (timestamp: string): string => {
                     style={styles.picker}
                   >
                     {rideDetails.rideStops && rideDetails.rideStops.length > 0 ? (
-    rideDetails.rideStops.map((stop: string) => (
-      <Picker.Item 
-        key={stop} 
-        label={`${stop}`} 
-        value={stop} 
-      />
-    ))
-  ) : (
-    <Picker.Item 
-      label="No stops available" 
-      value="" 
-    />
-  )}
+                      rideDetails.rideStops.map((stop: string) => (
+                        <Picker.Item 
+                          key={stop} 
+                          label={`${stop}`} 
+                          value={stop} 
+                        />
+                      ))
+                    ) : (
+                      <Picker.Item 
+                        label="No stops available" 
+                        value="" 
+                      />
+                    )}
                   </Picker>
                 </View>
               </View>
@@ -280,35 +348,80 @@ const formatRequestTime = (timestamp: string): string => {
                     style={styles.picker}
                   >
                     {rideDetails.rideStops && rideDetails.rideStops.length > 0 ? (
-    rideDetails.rideStops.map((stop: string) => (
-      <Picker.Item 
-        key={stop} 
-        label={`${stop}`} 
-        value={stop} 
-      />
-    ))
-  ) : (
-    <Picker.Item 
-      label="No stops available" 
-      value="" 
-    />
-  )}
+                      rideDetails.rideStops.map((stop: string) => (
+                        <Picker.Item 
+                          key={stop} 
+                          label={`${stop}`} 
+                          value={stop} 
+                        />
+                      ))
+                    ) : (
+                      <Picker.Item 
+                        label="No stops available" 
+                        value="" 
+                      />
+                    )}
                   </Picker>
                 </View>
               </View>
             </View>
 
             {/* Map Preview */}
-            <View style={styles.mapContainer}>
-              <Image
-                source={{ uri: 'https://images.pexels.com/photos/2662116/pexels-photo-2662116.jpeg?auto=compress&cs=tinysrgb&w=600' }}
-                style={styles.mapImage}
-                resizeMode="cover"
-              />
-              <View style={styles.mapOverlay}>
-                <View style={styles.mapMarker} />
-              </View>
-            </View>
+            <TouchableOpacity 
+          activeOpacity={1}
+          style={[styles.mapContainer, { height: mapHeight }]}
+          onPress={() => setMapHeight(Dimensions.get('window').height * 0.7)}
+        >
+          {startLat && startLng && endLat && endLng ? (
+            <MapView
+              ref={mapRef}
+              style={styles.map}
+              initialRegion={region}
+              scrollEnabled={true}
+              zoomEnabled={true}
+              pitchEnabled={false}
+              rotateEnabled={false}
+              onMapReady={() => {
+                setIsMapReady(true);
+                fitToCoordinates();
+              }}
+              onLayout={fitToCoordinates}
+            >
+              {/* Start Marker */}
+              <Marker
+                coordinate={{ latitude: startLat, longitude: startLng }}
+                title="Pickup Location"
+                description={rideDetails.fromLocation}
+              >
+                <View style={styles.startMarker}>
+                  <MapPin size={20} color="#4ECDC4" />
+                </View>
+              </Marker>
+              
+              {/* End Marker */}
+              <Marker
+                coordinate={{ latitude: endLat, longitude: endLng }}
+                title="Drop-off Location"
+                description={rideDetails.toLocation}
+              >
+                <View style={styles.endMarker}>
+                  <MapPin size={20} color="#FF6B6B" />
+                </View>
+              </Marker>
+              
+              {/* Route Line */}
+              {routeCoordinates.length >= 2 && (
+                <Polyline
+                  coordinates={routeCoordinates}
+                  strokeColor="#4ECDC4"
+                  strokeWidth={3}
+                />
+              )}
+            </MapView>
+          ) : (
+            <Text>Map data not available</Text>
+          )}
+        </TouchableOpacity>
           </View>
 
           {/* Ride Information */}
@@ -542,11 +655,29 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   mapContainer: {
-    height: 200,
+    height: 200, // Initial height
     borderRadius: 16,
     overflow: 'hidden',
     marginTop: 16,
-    position: 'relative',
+    marginBottom: 16,
+  },
+  map: {
+    width: '100%',
+    height: '100%',
+  },
+  startMarker: {
+    backgroundColor: '#FFFFFF',
+    padding: 5,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#4ECDC4',
+  },
+  endMarker: {
+    backgroundColor: '#FFFFFF',
+    padding: 5,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#FF6B6B',
   },
   mapImage: {
     width: '100%',

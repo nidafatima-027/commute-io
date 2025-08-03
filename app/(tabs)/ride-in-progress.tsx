@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator  } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator, Alert  } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Star } from 'lucide-react-native';
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import {ridesAPI,usersAPI} from '../../services/api'
+import MapView, { Marker, Polyline } from 'react-native-maps';
+import * as Location from 'expo-location';
 
 interface DriverDetails {
     name : string;
@@ -24,6 +26,16 @@ interface Rider {
   completed: boolean;
   request_id: number;
 }
+
+interface RideDetails {
+  start_location: string;
+  end_location: string;
+  start_time: string;
+  start_latitude: number;
+  start_longitude: number;
+  end_latitude: number;
+  end_longitude: number;
+}
  
 export default function RideInProgressScreen() {
     const params = useLocalSearchParams();
@@ -32,10 +44,13 @@ export default function RideInProgressScreen() {
   const [error, setError] = useState<string | null>(null);
   const [driverDetails, setDriverDetails] = useState<DriverDetails | null>(null);
   const [riders, setRiders] = useState<Rider[]>([]);
-  const [rideDetails, setRideDetails] = useState({
-    start_location: '',
-    end_location: '',
-    start_time: '',
+  const [rideDetails, setRideDetails] = useState<RideDetails | null>(null);
+  const [driverLocation, setDriverLocation] = useState<{latitude: number, longitude: number} | null>(null);
+  const [region, setRegion] = useState({
+    latitude: 37.78825,
+    longitude: -122.4324,
+    latitudeDelta: 0.0922,
+    longitudeDelta: 0.0421,
   });
     
 
@@ -47,6 +62,16 @@ const fetchData = async () => {
         start_location: rideResponse.start_location,
         end_location: rideResponse.end_location,
         start_time: rideResponse.start_time,
+        start_latitude: rideResponse.start_latitude,
+        start_longitude: rideResponse.start_longitude,
+        end_latitude: rideResponse.end_latitude,
+        end_longitude: rideResponse.end_longitude,
+      });
+      setRegion({
+        latitude: (rideResponse.start_latitude + rideResponse.end_latitude) / 2,
+        longitude: (rideResponse.start_longitude + rideResponse.end_longitude) / 2,
+        latitudeDelta: Math.abs(rideResponse.start_latitude - rideResponse.end_latitude) * 1.5,
+        longitudeDelta: Math.abs(rideResponse.start_longitude - rideResponse.end_longitude) * 1.5,
       });
     const driver = rideResponse.driver;
       const driverProfile = await usersAPI.getUserProfileById(driver.id);
@@ -88,23 +113,114 @@ const fetchData = async () => {
     }
   };
 
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setError('Permission to access location was denied');
+        return;
+      }
+
+      // For demo purposes, we'll simulate the driver moving from start to end location
+      // In a real app, you would use Location.watchPositionAsync or get the location from your backend
+      if (rideDetails) {
+        // Start at the pickup location
+        setDriverLocation({
+          latitude: rideDetails.start_latitude,
+          longitude: rideDetails.start_longitude
+        });
+
+        // Simulate movement towards destination
+        const interval = setInterval(() => {
+          setDriverLocation(prev => {
+            if (!prev || !rideDetails) return null;
+            
+            const progress = 0.005; // Adjust this value to change speed
+            const newLat = prev.latitude + (rideDetails.end_latitude - rideDetails.start_latitude) * progress;
+            const newLng = prev.longitude + (rideDetails.end_longitude - rideDetails.start_longitude) * progress;
+            
+            // Stop when close to destination
+            if (Math.abs(newLat - rideDetails.end_latitude) < 0.0001 && 
+                Math.abs(newLng - rideDetails.end_longitude) < 0.0001) {
+              clearInterval(interval);
+              return { latitude: rideDetails.end_latitude, longitude: rideDetails.end_longitude };
+            }
+            
+            return { latitude: newLat, longitude: newLng };
+          });
+        }, 1000);
+
+        return () => clearInterval(interval);
+      }
+    })();
+  }, [rideDetails]);
+
 
   const handleBack = () => {
     router.push('/(tabs)/ride-request-screen');
   };
 
+const isAtDestination = () => {
+    if (!driverLocation || !rideDetails) return false;
+    
+    // Check if driver is within 100 meters of the destination
+    const distance = getDistance(
+      driverLocation.latitude,
+      driverLocation.longitude,
+      rideDetails.end_latitude,
+      rideDetails.end_longitude
+    );
+    
+    return distance < 100; // 100 meters threshold
+  };
+
+  const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371e3; // Earth radius in meters
+    const φ1 = lat1 * Math.PI/180;
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lon2-lon1) * Math.PI/180;
+
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+    return R * c;
+  };
+
 const handleCompleteRide = (riderId: number) => {
-    try {
       // Find the rider to complete
       const rider = riders.find(r => r.id === riderId);
       if (!rider) return;
+if (!isAtDestination()) {
+      Alert.alert(
+        "Confirm Completion",
+        "You haven't reached the end location. Do you still want to end the ride?",
+        [
+          {
+            text: "Cancel",
+            style: "cancel"
+          },
+          { 
+            text: "Yes", 
+            onPress: () => proceedToCompleteRide(rider) 
+          }
+        ]
+      );
+    } else {
+      proceedToCompleteRide(rider);
+    }
+  };
 
+ const proceedToCompleteRide = (rider: Rider) => {
+    try {
       // In a real app, you would call an API here to mark the ride as completed
       // await ridesAPI.completeRideRequest(rider.request_id);
       
       // Update local state to mark as completed
       setRiders(prev => prev.map(r => 
-        r.id === riderId ? { ...r, completed: true } : r
+        r.id === rider.id ? { ...r, completed: true } : r
       ));
 
       // Navigate to ride summary screen for this rider
@@ -187,6 +303,15 @@ const handleCompleteRide = (riderId: number) => {
       </SafeAreaView>
     );
   }
+
+   if (!rideDetails) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>Ride not found</Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -200,19 +325,65 @@ const handleCompleteRide = (riderId: number) => {
 
       {/* Map Container */}
       <View style={styles.mapContainer}>
-        <Image
-          source={{ uri: 'https://images.pexels.com/photos/2662116/pexels-photo-2662116.jpeg?auto=compress&cs=tinysrgb&w=800' }}
-          style={styles.mapImage}
-          resizeMode="cover"
-        />
-        
-        {/* Map Overlay with Location Marker */}
-        <View style={styles.mapOverlay}>
-          <View style={styles.locationMarker}>
-            <View style={styles.markerDot} />
-            <Text style={styles.locationText}>{rideDetails.start_location}</Text>
-          </View>
-        </View>
+        <MapView
+          style={styles.map}
+          region={region}
+          showsUserLocation={true}
+          showsMyLocationButton={true}
+        >
+          {/* Start Marker */}
+          <Marker
+            coordinate={{
+              latitude: rideDetails.start_latitude,
+              longitude: rideDetails.start_longitude
+            }}
+            title="Pickup Location"
+            description={rideDetails.start_location}
+          >
+            <View style={styles.marker}>
+              <View style={styles.markerDotStart} />
+            </View>
+          </Marker>
+          {/* End Marker */}
+          <Marker
+            coordinate={{
+              latitude: rideDetails.end_latitude,
+              longitude: rideDetails.end_longitude
+            }}
+            title="Drop-off Location"
+            description={rideDetails.end_location}
+          >
+            <View style={styles.marker}>
+              <View style={styles.markerDotEnd} />
+            </View>
+          </Marker>
+          {/* Driver Marker */}
+          {driverLocation && (
+            <Marker
+              coordinate={driverLocation}
+              title="Your Location"
+              description="Driver"
+              anchor={{ x: 0.5, y: 0.5 }}
+            >
+              <View style={styles.driverMarker}>
+                <View style={styles.carIcon} />
+              </View>
+            </Marker>
+          )}
+          {/* Route Polyline */}
+          {driverLocation && (
+            <Polyline
+              coordinates={[
+                { latitude: rideDetails.start_latitude, longitude: rideDetails.start_longitude },
+                driverLocation,
+                { latitude: rideDetails.end_latitude, longitude: rideDetails.end_longitude }
+              ]}
+              strokeColor="#3B82F6"
+              strokeWidth={4}
+              lineDashPattern={[5, 5]}
+            />
+          )}
+        </MapView>
       </View>
 
       {/* Bottom Sheet */}
@@ -226,7 +397,15 @@ const handleCompleteRide = (riderId: number) => {
           {/* Time and Distance */}
           <View style={styles.timeContainer}>
             <Text style={styles.timeLeft}>24 Mins Left</Text>
-            <Text style={styles.distance}>10 km</Text>
+            <Text style={styles.distance}>
+              {driverLocation && rideDetails ? 
+                `${getDistance(
+                  driverLocation.latitude,
+                  driverLocation.longitude,
+                  rideDetails.end_latitude,
+                  rideDetails.end_longitude
+                ).toFixed(0)} meters remaining` : 'Calculating distance...'}
+            </Text>
           </View>
 
           {/* Ride Details */}
@@ -361,67 +540,38 @@ const styles = StyleSheet.create({
   },
   mapContainer: {
     flex: 1,
-    position: 'relative',
   },
-  mapImage: {
+  map: {
     width: '100%',
     height: '100%',
   },
-  mapOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
+  marker: {
+    padding: 5,
+    backgroundColor: 'white',
+    borderRadius: 20,
   },
-  locationMarker: {
-    alignItems: 'center',
-    position: 'absolute',
-    bottom: '30%',
-    left: '20%',
-  },
-  markerDot: {
+  markerDotStart: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#ff4444',
-    marginBottom: 4,
+    backgroundColor: '#4ECDC4',
   },
-  locationText: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+  markerDotEnd: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#EF4444',
+  },
+  driverMarker: {
+    padding: 5,
+    backgroundColor: 'white',
+    borderRadius: 20,
+  },
+  carIcon: {
+    width: 24,
+    height: 24,
+    backgroundColor: '#3B82F6',
     borderRadius: 4,
-    fontSize: 12,
-    fontFamily: 'Inter-SemiBold',
-    color: '#2d3748',
-  },
-  mapControls: {
-    position: 'absolute',
-    right: 16,
-    top: '50%',
-    transform: [{ translateY: -40 }],
-  },
-  zoomButton: {
-    width: 40,
-    height: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  zoomText: {
-    fontSize: 20,
-    fontFamily: 'Inter-Bold',
-    color: '#2d3748',
   },
   bottomSheet: {
     backgroundColor: '#ffffff',
@@ -435,6 +585,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 8,
+    maxHeight: '50%',
   },
   progressContainer: {
     alignItems: 'center',

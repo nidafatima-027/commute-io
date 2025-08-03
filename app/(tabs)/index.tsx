@@ -12,7 +12,6 @@ interface Ride {
   seats_available: number;
   start_location: string;
   end_location: string;
-  
 }
 interface RiderRide {
     // Define the properties based on what you return in ridesWithDetails
@@ -24,6 +23,11 @@ interface RiderRide {
     requestStatus: string;
     requestId: number;
     total_fare: number;
+    start_latitude: number;
+  start_longitude: number;
+  end_latitude: number;
+  end_longitude: number;
+  main_stops?: string | string[]; // Assuming main_stops can be a string or an array of strings
     driver: {
     id: number;
     name: string;
@@ -60,6 +64,7 @@ type UserProfile = {
   
 export default function HomeScreen() {
   const [upcomingDriverRides, setUpcomingDriverRides] = useState<Ride[]>([]);
+  const [ongoingRiderRides, setOngoingRiderRides] = useState<Ride[]>([]);
   const [selectedMode, setSelectedMode] = useState('Driver');
   const [searchText, setSearchText] = useState('');
   const [rides, setRides] = useState([]);
@@ -120,7 +125,8 @@ useEffect(() => {
       if (selectedMode === 'Driver' && userProfile.is_driver) {
         const driverRides = await ridesAPI.getMyRides();
         setUpcomingDriverRides(driverRides);
-        console.log('Driver rides received:', driverRides[0]);
+        const startedRides = await ridesAPI.getMyStartedRides();
+        setOngoingRiderRides(startedRides);
       }
 
       if (selectedMode === 'Rider' && userProfile.is_rider) {
@@ -146,6 +152,8 @@ useFocusEffect(
         setLoading(true);
         const driverRides = await ridesAPI.getMyRides();
         setUpcomingDriverRides(driverRides);
+        const startedRides = await ridesAPI.getMyStartedRides();
+        setOngoingRiderRides(startedRides);
       } catch (error) {
         console.error('Error loading driver rides:', error);
       } finally {
@@ -362,42 +370,75 @@ const handleRefresh = async () => {
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>Upcoming Rides</Text>
                   {upcomingDriverRides.length > 0 ? (
-        upcomingDriverRides.map((ride) => (
-          <TouchableOpacity 
-            key={ride.id} 
-            style={styles.upcomingRideCard}
-          
-            onPress={() => router.push({
-              pathname: '/(tabs)/join-requests',
-              params: { rideId: ride.id }
-            })}
-          >
-            <View style={styles.upcomingRideIcon}>
-              <Car size={20} color="#4ECDC4" />
-            </View>
-            <View style={styles.upcomingRideInfo}>
-              <Text style={styles.upcomingRideDestination}>
-                {ride.start_location} → {ride.end_location}
-              </Text>
-              <Text style={styles.upcomingRideTime}>
-                {new Date(ride.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {ride.seats_available} seats
-              </Text>
-            </View>
-          </TouchableOpacity>
-        ))
-      ) : (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyStateText}>No upcoming rides scheduled</Text>
-          <TouchableOpacity 
-            style={styles.emptyStateButton}
-            onPress={handleOfferRide}
-          >
-            <Text style={styles.emptyStateButtonText}>Create your first ride</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+                    upcomingDriverRides.map((ride) => (
+                      <TouchableOpacity 
+                        key={ride.id} 
+                        style={styles.upcomingRideCard}
+                      
+                        onPress={() => router.push({
+                          pathname: '/(tabs)/join-requests',
+                          params: { rideId: ride.id }
+                        })}
+                      >
+                        <View style={styles.upcomingRideIcon}>
+                          <Car size={20} color="#4ECDC4" />
+                        </View>
+                        <View style={styles.upcomingRideInfo}>
+                          <Text style={styles.upcomingRideDestination}>
+                            {ride.start_location} → {ride.end_location}
+                          </Text>
+                          <Text style={styles.upcomingRideTime}>
+                            {new Date(ride.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {ride.seats_available} seats
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    ))
+                  ) : (
+                    <View style={styles.emptyState}>
+                      <Text style={styles.emptyStateText}>No upcoming rides scheduled</Text>
+                      <TouchableOpacity 
+                        style={styles.emptyStateButton}
+                        onPress={handleOfferRide}
+                      >
+                        <Text style={styles.emptyStateButtonText}>Create your first ride</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
 
+                {/* Ongoing Rides */}
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Ongoing Rides</Text>
+                  {ongoingRiderRides.length > 0 ? (
+                    ongoingRiderRides.map((ride) => (
+                      <TouchableOpacity 
+                        key={ride.id} 
+                        style={styles.upcomingRideCard}
+                      
+                        onPress={() => router.push({
+                          pathname: '/(tabs)/ride-in-progress',
+                          params: { rideId: ride.id }
+                        })}
+                      >
+                        <View style={styles.upcomingRideIcon}>
+                          <Car size={20} color="#4ECDC4" />
+                        </View>
+                        <View style={styles.upcomingRideInfo}>
+                          <Text style={styles.upcomingRideDestination}>
+                            {ride.start_location} → {ride.end_location}
+                          </Text>
+                          <Text style={styles.upcomingRideTime}>
+                            {new Date(ride.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {ride.seats_available} seats
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    ))
+                  ) : (
+                    <View style={styles.emptyState}>
+                      <Text style={styles.emptyStateText}>No ongoing rides</Text>
+                    </View>
+                  )}
+                </View>    
               </>
             ) : (
               <>
@@ -424,8 +465,13 @@ const handleRefresh = async () => {
     upcomingRiderRides.map((ride) => (
       <TouchableOpacity 
         key={ride.id} 
-        style={styles.upcomingRideCard}
-        onPress={() => router.push({
+        style={[
+        styles.upcomingRideCard,
+        ride.requestStatus === 'rejected' && styles.disabledRideCard
+      ]}
+        onPress={() =>{
+           if (ride.requestStatus === 'pending') {
+          router.push({
               pathname: '/(tabs)/ride-details',
               params: {
                 ride: ride.id, // Pass the ride ID to the details screen
@@ -442,8 +488,25 @@ const handleRefresh = async () => {
                 vehicle: ride.car.make,
                 seatsAvailable: ride.seats_available.toString(),
                 price: ride.total_fare/ride.car.seats,
+                rideStops: JSON.stringify(ride.main_stops ? ride.main_stops : []),
+                start_Latitude: ride.start_latitude,
+                start_Longitude: ride.start_longitude,
+                end_Latitude: ride.end_latitude,
+                end_Longitude: ride.end_longitude,
               }
-            })}
+            });
+            } else if (ride.requestStatus === 'accepted') {
+          router.push({
+            pathname: '/(tabs)/rider-ride-in-progress',
+            params: {
+              rideId: ride.id,
+              requestId: ride.requestId,
+              // ... other params you need for the in-progress screen
+            }
+          });
+        }
+      }}
+      disabled={ride.requestStatus === 'rejected'}
       >
         <View style={styles.upcomingRideIcon}>
           <Car size={20} color="#4ECDC4" />
@@ -818,5 +881,8 @@ emptyStateSubtext: {
   color: '#9CA3AF',
   marginBottom: 16,
   textAlign: 'center',
+},
+disabledRideCard: {
+  opacity: 0.6,
 },
 });

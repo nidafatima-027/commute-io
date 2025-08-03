@@ -321,7 +321,7 @@ const handleChatPress = () => {
       ? ride.main_stops 
       : [ride.main_stops]
     : [];
-      console.log(ride.driver.driver_rating)
+      console.log(ride.end_latitude, ride.end_longitude);
       router.push({
       pathname: '/(tabs)/ride-details',
       params: {
@@ -340,7 +340,11 @@ const handleChatPress = () => {
         vehicle: ride.car.make,
         seatsAvailable: ride.seats_available.toString(),
         price: ride.total_fare/ride.car.seats,
-        rideStops: JSON.stringify([ ...stops])
+        rideStops: JSON.stringify([ ...stops]),
+        start_Latitude: ride.start_latitude,
+        start_Longitude: ride.start_longitude,
+        end_Latitude: ride.end_latitude,
+        end_Longitude: ride.end_longitude,
       }
     });
   };

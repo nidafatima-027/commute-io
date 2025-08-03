@@ -9,7 +9,8 @@ from app.db.crud.ride import (
     get_user_rides, 
     get_ride,
     update_ride,
-    get_user_completed_rides
+    get_user_completed_rides,
+    get_user_started_rides,
 )
 from app.db.crud.ride_request import (
     create_ride_request,
@@ -71,6 +72,13 @@ async def get_my_rides(
     db: Session = Depends(get_db)
 ):
     return get_user_rides(db, current_user.id)
+
+@router.get("/my-started-rides", response_model=List[DriverRideResponse])
+async def get_my_started_rides(
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    return get_user_started_rides(db, current_user.id)
 
 @router.get("/my-completed-rides", response_model=List[DriverRideResponse])
 async def get_my_rides(

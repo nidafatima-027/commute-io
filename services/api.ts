@@ -280,6 +280,10 @@ export const ridesAPI = {
     return apiRequest('/rides/my-rides');
   },
 
+  async getMyStartedRides() {
+    return apiRequest('/rides/my-started-rides');
+  },
+
   async getMyCompletedRides() {
     return apiRequest('/rides/my-completed-rides');
   },

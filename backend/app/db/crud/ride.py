@@ -54,6 +54,19 @@ def get_user_rides(db: Session, user_id: int) -> List[Ride]:
         .all()
     )
 
+def get_user_started_rides(db: Session, user_id: int) -> List[Ride]:
+    today = date.today()
+    return (
+        db.query(Ride)
+        .filter(
+            Ride.driver_id == user_id,
+            Ride.status == 'start',  # adjust to your active flag
+            Ride.start_time >= datetime.combine(today, datetime.min.time()),
+            Ride.start_time <= datetime.combine(today, datetime.max.time())
+        )
+        .all()
+    )
+
 def get_user_completed_rides(db: Session, user_id: int) -> List[Ride]:
     today = date.today()
     return (

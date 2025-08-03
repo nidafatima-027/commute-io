@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Car, Star, MessageCircle } from 'lucide-react-native';
+import { ArrowLeft, Car, Star, MessageCircle, MapPin } from 'lucide-react-native';
 import { router, useLocalSearchParams, useFocusEffect  } from 'expo-router';
 import {ridesAPI,usersAPI} from '../../services/api'
 
@@ -13,6 +13,8 @@ interface RideRequest {
   rides: number;
   image: string;
   bio: string;
+  pickup_location: string;
+  dropoff_location: string;
 }
 
 interface RideInfo {
@@ -32,10 +34,29 @@ export default function JoinRequestsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [seats, setSeats] = useState(0);
   const { rideId, refresh } = useLocalSearchParams();
+  const [isRideStartable, setIsRideStartable] = useState(false);
+
 
   const handleBack = () => {
-    router.push('/(tabs)/create-recurring-ride');
+    router.push('/(tabs)');
   };
+
+  const startRide = async () => {
+    if (!rideInfo) return;
+    try {
+      setLoading(true);
+      await ridesAPI.updateRide(rideInfo.id,{status: 'start'});
+      router.push({
+        pathname: '/(tabs)/ride-in-progress',
+        params: { rideId: rideInfo.id }
+      });
+    } catch (error) {
+      console.error('Error starting ride:', error);
+      setError('Failed to start ride. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const handleViewRequest = (request: any) => {
     if (!rideInfo) return;
@@ -57,6 +78,8 @@ export default function JoinRequestsScreen() {
         requestId: request.id,
         seats_available: rideInfo.seats_available,
         rider_id: request.rider_id,
+        pickup_location: request.pickup_location,
+        dropoff_location: request.dropoff_location,
       }
     });
   };
@@ -84,6 +107,10 @@ export default function JoinRequestsScreen() {
       // Fetch ride details
       const rideIdNumber = Array.isArray(rideId) ? Number(rideId[0]) : Number(rideId);
       const rideResponse = await ridesAPI.getRideDetails(rideIdNumber);
+
+      const rideStartTime = new Date(rideResponse.start_time);
+      const currentTime = new Date();
+
       setRideInfo({
         start_time: rideResponse.start_time,
         start_location: rideResponse.start_location,
@@ -93,11 +120,13 @@ export default function JoinRequestsScreen() {
         price: rideResponse.total_fare,
       });
       setSeats(rideResponse.car.seats);
+      setIsRideStartable(currentTime >= rideStartTime);
       
       // Fetch ride requests
       const requestsResponse = await ridesAPI.getRideRequests(rideIdNumber);
       const users = await Promise.all(
-        requestsResponse.map(async (req: { id: number, rider_id: number }) => {
+        requestsResponse.map(async (req: { id: number, rider_id: number,
+           joining_stop: string, ending_stop: string  }) => {
           const user = await usersAPI.getUserProfileById(req.rider_id);
           return {
             id: req.id,
@@ -107,6 +136,8 @@ export default function JoinRequestsScreen() {
             rides: user.rides_taken || 0,
             image: user.photo_url || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
             bio: user.bio || 'No bio provided',
+            pickup_location: req.joining_stop,
+            dropoff_location: req.ending_stop,
           };
         })
       );
@@ -221,9 +252,17 @@ export default function JoinRequestsScreen() {
                         </View>
                         <Text style={styles.ridesText}>• {request.rides} rides</Text>
                       </View>
-                       <Text style={styles.bioPreview} numberOfLines={2}>
-                        {request.bio}
-                      </Text>
+                       {/* Location Information */}
+                      <View style={styles.locationContainer}>
+                        <View style={styles.locationRow}>
+                          <MapPin size={14} color="#4ECDC4" />
+                          <Text style={styles.locationText}>Pickup: {request.pickup_location}</Text>
+                        </View>
+                        <View style={styles.locationRow}>
+                          <MapPin size={14} color="#EF4444" />
+                          <Text style={styles.locationText}>Dropoff: {request.dropoff_location}</Text>
+                        </View>
+                      </View>
                     </View>
                   </View>
                   <TouchableOpacity 
@@ -243,13 +282,17 @@ export default function JoinRequestsScreen() {
         </View>
          <View style={styles.startRideContainer}>
     <TouchableOpacity 
-      style={styles.startRideButton}
-      onPress={() => router.push({
-        pathname: '/(tabs)/ride-in-progress',
-        params: { rideId: rideInfo.id }
-      })}
+      style={[
+    styles.startRideButton,
+    !isRideStartable && styles.disabledButton
+  ]}
+  onPress={() => {startRide()
+  }}
+  disabled={!isRideStartable}
     >
-      <Text style={styles.startRideButtonText}>View Ride</Text>
+      <Text style={styles.startRideButtonText}>
+    {isRideStartable ? 'Start Ride' : 'Ride Not Started Yet'}
+  </Text>
     </TouchableOpacity>
   </View>
       </ScrollView>
@@ -412,6 +455,20 @@ const styles = StyleSheet.create({
     color: '#4ECDC4',
     marginLeft: 4,
   },
+  locationContainer: {
+    marginVertical: 8,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  locationText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    color: '#4B5563',
+    marginLeft: 4,
+  },
   bioPreview: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
@@ -493,5 +550,9 @@ startRideButtonText: {
   color: '#ffffff',
   fontSize: 16,
   fontFamily: 'Inter-SemiBold',
+},
+disabledButton: {
+  backgroundColor: '#9CA3AF',
+  shadowColor: '#9CA3AF',
 },
 });

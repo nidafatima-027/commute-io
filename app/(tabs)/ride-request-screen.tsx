@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Star, MessageCircle, Phone, User } from 'lucide-react-native';
+import { ArrowLeft, Star, MessageCircle, Phone, User, MapPin } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import {ridesAPI,usersAPI} from '../../services/api'
 
@@ -75,8 +75,11 @@ export default function RideRequestScreen() {
     router.push({
           pathname: '/(tabs)/message_inbox',
           params: {
+            userId: requestDetails.passenger.id,
             name: requestDetails.passenger.name,
             image: requestDetails.passenger.image,
+            rideId: params.rideId,
+            rideRoute: `${requestDetails.ride.pickup} to ${requestDetails.ride.dropoff}`,
           },
         });
   };
@@ -89,6 +92,7 @@ export default function RideRequestScreen() {
   // Use params if available, otherwise use default data
   const requestDetails = {
     passenger: {
+      id: params.rider_id as string || '1',
       name: params.name as string || 'Ethan Carter',
       rating: params.rating as string,
       rides: params.rides_taken as string,
@@ -101,6 +105,8 @@ export default function RideRequestScreen() {
       seats: parseInt(params.seats as string) || 1,
       price: params.price,
       seats_available: parseInt(params.seats_available as string) || 1,
+      pickup: params.pickup_location as string || 'Main Campus Entrance',
+      dropoff: params.dropoff_location as string || 'Downtown Square',
     }
   };
 
@@ -164,6 +170,22 @@ export default function RideRequestScreen() {
               <Text style={styles.detailValue}>{requestDetails.ride.time}</Text>
             </View>
 
+            <View style={styles.locationRow}>
+              <MapPin size={16} color="#4ECDC4" />
+              <View style={styles.locationTextContainer}>
+                <Text style={styles.locationLabel}>Pickup Location</Text>
+                <Text style={styles.locationValue}>{requestDetails.ride.pickup}</Text>
+              </View>
+            </View>
+
+            <View style={styles.locationRow}>
+              <MapPin size={16} color="#EF4444" />
+              <View style={styles.locationTextContainer}>
+                <Text style={styles.locationLabel}>Dropoff Location</Text>
+                <Text style={styles.locationValue}>{requestDetails.ride.dropoff}</Text>
+              </View>
+            </View>
+
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Seats Requested</Text>
               <Text style={styles.detailValue}>{requestDetails.ride.seats} seat</Text>
@@ -202,7 +224,7 @@ export default function RideRequestScreen() {
           <View style={styles.infoCard}>
             <Text style={styles.infoTitle}>Pickup Instructions</Text>
             <Text style={styles.infoText}>
-              Please wait at the main entrance of the campus. I'll be driving a blue Honda Civic.
+              Please wait at the stop. I'll be waitng there.
             </Text>
           </View>
         </View>
@@ -367,6 +389,28 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    gap: 12,
+  },
+  locationTextContainer: {
+    flex: 1,
+  },
+  locationLabel: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#718096',
+  },
+  locationValue: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: '#2d3748',
+    marginTop: 2,
   },
   detailLabel: {
     fontSize: 16,
