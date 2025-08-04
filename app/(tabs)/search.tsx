@@ -400,7 +400,7 @@ const handleChatPress = () => {
     console.error('Invalid start_time:', ride.start_time);
     return {
       // ... other fields
-      details: `Time not available · $${(ride.total_fare/ride.car.seats)?.toFixed(2) || '0.00'}/seat`,
+      details: `Time not available · PKR${(ride.total_fare/ride.car.seats) || '0.00'}/seat`,
       durationMinutes: 0
     };
   }
@@ -437,7 +437,7 @@ const handleChatPress = () => {
       id: ride.id.toString(),
       destination: ride.end_location,
 
-      details: `${ride.start_location} · $${(ride.total_fare/ride.car.seats).toFixed(2)}/seat . ${Math.abs(durationMinutes)} min`,
+      details: `${ride.start_location} · PKR ${(ride.total_fare/ride.car.seats)}/seat . ${Math.abs(durationMinutes)} min`,
       avatar: ride.driver.photo_url,
       driverName: ride.driver.name,
       rating: ride.driver.driver_rating,

@@ -193,7 +193,7 @@ export default function RideRequestScreen() {
 
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Price per seat</Text>
-              <Text style={styles.priceValue}>${requestDetails.ride.price}</Text>
+              <Text style={styles.priceValue}>PKR {requestDetails.ride.price}</Text>
             </View>
           </View>
 

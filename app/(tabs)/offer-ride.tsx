@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -33,46 +33,60 @@ export default function OfferRideScreen() {
   const [showToLocationPicker, setShowToLocationPicker] = useState(false);
   const [estimatedDistance, setEstimatedDistance] = useState<string>('');
   const [estimatedDuration, setEstimatedDuration] = useState<string>('');
+  const [isCreatingRide, setIsCreatingRide] = useState(false);
+  const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
+
+  const createRideRequestRef = useRef(false);
+  const routeCalculationRef = useRef(false);
 
   const handleBack = () => {
     router.back();
   };
 
-  const handleFromLocationSelect = (location: LocationResult) => {
+  const handleFromLocationSelect = useCallback((location: LocationResult) => {
     setFromLocationData(location);
     setFromLocation(prev => prev || location.address);
     setShowFromLocationPicker(false);
     calculateRouteInfo(location, toLocationData);
-  };
+  }, [toLocationData]);
 
-  const handleToLocationSelect = (location: LocationResult) => {
+  const handleToLocationSelect = useCallback((location: LocationResult) => {
     setToLocationData(location);
     setToLocation(prev => prev || location.address);
     setShowToLocationPicker(false);
     calculateRouteInfo(fromLocationData, location);
-  };
+  }, [fromLocationData]);
 
-  const calculateRouteInfo = async (from: LocationResult | null, to: LocationResult | null) => {
-    if (from && to) {
-      try {
-        const { mapService } = await import('../../services/mapService');
-        const routeInfo = await mapService.getRouteInfo(from.coordinates, to.coordinates);
-        if (routeInfo) {
-          setEstimatedDistance(routeInfo.distance);
-          setEstimatedDuration(routeInfo.duration);
-          
-          // Calculate total fare based on distance
-          const distanceInKm = parseFloat(routeInfo.distance.replace(' km', ''));
-          if (!isNaN(distanceInKm)) {
-            const calculatedFare = (distanceInKm * parseFloat(costPerMile)).toFixed(2);
-            // You might want to update a fare state here
-          }
-        }
-      } catch (error) {
-        console.error('Error calculating route:', error);
-      }
+  const calculateRouteInfo = useCallback(async (from: LocationResult | null, to: LocationResult | null) => {
+    if (!from || !to || isCalculatingRoute || routeCalculationRef.current) {
+      return;
     }
-  };
+
+    try {
+      setIsCalculatingRoute(true);
+      routeCalculationRef.current = true;
+      
+      const { mapService } = await import('../../services/mapService');
+      const routeInfo = await mapService.getRouteInfo(from.coordinates, to.coordinates);
+      
+      if (routeInfo) {
+        setEstimatedDistance(routeInfo.distance);
+        setEstimatedDuration(routeInfo.duration);
+        
+        const distanceInKm = parseFloat(routeInfo.distance.replace(' km', ''));
+        if (!isNaN(distanceInKm)) {
+          const calculatedFare = (distanceInKm * parseFloat(costPerMile)).toFixed(2);
+          // Update fare state here if needed
+        }
+      }
+    } catch (error) {
+      console.error('Error calculating route:', error);
+    } finally {
+      setIsCalculatingRoute(false);
+      routeCalculationRef.current = false;
+    }
+  }, [costPerMile, isCalculatingRoute]);
+
 
   const validateForm = () => {
     const errors: { [key: string]: string } = {};
@@ -91,72 +105,112 @@ export default function OfferRideScreen() {
     return errors;
   };
 
-  const handleOfferRide = async () =>  {
+  const handleOfferRide = useCallback(async () => {
+    // Prevent multiple simultaneous requests
+    if (isCreatingRide || createRideRequestRef.current) {
+      console.log('Ride creation already in progress, ignoring duplicate request');
+      return;
+    }
+
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       return;
     }
-    setFormErrors({});  
-    try {
-    // 1. Get user's default car
-    const carsResponse = await carsAPI.getMyCars();
-    if (!carsResponse.length) {
-      Alert.alert("Error", "You need to register a car first");
-      return;
-    }
-    if (!date || !time) {
-      Alert.alert("Error", "Date and time are required");
-      return;
-    }
-
-    // 2. Combine date and time
-    const combinedDateTime = new Date(
-      date!.getFullYear(),
-      date!.getMonth(),
-      date!.getDate(),
-      time!.getHours(),
-      time!.getMinutes()
-    );
-
-    // 3. Prepare ride data (using component state variables)
-    const rideData = {
-      car_id: carsResponse[0].id,
-      start_location: fromLocation,
-      end_location: toLocation,
-      start_latitude: fromLocationData?.coordinates.latitude!,
-      start_longitude: fromLocationData?.coordinates.longitude!,
-      end_latitude: toLocationData?.coordinates.latitude!,
-      end_longitude: toLocationData?.coordinates.longitude!,
-      distance_km: parseFloat(estimatedDistance.replace(' km', '')),
-      estimated_duration: parseInt(estimatedDuration.replace(' min', '')),
-      start_time: combinedDateTime.toISOString(),
-      seats_available: parseInt(seats),
-      total_fare: parseInt(totalFare), // Example fare calculation
-    };
-
-    // 4. Create ride
-    const response = await ridesAPI.createRide(rideData);
     
-    // 5. Navigate to join requests
-    router.push({
-      pathname: '/(tabs)/join-requests',
-      params: { rideId: response.id }
-    });
-  } catch (error) {
-    console.error('Ride creation failed:', error);
-    Alert.alert(
-      "Error", 
-      error instanceof Error ? error.message : "Failed to create ride"
-    );
-  }
-  };
+    setFormErrors({});
+    
+    try {
+      setIsCreatingRide(true);
+      createRideRequestRef.current = true;
+      
+      console.log('Starting ride creation process...');
+      
+      // 1. Get user's default car
+      const carsResponse = await carsAPI.getMyCars();
+      if (!carsResponse.length) {
+        Alert.alert("Error", "You need to register a car first");
+        return;
+      }
+      
+      if (!date || !time) {
+        Alert.alert("Error", "Date and time are required");
+        return;
+      }
+
+      // 2. Combine date and time
+      const combinedDateTime = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+        time.getHours(),
+        time.getMinutes()
+      );
+
+      // 3. Calculate total fare
+      const totalDistance = 10; // You should use actual distance calculation
+      const numericSeats = parseInt(seats) || 1;
+      const numericCostPerMile = parseFloat(costPerMile) || 0.5;
+      const calculatedTotalFare = (numericSeats * totalDistance * numericCostPerMile);
+
+      // 4. Prepare ride data
+      const rideData = {
+        car_id: carsResponse[0].id,
+        start_location: fromLocation,
+        end_location: toLocation,
+        start_latitude: fromLocationData?.coordinates.latitude!,
+        start_longitude: fromLocationData?.coordinates.longitude!,
+        end_latitude: toLocationData?.coordinates.latitude!,
+        end_longitude: toLocationData?.coordinates.longitude!,
+        distance_km: parseFloat(estimatedDistance.replace(' km', '')) || totalDistance,
+        estimated_duration: parseInt(estimatedDuration.replace(' min', '')) || 30,
+        start_time: combinedDateTime.toISOString(),
+        seats_available: parseInt(seats),
+        total_fare: Math.round(calculatedTotalFare),
+      };
+
+      console.log('Creating ride with data:', rideData);
+
+      // 5. Create ride (this should only be called once)
+      const response = await ridesAPI.createRide(rideData);
+      
+      console.log('Ride created successfully:', response);
+      
+      // 6. Navigate to join requests
+      router.push({
+        pathname: '/(tabs)/join-requests',
+        params: { rideId: response.id }
+      });
+      
+    } catch (error) {
+      console.error('Ride creation failed:', error);
+      Alert.alert(
+        "Error", 
+        error instanceof Error ? error.message : "Failed to create ride"
+      );
+    } finally {
+      setIsCreatingRide(false);
+      createRideRequestRef.current = false;
+    }
+  }, [
+    isCreatingRide,
+    fromLocation,
+    toLocation, 
+    fromLocationData,
+    toLocationData,
+    date,
+    time,
+    seats,
+    costPerMile,
+    estimatedDistance,
+    estimatedDuration
+  ]);
 
   // Simulated distance
   const totalDistance = 10; // For example purposes (miles)
 
   const numericSeats = parseInt(seats) || 1;
-  const numericCostPerMile = parseFloat(costPerMile) || 0.5;
+  const numericCostPerMile = parseFloat(costPerMile) || 5;
 
   const farePerSeat = (totalDistance * numericCostPerMile).toFixed(2);
   const totalFare = (numericSeats * totalDistance * numericCostPerMile).toFixed(2);
@@ -392,8 +446,17 @@ export default function OfferRideScreen() {
           </View>
 
           {/* Offer Ride */}
-          <TouchableOpacity style={styles.offerButton} onPress={handleOfferRide}>
-            <Text style={styles.offerButtonText}>Offer Ride</Text>
+          <TouchableOpacity 
+            style={[
+              styles.offerButton, 
+              (isCreatingRide || isCalculatingRoute) && styles.offerButtonDisabled
+            ]} 
+            onPress={handleOfferRide}
+            disabled={isCreatingRide || isCalculatingRoute}
+          >
+            <Text style={styles.offerButtonText}>
+              {isCreatingRide ? 'Creating Ride...' : 'Offer Ride'}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -598,6 +661,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
+  },
+  offerButtonDisabled: {
+    backgroundColor: '#9CA3AF',
+    shadowOpacity: 0.1,
   },
   offerButtonText: {
     color: '#ffffff',

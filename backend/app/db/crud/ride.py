@@ -133,24 +133,25 @@ def update_ride(db: Session, ride_id: int, ride_update: RideUpdate, driver_id: i
 def extract_main_stops(start_location: str, end_location: str) -> list:
     prompt = f"""
     You are a route planner for Karachi, Pakistan.
-    
-    Task: List the main stops/landmarks between "{start_location}" and "{end_location}" in Karachi.
-    
+
+    Task: List the main stops/landmarks between "{start_location}" and "{end_location}" in Karachi along the most direct route via Shahrah-e-Faisal.
+
     Instructions:
     - Return ONLY a Python list format
-    - Include 3-6 main stops/landmarks along the route
+    - Include 3-6 major stops or landmarks (e.g., major intersections, well-known public places) along the specified route
+    - Ensure all stops are geographically relevant and located on or near Shahrah-e-Faisal between the start and end locations
+    - Do not include stops that are far from the specified route (e.g., Orangi Town for a route via Shahrah-e-Faisal)
     - Do not include any explanation or additional text
     - Format: ["Stop1", "Stop2", "Stop3"]
-    
+
     Route: {start_location} to {end_location}
-    
     Response:"""
 
     groq_payload = {
         "model": "llama3-70b-8192",
         "messages": [{"role": "user", "content": prompt}],
         "max_tokens": 200,
-        "temperature": 0.1,
+        "temperature": 0.0,
     }
 
     headers = {
