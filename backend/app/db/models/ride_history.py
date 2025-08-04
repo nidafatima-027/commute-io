@@ -14,6 +14,8 @@ class RideHistory(Base):
     completed_at = Column(DateTime, nullable=True)
     rating_given = Column(Integer, nullable=True)  # 1-5 stars
     rating_received = Column(Integer, nullable=True)  # 1-5 stars
+    review_given = Column(Text, nullable=True)
+    review_received = Column(Text, nullable=True)
 
     # Relationships
     user = relationship("User", back_populates="ride_history")

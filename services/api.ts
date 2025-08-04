@@ -361,6 +361,7 @@ export const ridesAPI = {
   },
   async updateRideHistory(historyId: number, updateData: {
     rating_received?: number;
+    review_received?: string;
   }) {
     return apiRequest(`/rides/history/${historyId}`, {
       method: 'PUT',
@@ -370,6 +371,7 @@ export const ridesAPI = {
   
   async updateRideHistoryByUser(historyId: number, updateData: {
     rating_given?: number;
+    review_given?: string;
   }) {
     return apiRequest(`/rides/history/rider/${historyId}`, {
       method: 'PUT',

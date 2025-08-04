@@ -67,6 +67,7 @@ export default function RideSummaryScreen() {
       // Prepare update data
       const updateData = {
         rating_received: rating,
+        review_received: review,
         // Note: You might want to add review to your backend model
       };
 

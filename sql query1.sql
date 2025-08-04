@@ -59,3 +59,7 @@ GRANT CREATE, USAGE ON SCHEMA public TO commute_user;
 
 ALTER TABLE cars
 ADD CONSTRAINT cars_user_id_unique UNIQUE (user_id);
+
+ALTER TaBLE ride_history
+add column review_given varchar(255),
+add column review_received varchar(255);

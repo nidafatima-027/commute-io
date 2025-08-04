@@ -47,7 +47,7 @@ def create_ride_history_entry(db: Session, user_id: int, ride_id: int, role: str
     db.refresh(db_history)
     return db_history
 
-def complete_ride_history(db: Session, history_id: int, rating_given: int = None) -> Optional[RideHistory]:
+def complete_ride_history(db: Session, history_id: int) -> Optional[RideHistory]:
     """Mark a ride as completed and optionally add rating"""
     db_history = db.query(RideHistory).filter(RideHistory.id == history_id).first()
     if not db_history:
@@ -55,14 +55,12 @@ def complete_ride_history(db: Session, history_id: int, rating_given: int = None
     pakistan_tz = pytz.timezone('Asia/Karachi')
     now_pakistan = datetime.now(pakistan_tz).replace(tzinfo=None)
     db_history.completed_at = now_pakistan
-    if rating_given:
-        db_history.rating_given = rating_given
     
     db.commit()
     db.refresh(db_history)
     return db_history
 
-def update_received_rating(db: Session, history_id: int, rating: int) -> Optional[RideHistory]:
+def update_received_rating(db: Session, history_id: int, rating: int, review: str) -> Optional[RideHistory]:
     """Update the rating received by a user for a specific ride"""
     db_history = db.query(RideHistory).filter(RideHistory.id == history_id).first()
     
@@ -70,11 +68,12 @@ def update_received_rating(db: Session, history_id: int, rating: int) -> Optiona
         return None
     
     db_history.rating_received = rating
+    db_history.review_received = review
     db.commit()
     db.refresh(db_history)
     return db_history
 
-def update_rating_given(db: Session, history_id: int, rating: int) -> Optional[RideHistory]:
+def update_rating_given(db: Session, history_id: int, rating: int, review: str) -> Optional[RideHistory]:
     """Update the rating received by a user for a specific ride"""
     db_history = db.query(RideHistory).filter(RideHistory.id == history_id).first()
     
@@ -82,6 +81,7 @@ def update_rating_given(db: Session, history_id: int, rating: int) -> Optional[R
         return None
     
     db_history.rating_given = rating
+    db_history.review_given = review
     db.commit()
     db.refresh(db_history)
     return db_history

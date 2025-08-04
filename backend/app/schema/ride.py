@@ -113,6 +113,8 @@ class RideHistoryResponse(BaseModel):
     completed_at: Optional[datetime] = None
     rating_given: Optional[int] = None
     rating_received: Optional[int] = None
+    review_given: Optional[str] = None
+    review_received: Optional[str] = None
     # Add ride details for frontend
     ride: Optional["DriverRideResponse"] = None
 
@@ -121,9 +123,11 @@ class RideHistoryResponse(BaseModel):
 
 class RideHistoryUpdateRequest(BaseModel):
     rating_received: Optional[int] = None
+    review_received: Optional[str] = None
 
 class RiderHistoryUpdateRequest(BaseModel):
     rating_given: Optional[int] = None
+    review_given: Optional[str] = None
 
 class RideHistoryCreate(BaseModel):
     user_id: int

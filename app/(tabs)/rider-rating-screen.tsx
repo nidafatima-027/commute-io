@@ -76,6 +76,7 @@ export default function RiderRateScreen() {
       // Update ride rating
       await ridesAPI.updateRideHistoryByUser(ratingId, {
         rating_given: rating,
+        review_given: review,
       });
 
       // Handle save as favorite if needed

@@ -326,8 +326,8 @@ async def update_ride_history(
 
     # If rating_received is provided, update it
     updated_history = None
-    if update_data.rating_received is not None:
-        updated_history = update_received_rating(db, history_id, update_data.rating_received)
+    if update_data.rating_received is not None and update_data.review_received is not None:
+        updated_history = update_received_rating(db, history_id, update_data.rating_received, update_data.review_received)
         if not updated_history:
             raise HTTPException(status_code=404, detail="Ride history not found when updating received rating")
 
@@ -355,6 +355,8 @@ async def update_rider_ride_history(
 
     if update_data.rating_given is not None:
         db_history.rating_given = update_data.rating_given
+    if update_data.review_given is not None:
+        db_history.review_given = update_data.review_given
 
     db.commit()
     db.refresh(db_history)
